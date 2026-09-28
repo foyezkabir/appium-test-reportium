@@ -620,17 +620,18 @@ function page(c, options) {
     return `<article class="detail ${t.st}" id="d-${t.id}" data-id="${t.id}">
       <header class="dhead"><span class="dot"></span><div class="dtitle"><h3>${t.tc ? `<em>${esc(t.tc)}</em> ` : ''}${esc(t.rest)}</h3>
         <div class="dmeta"><span class="chip mono">${esc(t.file)}</span>${t.groupName !== t.file ? `<span class="chip">${esc(t.groupName)}</span>` : ''}${attTags(t)}</div></div>
-        <div class="dstat"><span class="mono">${dur(t.duration)}</span>${t.att.includes('flaky') ? '' : `<span class="tag ${ht}">${hl}</span>`}${t.kind ? `<span class="tag ${KINDS[t.kind].tone}">${esc(KINDS[t.kind].label)}</span>` : ''}<span class="pill ${t.st}">${esc(STATUS_LABEL[t.status] ?? t.status)}</span>${speed}</div></header>
+        <div class="dstat"><span class="mono">${dur(t.duration)}</span>${t.att.includes('flaky') || t.ins.health === 'skipped' ? '' : `<span class="tag ${ht}">${hl}</span>`}${t.kind ? `<span class="tag ${KINDS[t.kind].tone}">${esc(KINDS[t.kind].label)}</span>` : ''}<span class="pill ${t.st}">${esc(STATUS_LABEL[t.status] ?? t.status)}</span>${speed}</div></header>
       ${t.diag ? `<section class="block sec why"><h4>${icon(I.info)}What went wrong</h4><p>${esc(t.diag.why)}</p><p class="next">${esc(t.diag.next)}</p></section>` : ''}
       ${historyBlock(t)}
       ${t.steps.length ? stepTimeline(t.steps) : ''}
       ${errs.map((m) => `<details class="block sec raw"${t.diag ? '' : ' open'}><summary>${icon(I.code)}Full error &amp; stack trace</summary><pre class="err">${highlight(stripAnsi(m))}</pre></details>`).join('')}
-      ${t.png ? `<section class="block sec media"><h4>${icon(I.device)}Device at failure</h4><figure class="shot"><img alt="device at failure: ${esc(t.title)}" src="data:image/png;base64,${t.png}"><figcaption>${((t.png.length * 3) / 4 / 1024).toFixed(0)} KB · click to enlarge</figcaption></figure></section>` : ''}
+      ${t.png ? `<section class="block sec media"><h4>${icon(I.device)}Device at failure</h4><figure class="shot"><img alt="device at failure: ${esc(t.title)}" src="data:image/png;base64,${t.png}"><figcaption>${((t.png.length * 3) / 4 / 1024).toFixed(0)} KB<span class="noprint"> · click to enlarge</span></figcaption></figure></section>` : ''}
       ${!errs.length && !t.steps.length ? `<p class="empty">${t.st === 'passed' ? 'Passed. No steps were recorded for this test.' : 'Not run.'}</p>` : ''}
     </article>`;
   }).join('');
 
   const testsView = `<section class="view" id="v-tests" data-view="tests">
+  <h2 class="vtitle print-only">Tests <span class="muted mono">${total} test${total === 1 ? '' : 's'}</span></h2>
   <div class="split">
     <aside class="tlist"><div class="tlist-top"><input id="tf" class="input" type="search" placeholder="Filter tests…" autocomplete="off"><span id="tcount" class="mono muted"></span></div>
       <div class="tlist-body">${listHtml || '<p class="empty">No tests ran.</p>'}</div></aside>
@@ -1524,12 +1525,6 @@ font:500 12px/1.55 var(--mono);text-align:left;white-space:pre-line;box-shadow:0
 .empty-state b{color:var(--fg);font-size:16px}
 .empty-state p{max-width:520px;font-size:13px}
 .empty-state code{font-family:var(--mono);font-size:12px;padding:1px 6px;border-radius:4px;background:var(--hover)}
-@media print{
-  .top,.side,.tlist,.lightbox,.foot,.iconbtn{display:none!important}
-  .shell,.split{display:block;height:auto}
-  .view,.detail{display:block!important}
-  .detail{break-inside:avoid;margin-bottom:24px}
-}
 /* ── responsive ── */
 @media(max-width:1200px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.search{width:200px}.tcharts{grid-template-columns:1fr}}
 @media(max-width:1060px){.topbtn span{display:none}.stamp{display:none}}
@@ -1550,6 +1545,64 @@ font:500 12px/1.55 var(--mono);text-align:left;white-space:pre-line;box-shadow:0
   .themesel{padding:0 8px}.themesel select{position:absolute;inset:0;width:100%;opacity:0}.themesel{position:relative;width:36px;justify-content:center}
   .cards{grid-template-columns:1fr}.view{padding:0 16px 24px}.vtitle{margin:0 -16px 18px;padding:16px}
   .tdetail{padding:18px 16px}.steps .sbar{display:none}
+}
+/* ── print / Save as PDF ────────────────────────────────────────────────
+   Light palette to save ink, every section on its own page, and no card,
+   chart, table row or test block split across a page break. */
+.print-only{display:none}
+@page{size:A4;margin:14mm 12mm}
+@media print{
+  :root,:root[data-theme]{${LIGHT};color-scheme:light}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html,body{background:#fff!important;scrollbar-gutter:auto}
+  body{font-size:12px}
+  .top,.side,.tlist,.lightbox,.foot,.iconbtn,.tactions,.search,.export,.themesel,.stamp,.rexp,.qcf,.linkbtn{display:none!important}
+  .print-only{display:block}
+  .shell{display:block}
+  .main,.view,.split,.tdetail{display:block!important;height:auto!important;overflow:visible!important;padding:0!important;margin:0}
+  .view{break-before:page}
+  #v-overview{break-before:auto}
+  .vtitle,.thead2{margin:0 0 14px!important;padding:0 0 10px!important;background:none!important;border-bottom:2px solid var(--border)}
+  .detail{display:block!important;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+  .detail+.detail{break-before:auto}
+  .pick,.empty.pick{display:none!important}
+  /* Keep whole: cards, panels, charts, rows. */
+  .card,.att,.insight,.cluster,.panel,.rule,.qitem,.qchart,.qhead,.tcard,.dcard,.ditem,.matrix,.rmatrix>header,.block,.shot,.gitem,
+  .dhead,tr,.lgroup,.env,.panels>section,figure,pre{break-inside:avoid;page-break-inside:avoid}
+  .qpanel,.qbody,.rmatrix,.dgrid,.tgrid,.cards,.atts,.clusters,.insights,.panels{break-inside:auto}
+  thead{display:table-header-group}
+  h2,h3,h4,.shead,.dhead2,.qlh,.qhead,.qch,.lghead{break-after:avoid;page-break-after:avoid}
+  /* Grids narrow enough for an A4 page. */
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .qbody,.tgrid,.panels{grid-template-columns:1fr!important}
+  .dgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .gallery{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .dcard{min-height:0}
+  .tarea{height:140px}.achart{min-height:170px}.aplot{min-height:140px}
+  /* Hover-only bits have no meaning on paper. */
+  .spt::after,.tbar2::after{display:none!important}
+  .qbadge i,.qbadge i::after{animation:none!important}
+  .sec.raw{display:block}.sec.raw>summary::after{display:none}
+  .sec.raw[open] pre,.sec.raw pre{display:block}
+  .shot img{max-height:320px}
+  a{color:inherit;text-decoration:none}
+  .noprint{display:none!important}
+  pre,pre.err{white-space:pre-wrap!important;word-break:break-word;overflow:visible!important}
+  .panels{grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr)!important}
+  .donut{width:160px;height:160px}
+  /* Test header: title on its own line, chips below, and never left alone at a page foot. */
+  .dhead{flex-direction:column;align-items:stretch;gap:8px;break-after:avoid;page-break-after:avoid}
+  .dhead>.dot{display:none}
+  .dtitle{min-width:0}.dtitle h3{white-space:normal}
+  .dstat{justify-content:flex-start}
+  /* Bars share the width on paper; a scrollbar cannot be scrolled in a PDF. */
+  .bars{overflow:hidden!important;gap:6px}.bar-col{flex:1 1 0!important;min-width:0!important;max-width:none}
+  .tablewrap{overflow:visible!important}
+  /* Tables fit the page: no Action column (nothing to click on paper), tighter cells. */
+  .htable th:last-child,.htable td:last-child{display:none}
+  .htable th,.htable td,.mtable th,.mtable td{padding:8px 10px}
+  .htable,.mtable{font-size:11.5px}
+  .rdetail{display:none!important}
 }`;
 }
 
@@ -1645,6 +1698,10 @@ $$('[data-exp]').forEach(function(b){b.addEventListener('click',function(){
 $$('.rexp').forEach(function(b){b.addEventListener('click',function(){
   var row=document.getElementById(b.dataset.rd), open=row.hidden; row.hidden=!open; b.setAttribute('aria-expanded',String(open)); b.classList.toggle('open',open);
 })});
+// Closed <details> print as nothing: open the stack traces for the PDF, then restore.
+var reopened=[];
+window.addEventListener('beforeprint',function(){reopened=$$('details.sec.raw:not([open])');reopened.forEach(function(d){d.open=true});});
+window.addEventListener('afterprint',function(){reopened.forEach(function(d){d.open=false});reopened=[];});
 window.addEventListener('hashchange',route);
 apply(); route();
 })();`;

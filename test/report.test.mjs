@@ -118,6 +118,15 @@ test('stylesheet has no orphaned rule fragments (they silently swallow the next 
   assert.equal(depth, 0, 'every { is closed');
 });
 
+test('print stylesheet comes last and keeps blocks whole', () => {
+  const css = renderReport(fromJUnit(xml), OPTS).match(/<style>([\s\S]*?)<\/style>/)[1];
+  const printAt = css.lastIndexOf('@media print');
+  assert.ok(printAt > css.lastIndexOf('@media(max-width'), 'print rules must follow the screen breakpoints or they get overridden');
+  const print = css.slice(printAt);
+  for (const rule of ['break-inside:avoid', 'break-before:page', 'print-color-adjust:exact', 'white-space:pre-wrap']) assert.ok(print.includes(rule), rule);
+  assert.match(css, /@page\{size:A4/);
+});
+
 test('slug is the one shared definition', () => {
   assert.equal(slug('TC03: Duplicate code is rejected with a message'), 'TC03_Duplicate_code_is_rejected_with_a_message');
 });

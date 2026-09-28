@@ -33,6 +33,12 @@ Will ship as **0.1.1** (already set in `package.json`).
   their styles had been removed along with the old sparklines.
 - Trend bars are softer: the current run is a fading gradient with a bright
   top edge instead of a solid, glowing block.
+- Export → Print / Save as PDF produces a proper PDF: A4, light palette with
+  backgrounds kept, each section (Overview, Tests, Trends, Comparison,
+  Gallery) on a new page, and no card, chart, table row or test block split
+  across a page break. Stack traces print in full and wrap; tables and bar
+  charts fit the page; hover-only hints are left out.
+- Fix: a skipped test showed "Skipped" twice in its header.
 
 ## 0.1.0 · 2026-09-28
 
