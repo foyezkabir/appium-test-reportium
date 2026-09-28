@@ -375,6 +375,13 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gsuite{display:flex;align-items:center;gap:6px;min-width:0;font-size:11.5px;color:var(--blue)}
 .gsuite .i{width:13px;height:13px;flex:none}
 .gsuite span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gkind{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--tone);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.gkind i{width:7px;height:7px;border-radius:50%;flex:none;background:var(--tone)}
+/* a heading per group while sorted, so the grouping can be checked at a glance */
+.ggroup{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:8px 0 -4px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tone,var(--fg2))}
+.ggroup:first-child{margin-top:0}
+.ggroup i{font-style:normal;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0;padding:1px 8px;border-radius:5px;border:1px solid var(--border);color:var(--fg2)}
+.ggroup::after{content:"";flex:1;height:1px;background:var(--border)}
 .gbody small{font-family:var(--mono);font-size:11px;line-height:1.55;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .lightbox video{max-width:min(92vw,560px);max-height:88vh;border-radius:12px;background:#000}
 @media(max-width:1300px){.gfeat{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -1213,47 +1220,47 @@ Received: &quot;record saved&quot;
       <button type="button" data-gf="shot"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Screenshots <i>7</i></button>
       <button type="button" data-gf="vid" disabled><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>Videos <i>0</i></button></div>
     <label class="gsort"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><select id="gsort" aria-label="Sort gallery"><option value="fail">Failures first</option><option value="order">By test order</option><option value="suite">By suite</option><option value="kind">By failure kind</option><option value="rec">Recordings first</option></select></label></div>
-  <div class="gfeat" id="gfeat"><article class="gi-item failed" data-idx="1" data-kind="app" data-suite="Orders: creation and validation" data-shot="1" data-vid="0">
+  <div class="gfeat" id="gfeat"><article class="gi-item failed" data-idx="1" data-kind="app" data-suite="Orders: creation and validation" data-kindlabel="Possible app defects" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t2" aria-label="View screenshot fullscreen"><img alt="screenshot: TC03: Duplicate code is rejected with a message" data-from="t2"><span class="gtag shot">Screenshot</span><span class="gtime">00:01.705</span></button></div>
         <a class="gbody" href="#t2"><span class="ghead"><span class="gdot"></span><b>TC03</b><span class="gstat">Failed</span></span>
-          <span class="gtitle">Duplicate code is rejected with a message</span><span class="gsuite" title="Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Orders: creation and validation</span></span><small>The app never showed the text “Code already exists” within the wait.</small></a>
+          <span class="gtitle">Duplicate code is rejected with a message</span><span class="gsuite" title="Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Orders: creation and validation</span></span><span class="gkind red"><i></i>Possible app defects</span><small>The app never showed the text “Code already exists” within the wait.</small></a>
       </div>
-    </article><article class="gi-item failed" data-idx="3" data-kind="test" data-suite="Explainer coverage" data-shot="1" data-vid="0">
+    </article><article class="gi-item failed" data-idx="3" data-kind="test" data-suite="Explainer coverage" data-kindlabel="Locator &amp; wait issues" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t4" aria-label="View screenshot fullscreen"><img alt="screenshot: TC10: locator not found" data-from="t4"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t4"><span class="ghead"><span class="gdot"></span><b>TC10</b><span class="gstat">Failed</span></span>
-          <span class="gtitle">locator not found</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The locator matched nothing on the current screen.</small></a>
+          <span class="gtitle">locator not found</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><span class="gkind orange"><i></i>Locator &amp; wait issues</span><small>The locator matched nothing on the current screen.</small></a>
       </div>
-    </article><article class="gi-item failed" data-idx="4" data-kind="test" data-suite="Explainer coverage" data-shot="1" data-vid="0">
+    </article><article class="gi-item failed" data-idx="4" data-kind="test" data-suite="Explainer coverage" data-kindlabel="Locator &amp; wait issues" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t5" aria-label="View screenshot fullscreen"><img alt="screenshot: TC11: stale element" data-from="t5"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t5"><span class="ghead"><span class="gdot"></span><b>TC11</b><span class="gstat">Failed</span></span>
-          <span class="gtitle">stale element</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The element handle went stale: the view re-rendered between finding it and using it.</small></a>
+          <span class="gtitle">stale element</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><span class="gkind orange"><i></i>Locator &amp; wait issues</span><small>The element handle went stale: the view re-rendered between finding it and using it.</small></a>
       </div>
-    </article><article class="gi-item failed" data-idx="5" data-kind="env" data-suite="Explainer coverage" data-shot="1" data-vid="0">
+    </article><article class="gi-item failed" data-idx="5" data-kind="env" data-suite="Explainer coverage" data-kindlabel="Environment issues" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t6" aria-label="View screenshot fullscreen"><img alt="screenshot: TC12: session lost" data-from="t6"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t6"><span class="ghead"><span class="gdot"></span><b>TC12</b><span class="gstat">Failed</span></span>
-          <span class="gtitle">session lost</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>Appium could not take control of the device: another automation client already holds it.</small></a>
+          <span class="gtitle">session lost</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><span class="gkind yellow"><i></i>Environment issues</span><small>Appium could not take control of the device: another automation client already holds it.</small></a>
       </div>
-    </article><article class="gi-item failed" data-idx="6" data-kind="env" data-suite="Explainer coverage" data-shot="1" data-vid="0">
+    </article><article class="gi-item failed" data-idx="6" data-kind="env" data-suite="Explainer coverage" data-kindlabel="Environment issues" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t7" aria-label="View screenshot fullscreen"><img alt="screenshot: TC13: tls" data-from="t7"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t7"><span class="ghead"><span class="gdot"></span><b>TC13</b><span class="gstat">Failed</span></span>
-          <span class="gtitle">tls</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The app could not reach its API because the TLS certificate was rejected.</small></a>
+          <span class="gtitle">tls</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><span class="gkind yellow"><i></i>Environment issues</span><small>The app could not reach its API because the TLS certificate was rejected.</small></a>
       </div>
-    </article><article class="gi-item failed" data-idx="7" data-kind="app" data-suite="Explainer coverage" data-shot="1" data-vid="0">
+    </article><article class="gi-item failed" data-idx="7" data-kind="app" data-suite="Explainer coverage" data-kindlabel="Possible app defects" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t8" aria-label="View screenshot fullscreen"><img alt="screenshot: TC14: plain assertion" data-from="t8"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.004</span></button></div>
         <a class="gbody" href="#t8"><span class="ghead"><span class="gdot"></span><b>TC14</b><span class="gstat">Failed</span></span>
-          <span class="gtitle">plain assertion</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The app produced &quot;record saved&quot; where the test required &quot;Code already exists&quot;.</small></a>
+          <span class="gtitle">plain assertion</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><span class="gkind red"><i></i>Possible app defects</span><small>The app produced &quot;record saved&quot; where the test required &quot;Code already exists&quot;.</small></a>
       </div>
-    </article><article class="gi-item failed" data-idx="8" data-kind="unknown" data-suite="Explainer coverage" data-shot="1" data-vid="0">
+    </article><article class="gi-item failed" data-idx="8" data-kind="unknown" data-suite="Explainer coverage" data-kindlabel="Unclassified" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t9" aria-label="View screenshot fullscreen"><img alt="screenshot: TC15: unmatched" data-from="t9"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t9"><span class="ghead"><span class="gdot"></span><b>TC15</b><span class="gstat">Failed</span></span>
-          <span class="gtitle">unmatched</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>Error: Something entirely unanticipated happened in the bridge</small></a>
+          <span class="gtitle">unmatched</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><span class="gkind blue"><i></i>Unclassified</span><small>Error: Something entirely unanticipated happened in the bridge</small></a>
       </div>
     </article></div>
   <p class="empty" id="gnone" hidden>Nothing to show for this filter.</p>
@@ -1358,7 +1365,25 @@ function gDeal(){
     return a.dataset.idx-b.dataset.idx;});
   var shown=items.filter(function(it){return gf==='all'||(gf==='shot'?it.dataset.shot==='1':it.dataset.vid==='1');});
   items.forEach(function(it){it.hidden=shown.indexOf(it)<0; it.classList.toggle('only-shot',gf==='shot'); it.classList.toggle('only-vid',gf==='vid');});
-  items.forEach(function(it){gfeat.appendChild(it);});
+  $$('.ggroup',gfeat).forEach(function(h){h.remove();});
+  var TONE={app:'red',test:'orange',env:'yellow',timeout:'purple',unknown:'blue'};
+  function keyOf(it){
+    if(mode==='kind') return it.dataset.kind? [it.dataset.kind, it.dataset.kindlabel, TONE[it.dataset.kind]] : ['~','Passed (no failure kind)','green'];
+    if(mode==='suite') return [it.dataset.suite, it.dataset.suite, 'blue'];
+    if(mode==='rec') return it.dataset.vid==='1'? ['1','With recording','green'] : ['0','Screenshot only','blue'];
+    if(mode==='fail') return it.classList.contains('failed')? ['f','Failed','red'] : ['p','Passed','green'];
+    return null;
+  }
+  var last=null;
+  items.forEach(function(it){
+    var k=it.hidden?null:keyOf(it);
+    if(k&&(!last||last[0]!==k[0])){
+      var n=shown.filter(function(x){var kk=keyOf(x);return kk&&kk[0]===k[0];}).length;
+      var h=document.createElement('div'); h.className='ggroup '+k[2]; h.setAttribute('role','heading'); h.setAttribute('aria-level','3');
+      h.textContent=k[1]; var c=document.createElement('i'); c.textContent=n; h.appendChild(c); gfeat.appendChild(h); last=k;
+    }
+    gfeat.appendChild(it);
+  });
   $('#gnone').hidden=shown.length>0;
 }
 $$('[data-gf]').forEach(function(b){b.addEventListener('click',function(){gf=b.dataset.gf; $$('[data-gf]').forEach(function(x){x.classList.toggle('on',x===b)}); gDeal();});});

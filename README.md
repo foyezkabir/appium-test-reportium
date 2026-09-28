@@ -499,8 +499,9 @@ tests with any media).
 | Part | What it does |
 |---|---|
 | **All / Screenshots / Videos** | show everything, only screenshots, or only recordings |
-| **Sort** | **Failures first** (default), **By test order**, **By suite**, **By failure kind**, or **Recordings first** |
+| **Sort** | **Failures first** (default), **By test order**, **By suite**, **By failure kind**, or **Recordings first**. Every sort but test order puts a heading with a count above each group (e.g. *Possible app defects · 2*), so you can see where a group starts and check it |
 | Suite line | every card names its suite and spec file (TC numbers repeat across specs), for example `Login · specs/login.e2e.ts` |
+| Kind line | the card's [failure kind](#failure-kind), in the same colour as the sidebar filter; a passed test's card says *Passed · no failure* |
 | Cards | one for every capture, three per row, all the same size: screenshot and recording side by side (REC with its length), or the screenshot alone, then the TC, status, suite and spec, title and diagnosis. Click the screenshot for fullscreen, play the recording in place, click the text to open the test |
 
 A passed test appears only if you kept its recording

@@ -873,13 +873,15 @@ function page(c, options) {
     // TC numbers repeat across specs, so every card names the suite and spec it came from.
     const where = t.groupName === t.file ? t.file : `${t.groupName} · ${t.file}`;
     const whereHtml = `<span class="gsuite" title="${esc(where)}">${icon(I.folder)}<span>${esc(where)}</span></span>`;
+    const kindLabel = t.kind ? KINDS[t.kind].label : '';
+    const kindHtml = t.kind ? `<span class="gkind ${KINDS[t.kind].tone}"><i></i>${esc(kindLabel)}</span>` : `<span class="gkind green"><i></i>${esc(STATUS_LABEL[t.status] ?? t.status)} · no failure</span>`;
     const shotPane = t.png ? `<button type="button" class="gp gp-shot" data-lb="img" data-from="${t.id}" aria-label="View screenshot fullscreen"><img alt="screenshot: ${esc(t.title)}" data-from="${t.id}"><span class="gtag shot">Screenshot</span><span class="gtime">${esc(clockStr(t.duration))}</span></button>` : '';
     const vidPane = t.video ? `<div class="gp gp-vid"><video controls preload="metadata" playsinline data-from="${t.id}"></video><span class="gtag rec"><i></i>Rec</span><span class="gtime" data-vlen="${t.id}"></span></div>` : '';
-    return `<article class="gi-item ${t.st}" data-idx="${tests.indexOf(t)}" data-kind="${t.kind ?? ''}" data-suite="${esc(t.groupName)}" data-shot="${t.png ? 1 : 0}" data-vid="${t.video ? 1 : 0}">
+    return `<article class="gi-item ${t.st}" data-idx="${tests.indexOf(t)}" data-kind="${t.kind ?? ''}" data-suite="${esc(t.groupName)}" data-kindlabel="${esc(kindLabel)}" data-shot="${t.png ? 1 : 0}" data-vid="${t.video ? 1 : 0}">
       <div class="gcard">
         <div class="gmedia${t.png && t.video ? ' both' : ''}">${shotPane}${vidPane}</div>
         <a class="gbody" href="#${t.id}"><span class="ghead"><span class="gdot"></span><b>${esc(t.tc || 'Test')}</b><span class="gstat">${esc(status)}</span></span>
-          <span class="gtitle">${esc(t.rest)}</span>${whereHtml}<small>${esc(sub)}</small></a>
+          <span class="gtitle">${esc(t.rest)}</span>${whereHtml}${kindHtml}<small>${esc(sub)}</small></a>
       </div>
     </article>`;
   };
@@ -1425,6 +1427,13 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gsuite{display:flex;align-items:center;gap:6px;min-width:0;font-size:11.5px;color:var(--blue)}
 .gsuite .i{width:13px;height:13px;flex:none}
 .gsuite span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gkind{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--tone);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.gkind i{width:7px;height:7px;border-radius:50%;flex:none;background:var(--tone)}
+/* a heading per group while sorted, so the grouping can be checked at a glance */
+.ggroup{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:8px 0 -4px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tone,var(--fg2))}
+.ggroup:first-child{margin-top:0}
+.ggroup i{font-style:normal;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0;padding:1px 8px;border-radius:5px;border:1px solid var(--border);color:var(--fg2)}
+.ggroup::after{content:"";flex:1;height:1px;background:var(--border)}
 .gbody small{font-family:var(--mono);font-size:11px;line-height:1.55;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .lightbox video{max-width:min(92vw,560px);max-height:88vh;border-radius:12px;background:#000}
 @media(max-width:1300px){.gfeat{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -1912,7 +1921,25 @@ function gDeal(){
     return a.dataset.idx-b.dataset.idx;});
   var shown=items.filter(function(it){return gf==='all'||(gf==='shot'?it.dataset.shot==='1':it.dataset.vid==='1');});
   items.forEach(function(it){it.hidden=shown.indexOf(it)<0; it.classList.toggle('only-shot',gf==='shot'); it.classList.toggle('only-vid',gf==='vid');});
-  items.forEach(function(it){gfeat.appendChild(it);});
+  $$('.ggroup',gfeat).forEach(function(h){h.remove();});
+  var TONE={app:'red',test:'orange',env:'yellow',timeout:'purple',unknown:'blue'};
+  function keyOf(it){
+    if(mode==='kind') return it.dataset.kind? [it.dataset.kind, it.dataset.kindlabel, TONE[it.dataset.kind]] : ['~','Passed (no failure kind)','green'];
+    if(mode==='suite') return [it.dataset.suite, it.dataset.suite, 'blue'];
+    if(mode==='rec') return it.dataset.vid==='1'? ['1','With recording','green'] : ['0','Screenshot only','blue'];
+    if(mode==='fail') return it.classList.contains('failed')? ['f','Failed','red'] : ['p','Passed','green'];
+    return null;
+  }
+  var last=null;
+  items.forEach(function(it){
+    var k=it.hidden?null:keyOf(it);
+    if(k&&(!last||last[0]!==k[0])){
+      var n=shown.filter(function(x){var kk=keyOf(x);return kk&&kk[0]===k[0];}).length;
+      var h=document.createElement('div'); h.className='ggroup '+k[2]; h.setAttribute('role','heading'); h.setAttribute('aria-level','3');
+      h.textContent=k[1]; var c=document.createElement('i'); c.textContent=n; h.appendChild(c); gfeat.appendChild(h); last=k;
+    }
+    gfeat.appendChild(it);
+  });
   $('#gnone').hidden=shown.length>0;
 }
 $$('[data-gf]').forEach(function(b){b.addEventListener('click',function(){gf=b.dataset.gf; $$('[data-gf]').forEach(function(x){x.classList.toggle('on',x===b)}); gDeal();});});

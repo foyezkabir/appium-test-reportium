@@ -18,8 +18,9 @@ Will ship as **0.2.0** (already set in `package.json`): screen recordings are a 
   failure kind, recordings first); a card for every capture, three per row
   and all the same size, with the screenshot and REC pane side by side. A kept recording of a passed
   test appears too, but only one made during this run. Every card names its
-  suite and spec file, since TC numbers repeat across specs, and the sort
-  offers By suite.
+  suite and spec file, since TC numbers repeat across specs, and its failure
+  kind in the filter's colour. The sort offers By suite, and every sort but
+  test order heads each group with its name and count.
 - Sidebar refresh: the pass ring and the Passed / Failed / Flaky tiles share
   one card, with tiles tinted in their colour (Failed stands out when there
   are failures); new navigation icons, square count badges, and the
