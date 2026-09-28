@@ -872,19 +872,22 @@ function page(c, options) {
   const gTile = (t) => {
     const status = STATUS_LABEL[t.status] ?? t.status;
     const sub = t.st === 'failed' ? t.diag?.why ?? t.firstLine : t.steps.length ? `${t.steps.length} steps recorded` : 'Recorded run';
+    // TC numbers repeat across specs, so every card names the suite and spec it came from.
+    const where = t.groupName === t.file ? t.file : `${t.groupName} · ${t.file}`;
+    const whereHtml = `<span class="gsuite" title="${esc(where)}">${icon(I.folder)}<span>${esc(where)}</span></span>`;
     const shotPane = t.png ? `<button type="button" class="gp gp-shot" data-lb="img" data-from="${t.id}" aria-label="View screenshot fullscreen"><img alt="screenshot: ${esc(t.title)}" data-from="${t.id}"><span class="gtag shot">Screenshot</span><span class="gtime">${esc(clockStr(t.duration))}</span></button>` : '';
     const vidPane = t.video ? `<div class="gp gp-vid"><video controls preload="metadata" playsinline data-from="${t.id}"></video><span class="gtag rec"><i></i>Rec</span><span class="gtime" data-vlen="${t.id}"></span></div>` : '';
     const thumb = t.png ? `<button type="button" class="gthumb" data-lb="img" data-from="${t.id}" aria-label="View screenshot fullscreen"><img alt="" data-from="${t.id}"><span>Img</span></button>`
       : `<button type="button" class="gthumb vid" data-lb="vid" data-from="${t.id}" aria-label="Watch recording"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5.5 3.5-5.5 3.5z"/></svg><span data-vlen="${t.id}"></span></button>`;
     const act = t.png ? `<button type="button" class="gact" data-lb="img" data-from="${t.id}">${icon(I.eye)}View fullscreen</button>` : '';
     const actV = t.video ? `<button type="button" class="gact" data-lb="vid" data-from="${t.id}">${icon(I.play)}Watch replay</button>` : '';
-    return `<article class="gi-item ${t.st}" data-idx="${tests.indexOf(t)}" data-kind="${t.kind ?? ''}" data-shot="${t.png ? 1 : 0}" data-vid="${t.video ? 1 : 0}">
+    return `<article class="gi-item ${t.st}" data-idx="${tests.indexOf(t)}" data-kind="${t.kind ?? ''}" data-suite="${esc(t.groupName)}" data-shot="${t.png ? 1 : 0}" data-vid="${t.video ? 1 : 0}">
       <div class="gcard">
         <div class="gmedia${t.png && t.video ? ' both' : ''}">${shotPane}${vidPane}</div>
         <a class="gbody" href="#${t.id}"><span class="ghead"><span class="gdot"></span><b>${esc(t.tc || 'Test')}</b><span class="gstat">${esc(status)}</span></span>
-          <span class="gtitle">${esc(t.rest)}</span><small>${esc(sub)}</small></a>
+          <span class="gtitle">${esc(t.rest)}</span>${whereHtml}<small>${esc(sub)}</small></a>
       </div>
-      <div class="grow">${thumb}<div class="grtext"><a class="grt" href="#${t.id}">${t.tc ? `${esc(t.tc)}: ` : ''}${esc(t.rest)}</a><small>${esc(sub)}</small><span class="gacts">${act}${actV}</span></div>
+      <div class="grow">${thumb}<div class="grtext"><a class="grt" href="#${t.id}">${t.tc ? `${esc(t.tc)}: ` : ''}${esc(t.rest)}</a>${whereHtml}<small>${esc(sub)}</small><span class="gacts">${act}${actV}</span></div>
         <span class="grmeta">${t.st === 'failed' ? `<em>${esc(t.png ? kb(t.png) : kb(t.video))}</em>` : `<em class="ok">${esc(status)}</em>`}</span></div>
     </article>`;
   };
@@ -899,7 +902,7 @@ function page(c, options) {
       <button type="button" class="on" data-gf="all">${icon(I.grid)}All <i>${shots.length + videos.length}</i></button>
       <button type="button" data-gf="shot">${icon(I.image)}Screenshots <i>${shots.length}</i></button>
       <button type="button" data-gf="vid"${videos.length ? '' : ' disabled'}>${icon(I.play)}Videos <i>${videos.length}</i></button></div>
-    <label class="gsort">${icon(I.list)}<select id="gsort" aria-label="Sort gallery"><option value="fail">Failures first</option><option value="order">By test order</option><option value="kind">By failure kind</option><option value="rec">Recordings first</option></select></label></div>
+    <label class="gsort">${icon(I.list)}<select id="gsort" aria-label="Sort gallery"><option value="fail">Failures first</option><option value="order">By test order</option><option value="suite">By suite</option><option value="kind">By failure kind</option><option value="rec">Recordings first</option></select></label></div>
   <div class="gfeat" id="gfeat" data-n="${FEATURED}">${itemsHtml.slice(0, FEATURED).join('')}</div>
   <div class="gmore" id="gmore"${media.length > FEATURED ? '' : ' hidden'}><div class="gmorehead"><h3>${icon(I.image)}Additional run captures &amp; recordings</h3><span id="gmorecount">${media.length - FEATURED} more</span></div>
     <div class="glist" id="glist">${itemsHtml.slice(FEATURED).join('')}</div></div>
@@ -1433,6 +1436,9 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gi-item.passed .gstat{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent)}
 .gtitle{font-size:13.5px;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gbody small{min-height:calc(2 * 1.55em)}
+.gsuite{display:flex;align-items:center;gap:6px;min-width:0;font-size:11.5px;color:var(--blue)}
+.gsuite .i{width:13px;height:13px;flex:none}
+.gsuite span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gbody small{font-family:var(--mono);font-size:11px;line-height:1.55;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 /* compact list */
 .gmore{margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
@@ -1940,6 +1946,7 @@ function gDeal(){
     if(mode==='fail'&&fa!==fb) return fa-fb;
     if(mode==='rec'&&a.dataset.vid!==b.dataset.vid) return b.dataset.vid-a.dataset.vid;
     if(mode==='kind'&&a.dataset.kind!==b.dataset.kind) return KO[a.dataset.kind]-KO[b.dataset.kind];
+    if(mode==='suite'&&a.dataset.suite!==b.dataset.suite) return a.dataset.suite<b.dataset.suite?-1:1;
     return a.dataset.idx-b.dataset.idx;});
   var shown=items.filter(function(it){return gf==='all'||(gf==='shot'?it.dataset.shot==='1':it.dataset.vid==='1');});
   items.forEach(function(it){it.hidden=shown.indexOf(it)<0; it.classList.toggle('only-shot',gf==='shot'); it.classList.toggle('only-vid',gf==='vid');});

@@ -377,6 +377,11 @@ explanation never replaces the evidence.
 
 #### Suite groups
 
+> **Spec file paths from JUnit XML:** the report shows the spec file when the
+> XML has one. Turn it on in your reporter: `addFileAttribute: 'true'` for
+> `jest-junit` and `@wdio/junit-reporter`, `useFullSuiteTitle` / `outputs` for
+> `mocha-junit-reporter`. Without it, the JUnit suite name stands in for the file.
+
 The `describe` block a test belongs to. From JUnit XML this is the
 `classname`; from Jest it is the full describe path, for example
 `Checkout › Payment`. Long names are cut with "…"; hover to see the full
@@ -494,7 +499,8 @@ tests with any media).
 | Part | What it does |
 |---|---|
 | **All / Screenshots / Videos** | show everything, only screenshots, or only recordings |
-| **Sort** | **Failures first** (default), **By test order**, **By failure kind**, or **Recordings first** |
+| **Sort** | **Failures first** (default), **By test order**, **By suite**, **By failure kind**, or **Recordings first** |
+| Suite line | every card names its suite and spec file (TC numbers repeat across specs), for example `Login · specs/login.e2e.ts` |
 | Large cards | the first six, three per row and all the same size: screenshot and recording side by side (REC with its length), or the screenshot alone, then the TC, status, title and diagnosis. Click the screenshot for fullscreen, the text to open the test |
 | **Additional run captures & recordings** | the rest, as compact rows: **View fullscreen** for a screenshot, **Watch replay** for a recording |
 

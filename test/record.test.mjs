@@ -96,3 +96,18 @@ test('a passed test shows a recording from this run, never a leftover from an ea
   assert.match(html, /Screen recording<\/h4>/, 'a passed test is not labelled "at failure"');
   assert.doesNotMatch(html, /data:image\/png/, 'screenshots only ever belong to failed tests');
 });
+
+test('gallery cards name the suite and spec, since TC numbers repeat across specs', () => {
+  const dir = tmp();
+  mkdirSync(join(dir, 'failures'), { recursive: true });
+  writeFileSync(join(dir, 'failures', '2026-01-01T00-00-00-000Z__TC01_login.png'), Buffer.from('png'));
+  writeFileSync(join(dir, 'failures', '2026-01-01T00-00-00-000Z__TC01_checkout.png'), Buffer.from('png'));
+  const run = { startTime: 1, duration: 1, suites: [
+    { file: 'specs/login.e2e.ts', tests: [{ title: 'TC01: login', fullName: 'Login TC01: login', group: ['Login'], status: 'failed', duration: 5, errors: ['Error: a'] }] },
+    { file: 'specs/cart.e2e.ts', tests: [{ title: 'TC01: checkout', fullName: 'Cart TC01: checkout', group: ['Cart'], status: 'failed', duration: 5, errors: ['Error: b'] }] },
+  ] };
+  const gallery = renderReport(run, { outputDirectory: dir, historyFile: false }).split('id="v-gallery"')[1];
+  assert.match(gallery, /<b>TC01<\/b>[\s\S]*?<span class="gsuite" title="Login · specs\/login\.e2e\.ts">/);
+  assert.match(gallery, /<b>TC01<\/b>[\s\S]*?<span class="gsuite" title="Cart · specs\/cart\.e2e\.ts">/);
+  assert.match(gallery, /<option value="suite">By suite<\/option>/);
+});

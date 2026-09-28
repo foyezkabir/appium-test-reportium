@@ -18,7 +18,9 @@ Will ship as **0.2.0** (already set in `package.json`): screen recordings are a 
   failure kind, recordings first); six large cards, three per row and all the
   same size, with the screenshot and REC pane side by side, then a compact list with View fullscreen and Watch
   replay, both opening the fullscreen viewer. A kept recording of a passed
-  test appears too, but only one made during this run.
+  test appears too, but only one made during this run. Every card names its
+  suite and spec file, since TC numbers repeat across specs, and the sort
+  offers By suite.
 - Sidebar refresh: the pass ring and the Passed / Failed / Flaky tiles share
   one card, with tiles tinted in their colour (Failed stands out when there
   are failures); new navigation icons and a blue outlined active page with
