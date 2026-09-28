@@ -266,7 +266,9 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 55%,transparent
 .block h4,.block>summary{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);margin-bottom:12px}
 .block>summary{list-style:none;cursor:pointer;margin:0}
 .block>summary::-webkit-details-marker{display:none}
-.block>summary::after{content:"▸";margin-left:auto;transition:transform .15s}
+/* A real, clickable-looking chevron, not a tiny glyph; it takes the section's colour. */
+.block>summary::after{content:"›";margin-left:auto;display:grid;place-items:center;width:28px;height:28px;border-radius:7px;flex:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);background:color-mix(in srgb,currentColor 10%,transparent);font-family:var(--sans);font-size:22px;font-weight:500;line-height:1;padding-bottom:3px;letter-spacing:0;transition:transform .15s,background .15s}
+.block>summary:hover::after{background:color-mix(in srgb,currentColor 22%,transparent);border-color:color-mix(in srgb,currentColor 60%,transparent)}
 .block[open]>summary{margin-bottom:12px}
 .block[open]>summary::after{transform:rotate(90deg)}
 .block h4 .cnt{font-family:var(--mono);font-size:10px;padding:1px 8px;border-radius:999px;background:var(--hover);letter-spacing:0}
@@ -391,9 +393,9 @@ background:var(--bg2);color:var(--fg);font:500 12px/1.55 var(--mono);text-align:
 .runno{margin-left:8px;font-size:11px;color:var(--mut)}
 .ract{font-size:11px;font-weight:600;padding:3px 9px;border-radius:5px;border:1px solid var(--border);background:var(--hover)}
 .ract:hover{border-color:var(--glow)}
-.rexp{width:26px;height:26px;border-radius:6px;border:1px solid transparent;background:none;color:var(--fg2);font-size:17px;line-height:1;cursor:pointer;transition:transform .15s}
-.rexp:hover{border-color:var(--border);background:var(--hover);color:var(--fg)}
-.rexp.open{transform:rotate(90deg);color:var(--blue)}
+.rexp{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:var(--hover);color:var(--fg2);font-family:var(--sans);font-size:22px;font-weight:500;line-height:1;padding:0 0 3px;cursor:pointer;transition:transform .15s}
+.rexp:hover{border-color:var(--glow);color:var(--fg)}
+.rexp.open{transform:rotate(90deg);color:var(--blue);border-color:color-mix(in srgb,var(--blue) 50%,transparent);background:color-mix(in srgb,var(--blue) 12%,transparent)}
 .rdetail td{background:var(--bg);text-align:left!important;white-space:normal}
 .rdgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:4px 2px}
 .rdgrid small{display:block;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2);margin-bottom:6px}
