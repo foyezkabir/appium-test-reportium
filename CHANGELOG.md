@@ -18,6 +18,12 @@ Will ship as **0.1.1** (already set in `package.json`).
   new tests, slower, faster. Empty cards say why they are empty.
 - Fix: a skipped test is no longer listed as faster (its 0 ms is not a
   speed-up) or slower.
+- Sidebar: more space between filter rows. Fix: the sidebar no longer changes
+  size when the font loads, a filter is clicked or the view changes (a
+  broken style rule had also been disabling the row spacing).
+- Quality Gates and Quarantine pills: the status dot pulses (still for
+  visitors who prefer reduced motion).
+- `npm run demo` builds and opens `demo/report.html` from the current code.
 
 ## 0.1.0 · 2026-09-28
 

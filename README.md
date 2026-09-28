@@ -408,6 +408,9 @@ test/fixtures/                 a REAL captured run, the golden fixture
 artefacts. `expected-report.html` is the golden output rendered from them;
 after an intended visual change, regenerate it with `UPDATE_GOLDEN=1 npm test`.
 
+`npm run demo` builds `demo/report.html` from the current code (fixtures plus a
+simulated run history, so every view has data) and opens it.
+
 ## Releasing
 
 1. Bump `version` in `package.json`.

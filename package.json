@@ -55,7 +55,8 @@
     "build": "tsc",
     "test": "tsc && node --test test/*.test.mjs",
     "prepublishOnly": "npm test",
-    "fonts": "node scripts/embed-fonts.mjs"
+    "fonts": "node scripts/embed-fonts.mjs",
+    "demo": "tsc && node scripts/demo.mjs && open demo/report.html"
   },
   "dependencies": {},
   "devDependencies": {

@@ -108,6 +108,16 @@ test('every inline script parses (a syntax error silently kills filters, views a
   assert.equal(JSON.parse(data).tests.length, 9);
 });
 
+test('stylesheet has no orphaned rule fragments (they silently swallow the next rule)', () => {
+  const css = renderReport(fromJUnit(xml), OPTS).match(/<style>([\s\S]*?)<\/style>/)[1];
+  const lines = css.split('\n');
+  const orphans = lines.filter((l, i) => i > 0 && lines[i - 1].trimEnd().endsWith('}') && /^\s*[a-z-]+:[^{]*\}\s*$/.test(l));
+  assert.deepEqual(orphans, []);
+  let depth = 0;
+  for (const ch of css.replace(/url\(data:[^)]*\)/g, '')) { if (ch === '{') depth++; if (ch === '}') depth--; assert.ok(depth >= 0, 'unbalanced }'); }
+  assert.equal(depth, 0, 'every { is closed');
+});
+
 test('slug is the one shared definition', () => {
   assert.equal(slug('TC03: Duplicate code is rejected with a message'), 'TC03_Duplicate_code_is_rejected_with_a_message');
 });

@@ -900,6 +900,8 @@ function css() {
 ${Object.entries(THEMES).map(([k, v]) => `:root[data-theme="${k}"]{${v};color-scheme:dark}`).join('\n')}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--fg)}
+/* Reserve scrollbar space so switching between a long and a short view never shifts the layout. */
+html{scrollbar-gutter:stable}
 body{font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh}
 a{color:inherit;text-decoration:none}
 button,select,input{font:inherit;color:inherit}
@@ -940,7 +942,7 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--border);border
 /* ── shell ── */
 .shell{display:grid;grid-template-columns:var(--side-w) minmax(0,1fr);min-height:calc(100vh - var(--top-h))}
 .side{background:var(--side);border-right:1px solid var(--border);position:sticky;top:var(--top-h);height:calc(100vh - var(--top-h));display:flex;flex-direction:column;min-height:0}
-.side-scroll{flex:1;min-height:0;overflow-y:auto;padding:0 16px 20px}
+.side-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:0 12px 20px 16px}
 .side .lbl{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--fg2)}
 .side-ring{display:grid;justify-items:center;gap:8px;padding:20px 0 16px;border-bottom:1px solid var(--border)}
 .side-ring .ring{width:88px;height:88px}
@@ -953,11 +955,12 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--border);border
 .nav a span{flex:1}
 .nav a i{font-style:normal;font-family:var(--mono);font-size:11px;padding:1px 8px;border-radius:999px;background:var(--hover);color:var(--fg2)}
 .nav a .navdot{display:none;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
-.nav a.on{background:color-mix(in srgb,var(--green) 10%,transparent);border-left-color:var(--green);color:var(--fg);font-weight:600}
+.nav a.on{background:color-mix(in srgb,var(--green) 10%,transparent);border-left-color:var(--green);color:var(--fg)}
 .nav a.on .i{color:var(--green)}
 .nav a.on i{display:none}.nav a.on .navdot{display:block}
 /* filters */
-.filters{padding:18px 0 4px;display:grid;gap:20px}
+.filters{padding:18px 0 4px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+.fgroup{min-width:0}
 .fhead{display:flex;align-items:center;justify-content:space-between}
 .linkbtn{border:0;background:none;color:var(--blue);cursor:pointer;font-family:var(--mono);font-size:11px}
 .linkbtn:hover:not(:disabled){text-decoration:underline}
@@ -966,14 +969,15 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--border);border
 .fsub small{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
 .fsub span{font-family:var(--mono);font-size:10.5px;color:var(--mut)}
 .sdot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--tone,var(--mut))}
-background:var(--card);color:var(--tone);font-size:12.5px;font-weight:500;cursor:pointer;min-width:0}
-.frows{display:grid;gap:6px}
+/* minmax(0,1fr): a long group name must truncate, never widen the column. */
+.frows{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 .frow{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--border);
 background:var(--card);color:var(--fg2);font-size:13px;text-align:left;cursor:pointer;min-width:0}
 .frow:hover{border-color:color-mix(in srgb,var(--tone,var(--blue)) 50%,transparent);color:var(--fg);background:var(--hover)}
 .frow .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .frow i{font-style:normal;font-family:var(--mono);font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:6px;border:1px solid var(--border);background:var(--hover);color:var(--fg2);flex:none}
-.frow.on{border-color:var(--tone,var(--blue));background:color-mix(in srgb,var(--tone,var(--blue)) 10%,var(--card));color:var(--fg);font-weight:600}
+/* Selected rows change colour only, never weight: bolder text is wider and would reflow the row. */
+.frow.on{border-color:var(--tone,var(--blue));background:color-mix(in srgb,var(--tone,var(--blue)) 10%,var(--card));color:var(--fg)}
 .frow.on .sdot{box-shadow:0 0 0 3px color-mix(in srgb,var(--tone) 30%,transparent)}
 .frow.on i{color:var(--tone,var(--blue));border-color:color-mix(in srgb,var(--tone,var(--blue)) 40%,transparent);background:color-mix(in srgb,var(--tone,var(--blue)) 18%,transparent)}
 .frow.group{--tone:var(--blue)}
@@ -1271,7 +1275,11 @@ a.dline:hover{color:var(--tone)}
 .qrun{font-family:var(--mono);font-size:12px;color:var(--fg2)}
 .qbadge{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-radius:999px;border:1px solid color-mix(in srgb,var(--tone) 55%,transparent);
 background:color-mix(in srgb,var(--tone) 14%,transparent);color:var(--tone);font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-.qbadge i{width:7px;height:7px;border-radius:50%;background:var(--tone);box-shadow:0 0 6px var(--tone)}
+.qbadge i{position:relative;width:7px;height:7px;border-radius:50%;background:var(--tone);box-shadow:0 0 6px var(--tone);animation:qpulse 1.6s ease-in-out infinite}
+.qbadge i::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--tone);animation:qring 1.6s ease-out infinite}
+@keyframes qpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.8)}}
+@keyframes qring{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(3)}}
+@media(prefers-reduced-motion:reduce){.qbadge i,.qbadge i::after{animation:none}}
 .qbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;padding:18px 20px 20px}
 .qlh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 .qlh small{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
