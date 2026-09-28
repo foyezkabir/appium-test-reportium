@@ -74,13 +74,11 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--border);border
 .nav .lbl{padding:0 2px 8px}
 .nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;border:1px solid transparent;color:var(--fg2);font-weight:500;font-size:14px}
 .nav a .i{width:18px;height:18px;color:color-mix(in srgb,var(--fg) 82%,transparent)}
-.nav a:hover{background:var(--hover);color:var(--fg)}
+/* The selected page looks like a hovered one and keeps its count: calm, but clear. */
+.nav a:hover,.nav a.on{background:var(--hover);color:var(--fg)}
+.nav a:hover .i,.nav a.on .i{color:var(--fg)}
 .nav a span{flex:1}
 .nav a i{font-style:normal;font-family:var(--mono);font-size:11px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 5px;border-radius:5px;border:1px solid var(--border);color:var(--fg2)}
-.nav a .navdot{display:none;width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue)}
-.nav a.on{background:color-mix(in srgb,var(--blue) 10%,var(--card));border-color:color-mix(in srgb,var(--blue) 55%,transparent);box-shadow:0 0 16px -6px var(--blue),inset 3px 0 0 var(--blue);color:var(--fg)}
-.nav a.on .i{color:var(--blue)}
-.nav a.on i{display:none}.nav a.on .navdot{display:block}
 /* filters */
 .filters{padding:18px 0 4px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
 .fgroup{min-width:0}
@@ -812,11 +810,11 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
       <div class="tiles"><button class="tile green" data-f="st" data-v="passed"><b>1</b><small>Passed</small></button><button class="tile red hot" data-f="st" data-v="failed"><b>7</b><small>Failed</small></button><button class="tile yellow" data-f="att" data-v="flaky" disabled><b>0</b><small>Flaky</small></button></div>
     </div>
     <nav class="nav"><small class="lbl">Navigation</small>
-      <a href="#overview" data-nav="overview"><svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="12" width="4.5" height="8.5" rx="1" fill="currentColor"/><rect x="9.75" y="7" width="4.5" height="13.5" rx="1" fill="currentColor"/><rect x="16" y="3.5" width="4.5" height="17" rx="1" fill="currentColor"/></svg><span>Overview</span><em class="navdot"></em></a>
-      <a href="#tests" data-nav="tests"><svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5l1.8 1.8L8 5M3 13.5l1.8 1.8L8 12"/><path d="M11.5 7h9.5M11.5 14h9.5M3.5 20h17.5"/></svg><span>Tests</span><i>9</i><em class="navdot"></em></a>
-      <a href="#trends" data-nav="trends"><svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18l5.5-6 4 3.5L21 6"/><path d="M15.5 6H21v5.5"/></svg><span>Trends</span><em class="navdot"></em></a>
-      <a href="#comparison" data-nav="comparison"><svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h7M7 8l4 4-4 4"/><path d="M21 12h-7M17 8l-4 4 4 4"/></svg><span>Comparison</span><em class="navdot"></em></a>
-      <a href="#gallery" data-nav="gallery"><svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5v11A2.5 2.5 0 006.5 21h11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="7.5" y="3" width="13.5" height="13.5" rx="2.5" fill="currentColor" opacity=".9"/><path d="M9.5 14l3.2-3.6 2.3 2.3 1.5-1.6 2.5 2.9z" fill="var(--side)"/><circle cx="12" cy="7.2" r="1.4" fill="var(--side)"/></svg><span>Gallery</span><i>7</i><em class="navdot"></em></a>
+      <a href="#overview" data-nav="overview"><svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="12" width="4.5" height="8.5" rx="1" fill="currentColor"/><rect x="9.75" y="7" width="4.5" height="13.5" rx="1" fill="currentColor"/><rect x="16" y="3.5" width="4.5" height="17" rx="1" fill="currentColor"/></svg><span>Overview</span></a>
+      <a href="#tests" data-nav="tests"><svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5l1.8 1.8L8 5M3 13.5l1.8 1.8L8 12"/><path d="M11.5 7h9.5M11.5 14h9.5M3.5 20h17.5"/></svg><span>Tests</span><i>9</i></a>
+      <a href="#trends" data-nav="trends"><svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18l5.5-6 4 3.5L21 6"/><path d="M15.5 6H21v5.5"/></svg><span>Trends</span></a>
+      <a href="#comparison" data-nav="comparison"><svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h7M7 8l4 4-4 4"/><path d="M21 12h-7M17 8l-4 4 4 4"/></svg><span>Comparison</span></a>
+      <a href="#gallery" data-nav="gallery"><svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5v11A2.5 2.5 0 006.5 21h11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="7.5" y="3" width="13.5" height="13.5" rx="2.5" fill="currentColor" opacity=".9"/><path d="M9.5 14l3.2-3.6 2.3 2.3 1.5-1.6 2.5 2.9z" fill="var(--side)"/><circle cx="12" cy="7.2" r="1.4" fill="var(--side)"/></svg><span>Gallery</span><i>7</i></a>
     </nav>
     <div class="filters"><div class="fgroup"><div class="fsub"><small>Failure kind</small><button id="fclear" class="linkbtn" disabled>clear all</button></div>
         <div class="frows"><button class="frow red plain" data-f="kind" data-v="app" title="Possible app defects">

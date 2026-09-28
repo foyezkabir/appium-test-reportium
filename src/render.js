@@ -938,11 +938,11 @@ function page(c, options) {
       <div class="tiles">${tile(passed, 'Passed', 'green', 'st', 'passed')}${tile(failed, 'Failed', 'red', 'st', 'failed', true)}${tile(c.flaky.length, 'Flaky', 'yellow', 'att', 'flaky')}</div>
     </div>
     <nav class="nav"><small class="lbl">Navigation</small>
-      <a href="#overview" data-nav="overview">${NAVI.overview}<span>Overview</span><em class="navdot"></em></a>
-      <a href="#tests" data-nav="tests">${NAVI.tests}<span>Tests</span><i>${total}</i><em class="navdot"></em></a>
-      <a href="#trends" data-nav="trends">${NAVI.trends}<span>Trends</span>${hasHistory ? `<i>${series.length}</i>` : ''}<em class="navdot"></em></a>
-      <a href="#comparison" data-nav="comparison">${NAVI.comparison}<span>Comparison</span><em class="navdot"></em></a>
-      <a href="#gallery" data-nav="gallery">${NAVI.gallery}<span>Gallery</span><i>${media.length}</i><em class="navdot"></em></a>
+      <a href="#overview" data-nav="overview">${NAVI.overview}<span>Overview</span></a>
+      <a href="#tests" data-nav="tests">${NAVI.tests}<span>Tests</span><i>${total}</i></a>
+      <a href="#trends" data-nav="trends">${NAVI.trends}<span>Trends</span>${hasHistory ? `<i>${series.length}</i>` : ''}</a>
+      <a href="#comparison" data-nav="comparison">${NAVI.comparison}<span>Comparison</span></a>
+      <a href="#gallery" data-nav="gallery">${NAVI.gallery}<span>Gallery</span><i>${media.length}</i></a>
     </nav>
     <div class="filters">${filtersHtml}</div>
     <div class="env"><div class="ehead"><small class="lbl">${icon(I.chip)}Environment</small><span class="edot${ctxEntries.length ? '' : ' off'}" title="${ctxEntries.length ? 'Read from the live session' : 'No session recorded'}"></span></div>
@@ -1134,13 +1134,11 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--border);border
 .nav .lbl{padding:0 2px 8px}
 .nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;border:1px solid transparent;color:var(--fg2);font-weight:500;font-size:14px}
 .nav a .i{width:18px;height:18px;color:color-mix(in srgb,var(--fg) 82%,transparent)}
-.nav a:hover{background:var(--hover);color:var(--fg)}
+/* The selected page looks like a hovered one and keeps its count: calm, but clear. */
+.nav a:hover,.nav a.on{background:var(--hover);color:var(--fg)}
+.nav a:hover .i,.nav a.on .i{color:var(--fg)}
 .nav a span{flex:1}
 .nav a i{font-style:normal;font-family:var(--mono);font-size:11px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 5px;border-radius:5px;border:1px solid var(--border);color:var(--fg2)}
-.nav a .navdot{display:none;width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue)}
-.nav a.on{background:color-mix(in srgb,var(--blue) 10%,var(--card));border-color:color-mix(in srgb,var(--blue) 55%,transparent);box-shadow:0 0 16px -6px var(--blue),inset 3px 0 0 var(--blue);color:var(--fg)}
-.nav a.on .i{color:var(--blue)}
-.nav a.on i{display:none}.nav a.on .navdot{display:block}
 /* filters */
 .filters{padding:18px 0 4px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
 .fgroup{min-width:0}

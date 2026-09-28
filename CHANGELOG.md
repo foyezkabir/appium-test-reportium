@@ -23,8 +23,8 @@ Will ship as **0.2.0** (already set in `package.json`): screen recordings are a 
   offers By suite.
 - Sidebar refresh: the pass ring and the Passed / Failed / Flaky tiles share
   one card, with tiles tinted in their colour (Failed stands out when there
-  are failures); new navigation icons and a blue outlined active page with
-  square count badges; "clear all" sits on the first filter group's line;
+  are failures); new navigation icons, square count badges, and the
+  selected page shown like a hovered one, keeping its count; "clear all" sits on the first filter group's line;
   Failure kind and Suite groups are lighter, borderless rows.
 - README: install command at the top, then a numbered "Screenshots" section
   (overview, quality gates and quarantine, test detail, trends, comparison,
