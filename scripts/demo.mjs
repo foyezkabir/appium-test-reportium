@@ -23,6 +23,8 @@ cpSync(`${root}test/fixtures/steps.jsonl`, `${dir}/steps.jsonl`);
 for (const tc of ['TC03_Duplicate_code_is_rejected_with_a_message', 'TC10_locator_not_found', 'TC13_tls']) {
   cpSync(`${root}test/fixtures/recording.mp4`, `${dir}/failures/2099-01-01T00-00-00-000Z__${tc}.mp4`);
 }
+// A kept recording of a passing test, as with finishRecording(..., { keep: true }).
+cpSync(`${root}test/fixtures/recording.mp4`, `${dir}/failures/2099-01-01T00-00-00-000Z__TC01_Order_is_created_with_valid_values.mp4`);
 
 const base = fromJUnit(readFileSync(`${root}test/fixtures/junit.xml`, 'utf8'));
 const options = {

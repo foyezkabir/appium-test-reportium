@@ -79,6 +79,8 @@ const I = {
   grid: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
   tag: '<path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L2 12V2h10l8.6 8.6a2 2 0 010 2.8z"/><path d="M7 7h.01"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  play: '<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/>',
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
   download: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
@@ -159,9 +161,12 @@ function indexArtifacts(dir) {
   for (const f of readdirSync(failDir).sort()) {
     const m = basename(f).match(/^(.+?)__(.+)\.(png|xml|mp4)$/);
     if (!m) continue;
-    const [, , name, ext] = m;
+    const [, stamp, name, ext] = m;
     const e = idx.get(name) ?? {};
     e[ext] = join(failDir, f);
+    // 2026-09-25T15-54-56-614Z → epoch ms; unparseable names are treated as current.
+    const iso = stamp.replace(/^(\d{4}-\d\d-\d\d)T(\d\d)-(\d\d)-(\d\d)-(\d{3})Z$/, '$1T$2:$3:$4.$5Z');
+    e[`${ext}At`] = Date.parse(iso);
     idx.set(name, e);
   }
   return idx;
@@ -348,7 +353,12 @@ function prepare(run, options) {
     t.diag = t.st === 'failed' ? (t.errors ?? []).map((m) => explain(m)).find(Boolean) ?? null : null;
     t.kind = t.st === 'failed' ? (t.diag?.kind ?? 'unknown') : null;
     t.firstLine = stripAnsi((t.errors ?? [])[0] ?? '').split('\n').find((l) => l.trim())?.trim() ?? '';
-    const art = t.st === 'failed' ? artifacts.get(slug(t.title)) : undefined;
+    const found = artifacts.get(slug(t.title));
+    // Screenshots only belong to failed tests. A passed test may keep a recording,
+    // but only one made during this run: an old failure's video must never
+    // appear against a test that passes now.
+    const fresh = (at) => !Number.isFinite(at) || at >= run.startTime - 5 * 60_000;
+    const art = t.st === 'failed' ? found : found?.mp4 && fresh(found.mp4At) ? { mp4: found.mp4 } : undefined;
     if (art?.png) {
       try { t.png = readFileSync(art.png).toString('base64'); } catch { /* unreadable artefact must not break the report */ }
     }
@@ -439,6 +449,7 @@ function page(c, options) {
   const shots = tests.filter((t) => t.png);
   const videos = tests.filter((t) => t.video);
   const media = tests.filter((t) => t.png || t.video);
+  const clockStr = (ms) => (ms == null ? '' : `${String(Math.floor(ms / 60000)).padStart(2, '0')}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}.${String(Math.round(ms % 1000)).padStart(3, '0')}`);
   const context = environment(c.dir, run.startTime, options.context);
   const ctxEntries = Object.entries(context).filter(([, v]) => v);
   const project = projectName(options);
@@ -669,7 +680,7 @@ function page(c, options) {
       ${historyBlock(t)}
       ${t.steps.length ? stepTimeline(t.steps) : ''}
       ${errs.map((m) => `<details class="block sec raw"${t.diag ? '' : ' open'}><summary>${icon(I.code)}Full error &amp; stack trace</summary><pre class="err">${highlight(stripAnsi(m))}</pre></details>`).join('')}
-      ${t.png || t.video || t.videoTooBig ? `<section class="block sec media"><h4>${icon(I.device)}Device at failure</h4><div class="mediarow">
+      ${t.png || t.video || t.videoTooBig ? `<section class="block sec media"><h4>${icon(I.device)}${t.st === 'failed' ? 'Device at failure' : 'Screen recording'}</h4><div class="mediarow">
         ${t.png ? `<figure class="shot"><img alt="device at failure: ${esc(t.title)}" src="data:image/png;base64,${t.png}"><figcaption>Screenshot · ${kb(t.png)}<span class="noprint"> · click to enlarge</span></figcaption></figure>` : ''}
         ${t.video ? `<figure class="shot vid"><video controls preload="metadata" playsinline src="data:video/mp4;base64,${t.video}"></video><figcaption>Recording · ${kb(t.video)}</figcaption></figure>` : ''}
         ${t.videoTooBig ? `<p class="vnote noprint">Recording not embedded: ${bytes(t.videoTooBig.bytes)} is over the ${bytes(options.maxVideoSize ?? 10485760)} limit (maxVideoSize). It is saved in the failures folder as <code>${esc(t.videoTooBig.name)}</code>.</p>` : ''}
@@ -843,11 +854,46 @@ function page(c, options) {
     comparisonView = `<section class="view" id="v-comparison" data-view="comparison"><h2 class="vtitle">Comparison</h2>${noHistory('Comparisons')}</section>`;
   }
 
+  // ── gallery ──
+  // One entry per test with media. The first four are shown large; the rest in a
+  // compact list. Client script re-deals them after filtering or sorting.
+  const FEATURED = 4;
+  const failedMedia = media.filter((t) => t.st === 'failed');
+  const gTile = (t) => {
+    const status = STATUS_LABEL[t.status] ?? t.status;
+    const sub = t.st === 'failed' ? t.diag?.why ?? t.firstLine : t.steps.length ? `${t.steps.length} steps recorded` : 'Recorded run';
+    const shotPane = t.png ? `<button type="button" class="gp gp-shot" data-lb="img" data-from="${t.id}" aria-label="View screenshot fullscreen"><img alt="screenshot: ${esc(t.title)}" data-from="${t.id}"><span class="gtag shot">Screenshot</span><span class="gtime">${esc(clockStr(t.duration))}</span></button>` : '';
+    const vidPane = t.video ? `<div class="gp gp-vid"><video controls preload="metadata" playsinline data-from="${t.id}"></video><span class="gtag rec"><i></i>Rec</span><span class="gtime" data-vlen="${t.id}"></span></div>` : '';
+    const thumb = t.png ? `<button type="button" class="gthumb" data-lb="img" data-from="${t.id}" aria-label="View screenshot fullscreen"><img alt="" data-from="${t.id}"><span>Img</span></button>`
+      : `<button type="button" class="gthumb vid" data-lb="vid" data-from="${t.id}" aria-label="Watch recording"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5.5 3.5-5.5 3.5z"/></svg><span data-vlen="${t.id}"></span></button>`;
+    const act = t.png ? `<button type="button" class="gact" data-lb="img" data-from="${t.id}">${icon(I.eye)}View fullscreen</button>` : '';
+    const actV = t.video ? `<button type="button" class="gact" data-lb="vid" data-from="${t.id}">${icon(I.play)}Watch replay</button>` : '';
+    return `<article class="gi-item ${t.st}" data-idx="${tests.indexOf(t)}" data-kind="${t.kind ?? ''}" data-shot="${t.png ? 1 : 0}" data-vid="${t.video ? 1 : 0}">
+      <div class="gcard">
+        <div class="gmedia${t.png && t.video ? ' both' : ''}">${shotPane}${vidPane}</div>
+        <a class="gbody" href="#${t.id}"><span class="ghead"><span class="gdot"></span><b>${esc(t.tc || 'Test')}</b><span class="gstat">${esc(status)}</span></span>
+          <span class="gtitle">${esc(t.rest)}</span><small>${esc(sub)}</small></a>
+      </div>
+      <div class="grow">${thumb}<div class="grtext"><a class="grt" href="#${t.id}">${t.tc ? `${esc(t.tc)}: ` : ''}${esc(t.rest)}</a><small>${esc(sub)}</small><span class="gacts">${act}${actV}</span></div>
+        <span class="grmeta">${t.st === 'failed' ? `<em>${esc(t.png ? kb(t.png) : kb(t.video))}</em>` : `<em class="ok">${esc(status)}</em>`}</span></div>
+    </article>`;
+  };
+  const itemsHtml = [...media].sort((a, b) => (a.st === 'failed' ? 0 : 1) - (b.st === 'failed' ? 0 : 1)).map(gTile);
   const galleryView = `<section class="view" id="v-gallery" data-view="gallery">
-  <h2 class="vtitle">Gallery <span class="muted mono">${shots.length} screenshot${shots.length === 1 ? '' : 's'}${videos.length ? ` · ${videos.length} recording${videos.length === 1 ? '' : 's'}` : ''}</span></h2>
-  ${media.length ? `<div class="gallery">${media.map((t) => `<div class="gitem${t.png && t.video ? ' both' : ''}">
-      <div class="gmedia">${t.png ? `<a class="gpane" href="#${t.id}"><img alt="screenshot: ${esc(t.title)}" data-from="${t.id}"><em>Screenshot</em></a>` : ''}${t.video ? `<div class="gpane"><video controls preload="metadata" playsinline data-from="${t.id}"></video><em>Recording</em></div>` : ''}</div>
-      <a class="gcap" href="#${t.id}"><b>${esc(t.tc || t.rest)}</b><small>${esc(t.diag?.why ?? t.firstLine)}</small></a></div>`).join('')}</div>`
+  <div class="ghead2"><div class="gtitlerow"><h2>Gallery</h2>
+      <span class="gpill blue">${icon(I.image)}${shots.length} screenshot${shots.length === 1 ? '' : 's'}</span>
+      <span class="gpill green">${icon(I.play)}${videos.length} recording${videos.length === 1 ? '' : 's'}</span>
+      <span class="gpill red"><i></i>${failedMedia.length} failure capture${failedMedia.length === 1 ? '' : 's'}</span></div>
+    <p>Screenshots taken the moment each test failed, and screen recordings of how it got there.</p></div>
+  ${media.length ? `<div class="gtools"><div class="gtabs" role="tablist">
+      <button type="button" class="on" data-gf="all">${icon(I.grid)}All <i>${shots.length + videos.length}</i></button>
+      <button type="button" data-gf="shot">${icon(I.image)}Screenshots <i>${shots.length}</i></button>
+      <button type="button" data-gf="vid"${videos.length ? '' : ' disabled'}>${icon(I.play)}Videos <i>${videos.length}</i></button></div>
+    <label class="gsort">${icon(I.list)}<select id="gsort" aria-label="Sort gallery"><option value="fail">Failures first</option><option value="order">By test order</option><option value="kind">By failure kind</option><option value="rec">Recordings first</option></select></label></div>
+  <div class="gfeat" id="gfeat">${itemsHtml.slice(0, FEATURED).join('')}</div>
+  <div class="gmore" id="gmore"${media.length > FEATURED ? '' : ' hidden'}><div class="gmorehead"><h3>${icon(I.image)}Additional run captures &amp; recordings</h3><span id="gmorecount">${media.length - FEATURED} more</span></div>
+    <div class="glist" id="glist">${itemsHtml.slice(FEATURED).join('')}</div></div>
+  <p class="empty" id="gnone" hidden>Nothing to show for this filter.</p>`
     : '<p class="empty">No failure screenshots or recordings in this run.</p>'}
 </section>`;
 
@@ -925,7 +971,7 @@ ${trendsView}
 ${comparisonView}
 ${galleryView}
 </main></div>
-<div class="lightbox" id="lb" hidden><button class="iconbtn" aria-label="Close">${icon(I.x)}</button><img alt=""></div>
+<div class="lightbox" id="lb" hidden><button class="iconbtn" aria-label="Close">${icon(I.x)}</button><img alt=""><video controls playsinline hidden></video></div>
 <footer class="foot">Generated by testreportium · self-contained, fonts and screenshots embedded, no network needed</footer>
 <script type="application/json" id="trdata">${data}</script>
 <script>${clientJs()}</script>
@@ -1314,21 +1360,83 @@ pre .hl{color:var(--red);font-weight:600}pre .dim{color:var(--mut)}pre .own{colo
 .shot img{max-width:280px;max-height:520px;border-radius:10px;border:1px solid var(--border);display:block;cursor:zoom-in}
 .shot figcaption{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px}
 /* gallery */
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;grid-auto-flow:dense}
-.gitem{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
-.gitem:hover{border-color:color-mix(in srgb,var(--red) 60%,var(--border))}
-/* a failed test with both a screenshot and a recording spans two columns, side by side */
-.gitem.both{grid-column:span 2}
-.gmedia{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:1px;background:var(--border)}
-.gpane{position:relative;display:block;background:var(--bg)}
-.gpane img,.gpane video{width:100%;aspect-ratio:9/16;object-fit:cover;object-position:top;display:block;background:var(--bg)}
-.gpane video{object-fit:contain;background:#000}
-.gpane em{position:absolute;top:8px;left:8px;font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-padding:2px 7px;border-radius:5px;color:#fff;background:rgba(0,0,0,.55);pointer-events:none}
-.gcap{display:grid;padding:10px 12px;border-top:1px solid var(--border)}
-.gcap b{font-family:var(--mono);font-size:12px;color:var(--red)}
-.gcap small{font-size:11.5px;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-@media(max-width:560px){.gitem.both{grid-column:auto}}
+/* gallery */
+.ghead2{margin:0 -24px 18px;padding:20px 24px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.gtitlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.gtitlerow h2{font-size:22px;font-weight:600;margin-right:4px}
+.ghead2 p{font-size:12.5px;color:var(--fg2);margin-top:6px}
+.gpill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:7px;font-family:var(--mono);font-size:11.5px;font-weight:600;
+color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent);background:color-mix(in srgb,var(--tone) 12%,transparent)}
+.gpill .i{width:13px;height:13px}.gpill i{width:6px;height:6px;border-radius:50%;background:var(--tone)}
+.gtools{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.gtabs{display:flex;gap:4px;padding:4px;border:1px solid var(--border);border-radius:10px;background:var(--card)}
+.gtabs button{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border:0;border-radius:7px;background:none;color:var(--fg2);font-size:12.5px;font-weight:500;cursor:pointer}
+.gtabs button .i{width:14px;height:14px}
+.gtabs button i{font-style:normal;font-family:var(--mono);font-size:11px;opacity:.8}
+.gtabs button:hover:not(:disabled){color:var(--fg);background:var(--hover)}
+.gtabs button.on{color:var(--fg);background:var(--hover);box-shadow:inset 0 0 0 1px var(--border)}
+.gtabs button:disabled{opacity:.4;cursor:default}
+.gsort{display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--fg2);cursor:pointer}
+.gsort .i{width:14px;height:14px}.gsort select{border:0;background:transparent;color:var(--fg);font-size:12.5px;outline:none;cursor:pointer}
+.gsort option{background:var(--card)}
+/* large cards */
+.gfeat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.gi-item .grow{display:none}
+.gi-item.featured .gcard,.gfeat .gi-item .gcard{display:flex}
+.glist .gi-item .gcard{display:none}.glist .gi-item .grow{display:flex}
+.gcard{flex-direction:column;height:100%;border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
+.gi-item.failed .gcard{border-color:color-mix(in srgb,var(--red) 38%,var(--border))}
+.gi-item.passed .gcard{border-color:color-mix(in srgb,var(--green) 38%,var(--border))}
+.gcard:hover{border-color:var(--glow)}
+.gcard .gmedia{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;padding:8px;background:var(--bg)}
+.gp{position:relative;display:block;padding:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--bg2);cursor:zoom-in}
+.gp img,.gp video{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;object-position:top}
+.gp video{object-fit:contain;background:#000;cursor:default}
+.gtag{position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:5px;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+.gtag.shot{color:var(--blue);background:color-mix(in srgb,var(--bg) 70%,transparent);border:1px solid color-mix(in srgb,var(--blue) 55%,transparent)}
+.gtag.rec{color:var(--red);background:color-mix(in srgb,var(--bg) 70%,transparent);border:1px solid color-mix(in srgb,var(--red) 55%,transparent)}
+.gtag.rec i{width:6px;height:6px;border-radius:50%;background:var(--red);animation:qpulse 1.6s ease-in-out infinite}
+.gtime{position:absolute;top:9px;right:9px;font-family:var(--mono);font-size:10px;color:var(--fg2);pointer-events:none;text-shadow:0 1px 2px var(--bg)}
+.gi-item.only-shot .gp-vid,.gi-item.only-vid .gp-shot{display:none}
+/* two panes side by side are narrow: the screenshot's time moves to its foot */
+.gmedia.both .gp-shot .gtime{top:auto;bottom:8px;right:auto;left:8px}
+.gbody{display:grid;align-content:start;gap:4px;padding:12px 14px 14px;border-top:1px solid var(--border);flex:1}
+.ghead{display:flex;align-items:center;gap:8px}
+.gdot{width:7px;height:7px;border-radius:50%;background:var(--red)}
+.gi-item.passed .gdot{background:var(--green)}
+.ghead b{font-family:var(--mono);font-size:12.5px;color:var(--red)}
+.gi-item.passed .ghead b{color:var(--green)}
+.gstat{margin-left:auto;font-family:var(--mono);font-size:10.5px;font-weight:600;padding:1px 8px;border-radius:5px;color:var(--red);border:1px solid color-mix(in srgb,var(--red) 45%,transparent);background:color-mix(in srgb,var(--red) 10%,transparent)}
+.gi-item.passed .gstat{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent)}
+.gtitle{font-size:13.5px;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gbody small{font-family:var(--mono);font-size:11px;line-height:1.55;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* compact list */
+.gmore{margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
+.gmorehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.gmorehead h3{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600}
+.gmorehead h3 .i{color:var(--blue)}
+.gmorehead span{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.glist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.grow{align-items:center;gap:14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);min-width:0}
+.gi-item.passed .grow{border-color:color-mix(in srgb,var(--green) 40%,var(--border))}
+.gthumb{position:relative;flex:none;width:64px;height:64px;padding:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--bg);cursor:pointer}
+.gthumb img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.gthumb span{position:absolute;top:4px;left:4px;font-family:var(--mono);font-size:8.5px;font-weight:700;text-transform:uppercase;padding:0 4px;border-radius:3px;background:color-mix(in srgb,var(--bg) 75%,transparent);color:var(--fg2)}
+.gthumb.vid{display:grid;place-items:center;border-color:color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 8%,var(--bg))}
+.gthumb.vid svg{width:28px;height:28px;fill:none;stroke:var(--green);stroke-width:1.6}.gthumb.vid svg path{fill:var(--green);stroke:none}
+.grtext{display:grid;gap:3px;min-width:0;flex:1}
+.grt{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--red);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gi-item.passed .grt{color:var(--green)}
+.grtext small{font-size:11.5px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gacts{display:flex;gap:12px;flex-wrap:wrap}
+.gact{display:inline-flex;align-items:center;gap:5px;padding:0;border:0;background:none;color:var(--blue);font-size:11.5px;font-weight:500;cursor:pointer}
+.gi-item.passed .gact{color:var(--green)}
+.gact .i{width:13px;height:13px}.gact:hover{text-decoration:underline}
+.grmeta{align-self:flex-start;font-family:var(--mono);font-size:10.5px;color:var(--mut)}
+.grmeta em{font-style:normal}.grmeta .ok{color:var(--green);font-weight:600}
+.lightbox video{max-width:min(92vw,560px);max-height:88vh;border-radius:12px;background:#000}
+@media(max-width:1300px){.gfeat{grid-template-columns:repeat(2,minmax(0,1fr))}.glist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.gfeat,.glist{grid-template-columns:1fr}}
 .lightbox{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(0,0,0,.82);padding:24px}
 .lightbox img{max-width:min(92vw,560px);max-height:88vh;border-radius:12px}
 .lightbox .iconbtn{position:absolute;top:16px;right:16px}
@@ -1679,7 +1787,6 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .qbody,.tgrid,.panels{grid-template-columns:1fr!important}
   .dgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  .gallery{grid-template-columns:repeat(4,minmax(0,1fr))!important}
   .dcard{min-height:0}
   .tarea{height:140px}.achart{min-height:170px}.aplot{min-height:140px}
   /* Hover-only bits have no meaning on paper. */
@@ -1689,8 +1796,9 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   .sec.raw{display:block}.sec.raw>summary::after{display:none}
   .sec.raw[open] pre,.sec.raw pre{display:block}
   .shot img{max-height:320px}
-  .shot.vid,.gpane video,.gpane:has(video){display:none!important}
-  .gitem.both{grid-column:auto}
+  .shot.vid,.gp-vid,.gtools,.gacts{display:none!important}
+  .gfeat{grid-template-columns:repeat(2,minmax(0,1fr))!important}.glist{grid-template-columns:1fr!important}
+  .gcard,.grow{break-inside:avoid}
   a{color:inherit;text-decoration:none}
   .noprint{display:none!important}
   pre,pre.err{white-space:pre-wrap!important;word-break:break-word;overflow:visible!important}
@@ -1764,7 +1872,7 @@ q.addEventListener('input',function(){apply(); if(q.value&&!/^#?(tests|t\\d+)$/.
 tf.addEventListener('input',apply);
 document.addEventListener('keydown',function(e){
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault(); q.focus(); q.select();}
-  if(e.key==='Escape') $('#lb').hidden=true;
+  if(e.key==='Escape'&&!$('#lb').hidden) lbClose();
   if((e.key==='j'||e.key==='k')&&!/INPUT|SELECT/.test(document.activeElement.tagName)&&$('#v-tests').classList.contains('on')){
     var items=$$('.titem').filter(function(t){return !t.hidden}), i=items.findIndex(function(t){return t.classList.contains('on')});
     var n=items[Math.max(0,Math.min(items.length-1,i+(e.key==='j'?1:-1)))]; if(n) location.hash=n.dataset.id;
@@ -1788,12 +1896,39 @@ sel.addEventListener('change',function(){
   try{localStorage.setItem('testreportium-theme',v)}catch(e){}
 });
 // Gallery reuses each screenshot's data URI instead of embedding it twice.
-$$('.gitem img[data-from]').forEach(function(img){var s=$('#d-'+img.dataset.from+' .shot img'); if(s) img.src=s.src;});
-$$('.gitem video[data-from]').forEach(function(v){var s=$('#d-'+v.dataset.from+' .shot video'); if(s) v.src=s.src;});
-var lb=$('#lb');
+// Gallery media reuse each test's embedded data instead of embedding it again.
+var srcOf=function(id,kind){var el=$('#d-'+id+(kind==='vid'?' .shot video':' .shot img'));return el?el.src:'';};
+$$('#v-gallery img[data-from]').forEach(function(img){img.src=srcOf(img.dataset.from,'img');});
+$$('#v-gallery video[data-from]').forEach(function(v){v.src=srcOf(v.dataset.from,'vid');
+  v.addEventListener('loadedmetadata',function(){var d=v.duration; if(!isFinite(d))return; var t=Math.floor(d/60)+':'+String(Math.round(d%60)).padStart(2,'0');
+    $$('[data-vlen="'+v.dataset.from+'"]').forEach(function(x){x.textContent=t;});},{once:true});});
+// Filter (All / Screenshots / Videos) and sort; the first four visible are shown large.
+var gf='all', gfeat=$('#gfeat'), glist=$('#glist'), gmore=$('#gmore');
+function gDeal(){
+  if(!gfeat) return;
+  var items=$$('#v-gallery .gi-item'), mode=($('#gsort')||{}).value||'fail';
+  var KO={app:0,test:1,env:2,timeout:3,unknown:4,'':5};
+  items.sort(function(a,b){
+    var fa=a.classList.contains('failed')?0:1, fb=b.classList.contains('failed')?0:1;
+    if(mode==='fail'&&fa!==fb) return fa-fb;
+    if(mode==='rec'&&a.dataset.vid!==b.dataset.vid) return b.dataset.vid-a.dataset.vid;
+    if(mode==='kind'&&a.dataset.kind!==b.dataset.kind) return KO[a.dataset.kind]-KO[b.dataset.kind];
+    return a.dataset.idx-b.dataset.idx;});
+  var shown=items.filter(function(it){return gf==='all'||(gf==='shot'?it.dataset.shot==='1':it.dataset.vid==='1');});
+  items.forEach(function(it){it.hidden=shown.indexOf(it)<0; it.classList.toggle('only-shot',gf==='shot'); it.classList.toggle('only-vid',gf==='vid');});
+  shown.forEach(function(it,i){(i<4?gfeat:glist).appendChild(it); it.classList.toggle('featured',i<4);});
+  gmore.hidden=shown.length<=4; $('#gmorecount').textContent=(shown.length-4)+' more'; $('#gnone').hidden=shown.length>0;
+}
+$$('[data-gf]').forEach(function(b){b.addEventListener('click',function(){gf=b.dataset.gf; $$('[data-gf]').forEach(function(x){x.classList.toggle('on',x===b)}); gDeal();});});
+if($('#gsort')) $('#gsort').addEventListener('change',gDeal);
+gDeal();
+var lb=$('#lb'), lbImg=$('img',lb), lbVid=$('video',lb);
+function lbOpen(kind,src){lbImg.hidden=kind!=='img'; lbVid.hidden=kind!=='vid'; if(kind==='img')lbImg.src=src; else{lbVid.src=src; lbVid.play&&lbVid.play().catch(function(){});} lb.hidden=false;}
+function lbClose(){lb.hidden=true; if(!lbVid.paused)lbVid.pause();}
 document.addEventListener('click',function(e){
-  var img=e.target.closest&&e.target.closest('.shot img'); if(img){$('img',lb).src=img.src; lb.hidden=false; return;}
-  if(e.target===lb||e.target.closest&&e.target.closest('#lb .iconbtn')) lb.hidden=true;
+  var t=e.target.closest&&e.target.closest('[data-lb]'); if(t){e.preventDefault(); lbOpen(t.dataset.lb,srcOf(t.dataset.from,t.dataset.lb)); return;}
+  var img=e.target.closest&&e.target.closest('.shot img'); if(img){lbOpen('img',img.src); return;}
+  if(e.target===lb||e.target.closest&&e.target.closest('#lb .iconbtn')) lbClose();
 });
 // Export: the results travel inside the page (#trdata), so this works offline.
 var data=JSON.parse($('#trdata').textContent), exp=$('#exp'), menu=$('#expmenu');

@@ -61,8 +61,11 @@ test('report embeds the recording beside the screenshot, once, and the Gallery p
   const html = renderReport(run, { outputDirectory: dir, historyFile: false });
   assert.equal(html.match(/src="data:video\/mp4;base64,/g)?.length, 1, 'embedded once; the Gallery reuses it');
   assert.match(html, /<div class="mediarow">[\s\S]*Screenshot ·[\s\S]*<video controls[\s\S]*Recording ·/);
-  assert.match(html, /<div class="gitem both">[\s\S]*<em>Screenshot<\/em>[\s\S]*<video controls preload="metadata" playsinline data-from="t1"><\/video><em>Recording<\/em>/);
-  assert.match(html, /Gallery <span class="muted mono">1 screenshot · 1 recording<\/span>/);
+  const gallery = html.slice(html.indexOf('id="v-gallery"'), html.indexOf('id="lb"'));
+  assert.match(gallery, /<div class="gmedia both"><button type="button" class="gp gp-shot"[\s\S]*?<span class="gtag shot">Screenshot<\/span>[\s\S]*?<video controls preload="metadata" playsinline data-from="t1"><\/video><span class="gtag rec"><i><\/i>Rec<\/span>/);
+  assert.match(gallery, /1 screenshot<\/span>[\s\S]*?1 recording<\/span>[\s\S]*?1 failure capture<\/span>/);
+  assert.match(gallery, /data-gf="all">[\s\S]*?All <i>2<\/i>[\s\S]*?Screenshots <i>1<\/i>[\s\S]*?Videos <i>1<\/i>/);
+  assert.match(gallery, /data-lb="img" data-from="t1">[\s\S]*?View fullscreen[\s\S]*?data-lb="vid" data-from="t1">[\s\S]*?Watch replay/);
   assert.match(html, /"recording":true/);
 });
 
@@ -73,4 +76,23 @@ test('a recording over maxVideoSize is named, not embedded', () => {
   const html = renderReport(run, { outputDirectory: dir, historyFile: false, maxVideoSize: 1024 });
   assert.doesNotMatch(html, /data:video\/mp4/);
   assert.match(html, /Recording not embedded: 2 KB is over the 1 KB limit \(maxVideoSize\)[\s\S]*__TC02_fails\.mp4/);
+});
+
+test('a passed test shows a recording from this run, never a leftover from an earlier run', () => {
+  const dir = tmp();
+  mkdirSync(join(dir, 'failures'), { recursive: true });
+  const start = Date.parse('2026-06-01T10:00:00Z');
+  cpSync(join(here, 'fixtures', 'recording.mp4'), join(dir, 'failures', '2026-06-01T10-00-30-000Z__TC01_fresh.mp4'));
+  cpSync(join(here, 'fixtures', 'recording.mp4'), join(dir, 'failures', '2026-05-01T10-00-00-000Z__TC02_stale.mp4'));
+  writeFileSync(join(dir, 'failures', '2026-06-01T10-00-30-000Z__TC03_passed_shot.png'), Buffer.from('png'));
+  const run = { startTime: start, duration: 60_000, suites: [{ file: 'a.e2e', tests: [
+    { title: 'TC01: fresh', fullName: 'A TC01: fresh', group: ['A'], status: 'passed', duration: 5, errors: [] },
+    { title: 'TC02: stale', fullName: 'A TC02: stale', group: ['A'], status: 'passed', duration: 5, errors: [] },
+    { title: 'TC03: passed shot', fullName: 'A TC03: passed shot', group: ['A'], status: 'passed', duration: 5, errors: [] },
+  ] }] };
+  const html = renderReport(run, { outputDirectory: dir, historyFile: false });
+  assert.equal(html.match(/src="data:video\/mp4;base64,/g)?.length, 1, 'only the fresh recording');
+  assert.match(html, /<article class="gi-item passed"[^>]*data-vid="1">[\s\S]*?<b>TC01<\/b><span class="gstat">Passed<\/span>/);
+  assert.match(html, /Screen recording<\/h4>/, 'a passed test is not labelled "at failure"');
+  assert.doesNotMatch(html, /data:image\/png/, 'screenshots only ever belong to failed tests');
 });

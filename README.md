@@ -487,9 +487,21 @@ Skipped tests are never slower or faster.
 
 ### Gallery
 
-One card per failed test, with its diagnosis. A test that has both a
-screenshot and a [recording](#failure-screenshots-and-recordings) shows them
-side by side. Click the screenshot or the caption to open the test.
+Every screenshot and [recording](#failure-screenshots-and-recordings) from the
+run. The header counts screenshots, recordings and failure captures (failed
+tests with any media).
+
+| Part | What it does |
+|---|---|
+| **All / Screenshots / Videos** | show everything, only screenshots, or only recordings |
+| **Sort** | **Failures first** (default), **By test order**, **By failure kind**, or **Recordings first** |
+| Large cards | the first four: screenshot and recording side by side (REC with its length), then the TC, status, title and diagnosis. Click the screenshot for fullscreen, the text to open the test |
+| **Additional run captures & recordings** | the rest, as compact rows: **View fullscreen** for a screenshot, **Watch replay** for a recording |
+
+A passed test appears only if you kept its recording
+(`finishRecording(..., { keep: true })`), and only a recording made during
+this run, so a video left over from an earlier failure never shows against a
+test that now passes. Screenshots only ever belong to failed tests.
 
 ### PDF export
 

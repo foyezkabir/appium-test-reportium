@@ -13,6 +13,12 @@ Will ship as **0.2.0** (already set in `package.json`): screen recordings are a 
   at failure section and in the Gallery. Embedded up to `maxVideoSize` (10 MB
   by default); a bigger one is named instead. Android needs nothing extra, iOS
   needs ffmpeg on the Appium host.
+- Gallery redesigned: counts for screenshots, recordings and failure captures;
+  All / Screenshots / Videos tabs and a sort (failures first, test order,
+  failure kind, recordings first); four large cards with the screenshot and
+  REC pane side by side, then a compact list with View fullscreen and Watch
+  replay, both opening the fullscreen viewer. A kept recording of a passed
+  test appears too, but only one made during this run.
 - README: install command at the top, then a numbered "Screenshots" section
   (overview, quality gates and quarantine, test detail, trends, comparison,
   light theme), each under its own heading and linked from GitHub so they
