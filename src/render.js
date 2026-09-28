@@ -119,6 +119,15 @@ const GI = {
   skip: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-mark" d="M24 32H40"/></svg>',
 };
 
+/** Navigation icons, after the sidebar design: solid shapes read better at 18px. */
+const NAVI = {
+  overview: '<svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="12" width="4.5" height="8.5" rx="1" fill="currentColor"/><rect x="9.75" y="7" width="4.5" height="13.5" rx="1" fill="currentColor"/><rect x="16" y="3.5" width="4.5" height="17" rx="1" fill="currentColor"/></svg>',
+  tests: '<svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5l1.8 1.8L8 5M3 13.5l1.8 1.8L8 12"/><path d="M11.5 7h9.5M11.5 14h9.5M3.5 20h17.5"/></svg>',
+  trends: '<svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18l5.5-6 4 3.5L21 6"/><path d="M15.5 6H21v5.5"/></svg>',
+  comparison: '<svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h7M7 8l4 4-4 4"/><path d="M21 12h-7M17 8l-4 4 4 4"/></svg>',
+  gallery: '<svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5v11A2.5 2.5 0 006.5 21h11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="7.5" y="3" width="13.5" height="13.5" rx="2.5" fill="currentColor" opacity=".9"/><path d="M9.5 14l3.2-3.6 2.3 2.3 1.5-1.6 2.5 2.9z" fill="var(--side)"/><circle cx="12" cy="7.2" r="1.4" fill="var(--side)"/></svg>',
+};
+
 /** Filled glyph: at 13px the stroked outline reads as a padlock. */
 const ANDROID = '<svg class="i os" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.52 15.34a1 1 0 110-2 1 1 0 010 2m-11.05 0a1 1 0 110-2 1 1 0 010 2m11.4-6.02l2-3.46a.42.42 0 00-.72-.42l-2.02 3.5A12.3 12.3 0 0012 8.08c-1.85 0-3.59.33-5.14.87l-2.02-3.5a.42.42 0 00-.72.41l2 3.46A11.9 11.9 0 000 18.76h24a11.9 11.9 0 00-6.12-9.44"/></svg>';
 
@@ -899,7 +908,7 @@ function page(c, options) {
 
   // ── sidebar ───────────────────────────────────────────────────────────
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-  const rowChip = (f, v, label, n, lead, tone = '') => `<button class="frow ${tone}" data-f="${f}" data-v="${esc(v)}" title="${esc(label)}">
+  const rowChip = (f, v, label, n, lead, tone = '', plain = false) => `<button class="frow ${tone}${plain ? ' plain' : ''}" data-f="${f}" data-v="${esc(v)}" title="${esc(label)}">
       ${lead}<span class="fname">${esc(label)}</span><i>${n}</i></button>`;
   const osIcon = (v = '') => /android/i.test(v) ? ANDROID
     : /ios|iphone|ipad/i.test(v) ? icon(I.apple, 'os') : '';
@@ -908,27 +917,30 @@ function page(c, options) {
     return `<div class="erow"><span>${esc(k)}</span><b class="${cls}" title="${esc(v)}">${k === 'Platform' ? osIcon(v) : ''}${esc(v)}</b></div>`;
   };
   const attn = [['new', c.newFailures.length], ['slow', c.slower.length], ['flaky', c.flaky.length], ['fixed', c.fixed.length]].filter(([, n]) => n);
-  const tile = (n, label, tone, f, v) => `<button class="tile ${tone}" data-f="${f}" data-v="${v}"${n ? '' : ' disabled'}><b>${n}</b><small>${label}</small></button>`;
+  // A tile is emphasised when it counts something that needs attention.
+  const tile = (n, label, tone, f, v, hot = false) => `<button class="tile ${tone}${hot && n ? ' hot' : ''}" data-f="${f}" data-v="${v}"${n ? '' : ' disabled'}><b>${n}</b><small>${label}</small></button>`;
+  const clearBtn = '<button id="fclear" class="linkbtn" disabled>clear all</button>';
+  const fgroups = [];
+  if (attn.length) fgroups.push(['Attention', attn.map(([a, n]) => rowChip('att', a, ATT[a][0], n, '<span class="sdot"></span>', ATT[a][1])).join(''), 'vs earlier runs']);
+  if (byKind.size) fgroups.push(['Failure kind', [...byKind.entries()].map(([k, l]) => rowChip('kind', k, KINDS[k].label, l.length, '<span class="sdot"></span>', KINDS[k].tone, true)).join(''), plural(byKind.size, 'category', 'categories')]);
+  if (groups.length > 1) fgroups.push(['Suite groups', groups.map((g) => rowChip('group', g, g, tests.filter((t) => t.groupName === g).length, icon(I.folder, 'fic'), 'group', true)).join(''), plural(groups.length, 'group', 'groups')]);
+  // "clear all" sits on the first group's line, where the eye already is.
+  const filtersHtml = fgroups.map(([title, rows, note], i) => `<div class="fgroup"><div class="fsub"><small>${title}</small>${i === 0 ? clearBtn : `<span>${note}</span>`}</div>
+        <div class="frows">${rows}</div></div>`).join('') || `<span hidden>${clearBtn}</span>`;
   const sidebar = `<aside class="side" id="side">
     <div class="side-scroll">
-    <div class="side-ring">${ring(passRate, allGreen ? 'green' : passRate >= 70 ? 'yellow' : 'red', `${passRate}%`)}<small class="lbl">Pass rate</small></div>
-    <div class="tiles">${tile(passed, 'Passed', 'green', 'st', 'passed')}${tile(failed, 'Failed', 'red', 'st', 'failed')}${tile(c.flaky.length, 'Flaky', 'yellow', 'att', 'flaky')}</div>
-    <nav class="nav"><small class="lbl">Navigation</small>
-      <a href="#overview" data-nav="overview">${icon(I.chart)}<span>Overview</span><em class="navdot"></em></a>
-      <a href="#tests" data-nav="tests">${icon(I.list)}<span>Tests</span><i>${total}</i><em class="navdot"></em></a>
-      <a href="#trends" data-nav="trends">${icon(I.trend)}<span>Trends</span>${hasHistory ? `<i>${series.length}</i>` : ''}<em class="navdot"></em></a>
-      <a href="#comparison" data-nav="comparison">${icon(I.scale)}<span>Comparison</span><em class="navdot"></em></a>
-      <a href="#gallery" data-nav="gallery">${icon(I.image)}<span>Gallery</span><i>${media.length}</i><em class="navdot"></em></a>
-    </nav>
-    <div class="filters">
-      <div class="fhead"><small class="lbl">Filters</small><button id="fclear" class="linkbtn" disabled>clear all</button></div>
-      ${attn.length ? `<div class="fgroup"><div class="fsub"><small>Attention</small><span>vs earlier runs</span></div>
-        <div class="frows">${attn.map(([a, n]) => rowChip('att', a, ATT[a][0], n, '<span class="sdot"></span>', ATT[a][1])).join('')}</div></div>` : ''}
-      ${byKind.size ? `<div class="fgroup"><div class="fsub"><small>Failure kind</small><span>${plural(byKind.size, 'category', 'categories')}</span></div>
-        <div class="frows">${[...byKind.entries()].map(([k, l]) => rowChip('kind', k, KINDS[k].label, l.length, '<span class="sdot"></span>', KINDS[k].tone)).join('')}</div></div>` : ''}
-      ${groups.length > 1 ? `<div class="fgroup"><div class="fsub"><small>Suite groups</small><span>${plural(groups.length, 'group', 'groups')}</span></div>
-        <div class="frows">${groups.map((g) => rowChip('group', g, g, tests.filter((t) => t.groupName === g).length, icon(I.folder, 'fic'), 'group')).join('')}</div></div>` : ''}
+    <div class="side-top">
+      <div class="side-ring">${ring(passRate, allGreen ? 'green' : passRate >= 70 ? 'yellow' : 'red', `${passRate}%`)}<small class="lbl">Pass rate</small></div>
+      <div class="tiles">${tile(passed, 'Passed', 'green', 'st', 'passed')}${tile(failed, 'Failed', 'red', 'st', 'failed', true)}${tile(c.flaky.length, 'Flaky', 'yellow', 'att', 'flaky')}</div>
     </div>
+    <nav class="nav"><small class="lbl">Navigation</small>
+      <a href="#overview" data-nav="overview">${NAVI.overview}<span>Overview</span><em class="navdot"></em></a>
+      <a href="#tests" data-nav="tests">${NAVI.tests}<span>Tests</span><i>${total}</i><em class="navdot"></em></a>
+      <a href="#trends" data-nav="trends">${NAVI.trends}<span>Trends</span>${hasHistory ? `<i>${series.length}</i>` : ''}<em class="navdot"></em></a>
+      <a href="#comparison" data-nav="comparison">${NAVI.comparison}<span>Comparison</span><em class="navdot"></em></a>
+      <a href="#gallery" data-nav="gallery">${NAVI.gallery}<span>Gallery</span><i>${media.length}</i><em class="navdot"></em></a>
+    </nav>
+    <div class="filters">${filtersHtml}</div>
     <div class="env"><div class="ehead"><small class="lbl">${icon(I.chip)}Environment</small><span class="edot${ctxEntries.length ? '' : ' off'}" title="${ctxEntries.length ? 'Read from the live session' : 'No session recorded'}"></span></div>
       ${ctxEntries.length ? ctxEntries.map(envRow).join('') : `<p class="enone">No device or app recorded for this run. Call <code>recordSession(driver)</code> after the session starts, or pass <code>context</code>.</p>`}</div>
     </div>
@@ -1110,45 +1122,52 @@ kbd{font-family:var(--mono);font-size:10px;border:1px solid var(--border);border
 .side{background:var(--side);border-right:1px solid var(--border);position:sticky;top:var(--top-h);height:calc(100vh - var(--top-h));display:flex;flex-direction:column;min-height:0}
 .side-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;padding:0 12px 20px 16px}
 .side .lbl{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.14em;color:var(--fg2)}
-.side-ring{display:grid;justify-items:center;gap:8px;padding:20px 0 16px;border-bottom:1px solid var(--border)}
+.side-top{margin:16px 0 4px;padding:16px 12px 12px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--card) 70%,var(--side))}
+.side-ring{display:grid;justify-items:center;gap:8px;padding:2px 0 14px}
 .side-ring .ring{width:88px;height:88px}
 /* navigation */
-.nav{padding:18px 0;border-bottom:1px solid var(--border);display:grid;gap:4px}
+.nav{padding:18px 0 16px;display:grid;gap:5px}
 .nav .lbl{padding:0 2px 8px}
-.nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;border-left:2px solid transparent;color:var(--fg2);font-weight:500;font-size:13.5px}
-.nav a .i{color:var(--mut)}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;border:1px solid transparent;color:var(--fg2);font-weight:500;font-size:14px}
+.nav a .i{width:18px;height:18px;color:color-mix(in srgb,var(--fg) 82%,transparent)}
 .nav a:hover{background:var(--hover);color:var(--fg)}
 .nav a span{flex:1}
-.nav a i{font-style:normal;font-family:var(--mono);font-size:11px;padding:1px 8px;border-radius:999px;background:var(--hover);color:var(--fg2)}
-.nav a .navdot{display:none;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
-.nav a.on{background:color-mix(in srgb,var(--green) 10%,transparent);border-left-color:var(--green);color:var(--fg)}
-.nav a.on .i{color:var(--green)}
+.nav a i{font-style:normal;font-family:var(--mono);font-size:11px;min-width:22px;height:22px;display:grid;place-items:center;padding:0 5px;border-radius:5px;border:1px solid var(--border);color:var(--fg2)}
+.nav a .navdot{display:none;width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue)}
+.nav a.on{background:color-mix(in srgb,var(--blue) 10%,var(--card));border-color:color-mix(in srgb,var(--blue) 55%,transparent);box-shadow:0 0 16px -6px var(--blue),inset 3px 0 0 var(--blue);color:var(--fg)}
+.nav a.on .i{color:var(--blue)}
 .nav a.on i{display:none}.nav a.on .navdot{display:block}
 /* filters */
 .filters{padding:18px 0 4px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
 .fgroup{min-width:0}
 .fhead{display:flex;align-items:center;justify-content:space-between}
-.linkbtn{border:0;background:none;color:var(--blue);cursor:pointer;font-family:var(--mono);font-size:11px}
+.linkbtn{border:0;background:none;color:var(--blue);cursor:pointer;font-family:var(--mono);font-size:11.5px;font-weight:600}
 .linkbtn:hover:not(:disabled){text-decoration:underline}
-.linkbtn:disabled{color:var(--mut);cursor:default;opacity:.6}
-.fsub{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.linkbtn:disabled{color:var(--blue);cursor:default;opacity:.5}
+.fsub{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .fsub small{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
 .fsub span{font-family:var(--mono);font-size:10.5px;color:var(--mut)}
 .sdot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--tone,var(--mut))}
 /* minmax(0,1fr): a long group name must truncate, never widen the column. */
-.frows{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
-.frow{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:9px;border:1px solid var(--border);
-background:var(--card);color:var(--fg2);font-size:13px;text-align:left;cursor:pointer;min-width:0}
+.frows{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.frow{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+background:var(--card);color:var(--fg);font-size:13.5px;text-align:left;cursor:pointer;min-width:0}
 .frow:hover{border-color:color-mix(in srgb,var(--tone,var(--blue)) 50%,transparent);color:var(--fg);background:var(--hover)}
 .frow .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.frow i{font-style:normal;font-family:var(--mono);font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:6px;border:1px solid var(--border);background:var(--hover);color:var(--fg2);flex:none}
+.frow i{font-style:normal;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--fg2);flex:none}
 /* Selected rows change colour only, never weight: bolder text is wider and would reflow the row. */
 .frow.on{border-color:var(--tone,var(--blue));background:color-mix(in srgb,var(--tone,var(--blue)) 10%,var(--card));color:var(--fg)}
 .frow.on .sdot{box-shadow:0 0 0 3px color-mix(in srgb,var(--tone) 30%,transparent)}
-.frow.on i{color:var(--tone,var(--blue));border-color:color-mix(in srgb,var(--tone,var(--blue)) 40%,transparent);background:color-mix(in srgb,var(--tone,var(--blue)) 18%,transparent)}
+.frow.on i{color:var(--tone,var(--blue))}
+.frow.on{box-shadow:0 0 14px -7px var(--tone,var(--blue))}
 .frow.group{--tone:var(--blue)}
 .frow .fic{width:15px;height:15px;color:var(--blue)}
-.frow.group i{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 25%,transparent)}
+.frow.group i{color:var(--fg2)}
+/* plain rows (Failure kind, Suite groups): no box until hovered or chosen */
+.frows:has(.plain){gap:2px}
+.frow.plain{padding:7px 8px;border-color:transparent;background:transparent;font-size:13px;color:var(--fg)}
+.frow.plain:hover{background:var(--hover);border-color:transparent}
+.frow.plain.on{background:color-mix(in srgb,var(--tone,var(--blue)) 10%,transparent);border-color:color-mix(in srgb,var(--tone,var(--blue)) 45%,transparent)}
 /* environment */
 .env{margin-top:22px;padding-top:18px;border-top:1px solid var(--border)}
 .ehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -1442,13 +1461,15 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .lightbox .iconbtn{position:absolute;top:16px;right:16px}
 .foot{padding:14px 24px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--mut);text-align:center}
 /* sidebar tiles */
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 0 16px;border-bottom:1px solid var(--border)}
-.tile{display:grid;justify-items:center;gap:2px;padding:11px 0;border:1px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{display:grid;justify-items:center;gap:3px;padding:10px 0 9px;border:1px solid color-mix(in srgb,var(--tone) 32%,var(--border));border-radius:9px;background:color-mix(in srgb,var(--tone) 5%,var(--card));cursor:pointer}
+.tile.hot{border-color:color-mix(in srgb,var(--tone) 70%,transparent);background:color-mix(in srgb,var(--tone) 14%,var(--card));box-shadow:0 0 16px -6px var(--tone)}
 .tile:hover:not(:disabled){border-color:var(--tone)}
 .tile:disabled{cursor:default}
 .tile.on{border-color:var(--tone);box-shadow:0 0 14px -5px var(--tone)}
 .tile b{font-family:var(--mono);font-size:19px;line-height:1.2;color:var(--tone)}
-.tile small{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2)}
+.tile small{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
+.tile.hot small{color:color-mix(in srgb,var(--tone) 70%,var(--fg))}
 /* overview additions */
 .bigrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}.bigrow .big{margin:0}
 .delta{font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 7px;border-radius:5px}

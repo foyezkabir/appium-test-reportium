@@ -19,6 +19,11 @@ Will ship as **0.2.0** (already set in `package.json`): screen recordings are a 
   REC pane side by side, then a compact list with View fullscreen and Watch
   replay, both opening the fullscreen viewer. A kept recording of a passed
   test appears too, but only one made during this run.
+- Sidebar refresh: the pass ring and the Passed / Failed / Flaky tiles share
+  one card, with tiles tinted in their colour (Failed stands out when there
+  are failures); new navigation icons and a blue outlined active page with
+  square count badges; "clear all" sits on the first filter group's line;
+  Failure kind and Suite groups are lighter, borderless rows.
 - README: install command at the top, then a numbered "Screenshots" section
   (overview, quality gates and quarantine, test detail, trends, comparison,
   light theme), each under its own heading and linked from GitHub so they
