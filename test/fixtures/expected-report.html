@@ -123,6 +123,8 @@ background:var(--card);color:var(--fg);font-size:13.5px;text-align:left;cursor:p
 .edot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
 .edot.off{background:var(--mut);box-shadow:none}
 .enone{font-size:12px;line-height:1.55;color:var(--fg2)}
+.qhint code{white-space:nowrap}
+.empty code,.qhint code{font-family:var(--mono);font-size:11.5px;padding:1px 5px;border-radius:4px;background:var(--hover);color:var(--fg)}
 .enone code{font-family:var(--mono);font-size:11px;padding:0 4px;border-radius:4px;background:var(--hover);color:var(--fg)}
 .erow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:5px 0;border-bottom:1px dashed var(--border);font-family:var(--mono)}
 .erow:last-child{border-bottom:0}
@@ -401,6 +403,7 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .tile.hot{border-color:color-mix(in srgb,var(--tone) 70%,transparent);background:color-mix(in srgb,var(--tone) 14%,var(--card));box-shadow:0 0 16px -6px var(--tone)}
 .tile:hover:not(:disabled){border-color:var(--tone)}
 .tile:disabled{cursor:default}
+.frow:disabled{opacity:.45;cursor:default}.frow:disabled:hover{background:transparent;color:var(--fg)}
 .tile.on{border-color:var(--tone);box-shadow:0 0 14px -5px var(--tone)}
 .tile b{font-family:var(--mono);font-size:19px;line-height:1.2;color:var(--tone)}
 .tile small{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
@@ -625,6 +628,12 @@ border:1px solid var(--tone);background:var(--card);pointer-events:none;white-sp
 .qcf span{display:flex;align-items:center;gap:6px}.qcf .i{width:13px;height:13px;color:var(--yellow)}
 .qcf .bad{color:var(--red);font-family:var(--mono)}.qcf .good{color:var(--green);font-family:var(--mono)}
 @media(max-width:1100px){.qbody{grid-template-columns:1fr}}
+.qminis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin-top:18px}
+.qminis .qpanel{margin-top:0}
+.qpanel.mut{--tone:var(--mut)}
+.qmini .qhead{padding:14px 18px;flex-wrap:nowrap}.qmini .qicon{width:38px;height:38px}.qmini .qtitle{flex:1}.qmini .qright{flex:none}
+.qmini .qbadge{height:26px;padding:0 11px;font-size:10.5px}
+.qhint{padding:14px 18px 16px;font-size:12.5px;line-height:1.6;color:var(--fg2)}
 .spt{position:absolute;z-index:3;width:10px;height:10px;margin:-5px 0 0 -5px;padding:0;border-radius:50%;border:2px solid var(--tone);
 background:var(--card);cursor:pointer;transition:transform .12s}
 .spt.cur{background:var(--tone);box-shadow:0 0 8px var(--tone)}
@@ -801,7 +810,11 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
       <a href="#comparison" data-nav="comparison"><svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h7M7 8l4 4-4 4"/><path d="M21 12h-7M17 8l-4 4 4 4"/></svg><span>Comparison</span></a>
       <a href="#gallery" data-nav="gallery"><svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5v11A2.5 2.5 0 006.5 21h11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="7.5" y="3" width="13.5" height="13.5" rx="2.5" fill="currentColor" opacity=".9"/><path d="M9.5 14l3.2-3.6 2.3 2.3 1.5-1.6 2.5 2.9z" fill="var(--side)"/><circle cx="12" cy="7.2" r="1.4" fill="var(--side)"/></svg><span>Gallery</span><i>7</i></a>
     </nav>
-    <div class="filters"><div class="fgroup"><div class="fsub"><small>Failure kind</small><button id="fclear" class="linkbtn" disabled>clear all</button></div>
+    <div class="filters"><div class="fgroup"><div class="fsub"><small>Status</small><button id="fclear" class="linkbtn" disabled>clear all</button></div>
+        <div class="frows"><button class="frow green plain" data-f="st" data-v="passed" title="Passed">
+      <span class="sdot"></span><span class="fname">Passed</span><i>1</i></button><button class="frow red plain" data-f="st" data-v="failed" title="Failed">
+      <span class="sdot"></span><span class="fname">Failed</span><i>7</i></button><button class="frow yellow plain" data-f="st" data-v="skipped" title="Skipped">
+      <span class="sdot"></span><span class="fname">Skipped</span><i>1</i></button></div></div><div class="fgroup"><div class="fsub"><small>Failure kind</small><span>4 categories</span></div>
         <div class="frows"><button class="frow red plain" data-f="kind" data-v="app" title="Possible app defects">
       <span class="sdot"></span><span class="fname">Possible app defects</span><i>2</i></button><button class="frow orange plain" data-f="kind" data-v="test" title="Locator &amp; wait issues">
       <span class="sdot"></span><span class="fname">Locator &amp; wait issues</span><i>2</i></button><button class="frow yellow plain" data-f="kind" data-v="env" title="Environment issues">
@@ -830,7 +843,13 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
     </article>
   </div>
   
-  
+  <div class="qminis"><article class="qpanel qmini mut">
+    <header class="qhead"><span class="qicon"><svg class="gicon" viewBox="10 3 44 54" aria-hidden="true"><path class="ic-body" d="M32 6L48 13.5V28C48 40.5 41.2 49.8 32 54C22.8 49.8 16 40.5 16 28V13.5L32 6Z"/><path class="ic-line" d="M26 39V24C26 20.69 28.69 18 32 18C35.31 18 38 20.69 38 24V39"/><path class="ic-line" d="M23 30H41"/><circle class="ic-dot" cx="32" cy="24" r="2.5"/></svg></span>
+      <div class="qtitle"><b>Quality Gates</b><small>No rules configured for this run</small></div><div class="qright"><span class="qbadge">Not configured</span></div></header>
+    <p class="qhint">Set <code>qualityGates</code> in the reporter options, e.g. <code>{ maxFailures: 0, minPassRate: 95 }</code>, or pass <code>--max-failures 0</code> to the CLI. Every run is then checked against those rules here.</p></article><article class="qpanel qmini mut">
+    <header class="qhead"><span class="qicon"><svg class="gicon" viewBox="12 5 40 45" aria-hidden="true"><path class="ic-body" d="M32 8L48 17.2V37.8L32 47L16 37.8V17.2L32 8Z"/><path class="ic-shackle" d="M26 27V21C26 17.69 28.69 15 32 15C35.31 15 38 17.69 38 21V27"/><rect class="ic-lock" x="23" y="27" width="18" height="14" rx="3.5"/><circle class="ic-key" cx="32" cy="33" r="1.8"/><path class="ic-keyline" d="M32 34.5V37"/></svg></span>
+      <div class="qtitle"><b>Quarantine Registry</b><small>Flakiness is measured across runs</small></div><div class="qright"><span class="qbadge">Needs history</span></div></header>
+    <p class="qhint">This is the first recorded run. From the next run on, any test that both passes and fails with a flakiness score of 0.30 or more is listed here.</p></article></div>
   
   <h3 class="shead"><span class="gi badge red"><svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-tri" d="M32 17L44 39C44.6 40.1 43.8 41.5 42.5 41.5H21.5C20.2 41.5 19.4 40.1 20 39L32 17Z"/><path class="ic-stem" d="M32 26V32"/><circle class="ic-pip" cx="32" cy="36.5" r="1.3"/></svg></span>Failure breakdown</h3><div class="atts"><button class="att red" data-go="kind:app">
       <b>2</b><span>Possible app defects</span><small>The app did not do what the test required</small></button><button class="att orange" data-go="kind:test">

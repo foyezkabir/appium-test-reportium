@@ -5,7 +5,18 @@ version number when that version is published to npm.
 
 ## Unreleased
 
-Nothing yet.
+A clean first run on a new project no longer looks broken: sections that used
+to vanish when they had no data now stay, and say why they are empty.
+
+- Quality Gates is always on the Overview. Without `qualityGates` it is a
+  compact *Not configured* panel showing how to add rules.
+- Quarantine Registry is always on the Overview: *Needs history* on a first
+  run, *0 flaky* when history shows no flaky test.
+- New Status filter (Passed / Failed / Skipped) in the sidebar, always shown.
+  Suite groups is now shown even for a single suite. A filter with no tests is
+  greyed out and cannot be picked.
+- A passed test with no steps now says to wrap page-object actions in
+  `StepRecorder.step()` to see them.
 
 ## 0.2.0 · 2026-09-28
 

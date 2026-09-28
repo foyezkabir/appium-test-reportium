@@ -567,6 +567,16 @@ function page(c, options) {
         <div class="qcf"><span>${icon(I.bulb)}Hover any point to inspect that run.</span>${nRuns > 1 ? `<span class="${d < 0 ? 'bad' : d > 0 ? 'good' : ''}">Δ ${d > 0 ? '+' : ''}${d} pts vs previous run</span>` : ''}</div></section>
     </div></article>`;
   }
+  // A panel with nothing to show still renders, compact, saying why: a section
+  // that silently vanishes reads as a broken report.
+  const miniPanel = (tone, svg, title, sub, badge, hint) => `<article class="qpanel qmini ${tone}">
+    ${panelHead(svg, title, sub, `<span class="qbadge">${badge}</span>`)}
+    <p class="qhint">${hint}</p></article>`;
+  const minis = [];
+  if (!c.gates) {
+    minis.push(miniPanel('mut', GI.shield, 'Quality Gates', 'No rules configured for this run', 'Not configured',
+      'Set <code>qualityGates</code> in the reporter options, e.g. <code>{ maxFailures: 0, minPassRate: 95 }</code>, or pass <code>--max-failures 0</code> to the CLI. Every run is then checked against those rules here.'));
+  }
 
   let quarantineHtml = '';
   if (c.quarantined.length) {
@@ -592,7 +602,14 @@ function page(c, options) {
         ${runChart(counts, { max: top, ticks: Array.from({ length: top + 1 }, (_, i) => i), fmt: String, tone: 'yellow', smooth: true, tips: flakyTips, xLabels: xLabels('Current', `${counts[nRuns - 1]} flaky`) })}
         <div class="qcf"><span>${icon(I.bulb)}Hover any point to see which tests were flaky.</span></div></section>
     </div></article>`;
+  } else if (!hasHistory) {
+    minis.push(miniPanel('mut', GI.vault, 'Quarantine Registry', 'Flakiness is measured across runs', 'Needs history',
+      `This is the first recorded run. From the next run on, any test that both passes and fails with a flakiness score of ${c.qThreshold.toFixed(2)} or more is listed here.`));
+  } else {
+    minis.push(miniPanel('green', GI.vault, 'Quarantine Registry', 'No test is flaky enough to set aside', '0 flaky',
+      `Checked across the last ${nRuns} runs: no test mixed passes and fails at or above the ${c.qThreshold.toFixed(2)} threshold.${options.quarantine ? ' quarantine.json is empty.' : ''}`));
   }
+  const minisHtml = minis.length ? `<div class="qminis">${minis.join('')}</div>` : '';
 
   const slowest = [...tests].filter((t) => t.duration != null).sort((a, b) => b.duration - a.duration)[0];
   const mostFlaky = [...tests].filter((t) => t.ins.flakiness !== undefined && t.ins.health !== 'failing').sort((a, b) => b.ins.flakiness - a.ins.flakiness)[0];
@@ -625,7 +642,7 @@ function page(c, options) {
   </div>
   ${c.crashed.map((s) => `<article class="cluster red crash"><header><span class="gi badge">${GI.alertBadge}</span><b>Suite failed to run: ${esc(s.file)}</b></header>
     <pre class="err">${esc(stripAnsi(s.error))}</pre></article>`).join('')}
-  ${gatesHtml}${quarantineHtml}
+  ${gatesHtml}${quarantineHtml}${minisHtml}
   ${attCards ? `<h3 class="shead">${icon(I.bolt)}Attention required</h3><div class="atts">${attCards}</div>` : ''}
   ${kindCards ? `<h3 class="shead"><span class="gi badge red">${GI.alertBadge}</span>Failure breakdown</h3><div class="atts">${kindCards}</div>` : ''}
   ${clusterHtml ? `<h3 class="shead">${icon(I.search)}Failure clusters</h3><div class="clusters">${clusterHtml}</div>` : ''}
@@ -695,7 +712,7 @@ function page(c, options) {
         ${t.videoTooBig ? `<p class="vnote noprint">Recording not embedded: ${bytes(t.videoTooBig.bytes)} is over the ${bytes(options.maxVideoSize ?? 10485760)} limit (maxVideoSize). It is saved in the failures folder as <code>${esc(t.videoTooBig.name)}</code>.</p>` : ''}
         ${t.video ? '<p class="print-only vnote">A screen recording of this test is in the HTML report.</p>' : ''}
       </div></section>` : ''}
-      ${!errs.length && !t.steps.length ? `<p class="empty">${t.st === 'passed' ? 'Passed. No steps were recorded for this test.' : 'Not run.'}</p>` : ''}
+      ${!errs.length && !t.steps.length ? `<p class="empty">${t.st === 'passed' ? 'Passed. No steps were recorded for this test. Wrap page-object actions in <code>StepRecorder.step()</code> to see each step and its timing here.' : 'Not run.'}</p>` : ''}
     </article>`;
   }).join('');
 
@@ -904,7 +921,7 @@ function page(c, options) {
 
   // ── sidebar ───────────────────────────────────────────────────────────
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-  const rowChip = (f, v, label, n, lead, tone = '', plain = false) => `<button class="frow ${tone}${plain ? ' plain' : ''}" data-f="${f}" data-v="${esc(v)}" title="${esc(label)}">
+  const rowChip = (f, v, label, n, lead, tone = '', plain = false) => `<button class="frow ${tone}${plain ? ' plain' : ''}" data-f="${f}" data-v="${esc(v)}" title="${esc(label)}"${n ? '' : ' disabled'}>
       ${lead}<span class="fname">${esc(label)}</span><i>${n}</i></button>`;
   const osIcon = (v = '') => /android/i.test(v) ? ANDROID
     : /ios|iphone|ipad/i.test(v) ? icon(I.apple, 'os') : '';
@@ -917,9 +934,12 @@ function page(c, options) {
   const tile = (n, label, tone, f, v, hot = false) => `<button class="tile ${tone}${hot && n ? ' hot' : ''}" data-f="${f}" data-v="${v}"${n ? '' : ' disabled'}><b>${n}</b><small>${label}</small></button>`;
   const clearBtn = '<button id="fclear" class="linkbtn" disabled>clear all</button>';
   const fgroups = [];
+  // Status and suite are always offered, even on an all-green single-suite run.
+  fgroups.push(['Status', [['passed', 'Passed', 'green', passed], ['failed', 'Failed', 'red', failed], ['skipped', 'Skipped', 'yellow', skipped]]
+    .map(([v, l, tone, n]) => rowChip('st', v, l, n, '<span class="sdot"></span>', tone, true)).join(''), plural(total, 'test', 'tests')]);
   if (attn.length) fgroups.push(['Attention', attn.map(([a, n]) => rowChip('att', a, ATT[a][0], n, '<span class="sdot"></span>', ATT[a][1])).join(''), 'vs earlier runs']);
   if (byKind.size) fgroups.push(['Failure kind', [...byKind.entries()].map(([k, l]) => rowChip('kind', k, KINDS[k].label, l.length, '<span class="sdot"></span>', KINDS[k].tone, true)).join(''), plural(byKind.size, 'category', 'categories')]);
-  if (groups.length > 1) fgroups.push(['Suite groups', groups.map((g) => rowChip('group', g, g, tests.filter((t) => t.groupName === g).length, icon(I.folder, 'fic'), 'group', true)).join(''), plural(groups.length, 'group', 'groups')]);
+  if (groups.length) fgroups.push(['Suite groups', groups.map((g) => rowChip('group', g, g, tests.filter((t) => t.groupName === g).length, icon(I.folder, 'fic'), 'group', true)).join(''), plural(groups.length, 'group', 'groups')]);
   // "clear all" sits on the first group's line, where the eye already is.
   const filtersHtml = fgroups.map(([title, rows, note], i) => `<div class="fgroup"><div class="fsub"><small>${title}</small>${i === 0 ? clearBtn : `<span>${note}</span>`}</div>
         <div class="frows">${rows}</div></div>`).join('') || `<span hidden>${clearBtn}</span>`;
@@ -1175,6 +1195,8 @@ background:var(--card);color:var(--fg);font-size:13.5px;text-align:left;cursor:p
 .edot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
 .edot.off{background:var(--mut);box-shadow:none}
 .enone{font-size:12px;line-height:1.55;color:var(--fg2)}
+.qhint code{white-space:nowrap}
+.empty code,.qhint code{font-family:var(--mono);font-size:11.5px;padding:1px 5px;border-radius:4px;background:var(--hover);color:var(--fg)}
 .enone code{font-family:var(--mono);font-size:11px;padding:0 4px;border-radius:4px;background:var(--hover);color:var(--fg)}
 .erow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:5px 0;border-bottom:1px dashed var(--border);font-family:var(--mono)}
 .erow:last-child{border-bottom:0}
@@ -1453,6 +1475,7 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .tile.hot{border-color:color-mix(in srgb,var(--tone) 70%,transparent);background:color-mix(in srgb,var(--tone) 14%,var(--card));box-shadow:0 0 16px -6px var(--tone)}
 .tile:hover:not(:disabled){border-color:var(--tone)}
 .tile:disabled{cursor:default}
+.frow:disabled{opacity:.45;cursor:default}.frow:disabled:hover{background:transparent;color:var(--fg)}
 .tile.on{border-color:var(--tone);box-shadow:0 0 14px -5px var(--tone)}
 .tile b{font-family:var(--mono);font-size:19px;line-height:1.2;color:var(--tone)}
 .tile small{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
@@ -1677,6 +1700,12 @@ border:1px solid var(--tone);background:var(--card);pointer-events:none;white-sp
 .qcf span{display:flex;align-items:center;gap:6px}.qcf .i{width:13px;height:13px;color:var(--yellow)}
 .qcf .bad{color:var(--red);font-family:var(--mono)}.qcf .good{color:var(--green);font-family:var(--mono)}
 @media(max-width:1100px){.qbody{grid-template-columns:1fr}}
+.qminis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin-top:18px}
+.qminis .qpanel{margin-top:0}
+.qpanel.mut{--tone:var(--mut)}
+.qmini .qhead{padding:14px 18px;flex-wrap:nowrap}.qmini .qicon{width:38px;height:38px}.qmini .qtitle{flex:1}.qmini .qright{flex:none}
+.qmini .qbadge{height:26px;padding:0 11px;font-size:10.5px}
+.qhint{padding:14px 18px 16px;font-size:12.5px;line-height:1.6;color:var(--fg2)}
 .spt{position:absolute;z-index:3;width:10px;height:10px;margin:-5px 0 0 -5px;padding:0;border-radius:50%;border:2px solid var(--tone);
 background:var(--card);cursor:pointer;transition:transform .12s}
 .spt.cur{background:var(--tone);box-shadow:0 0 8px var(--tone)}

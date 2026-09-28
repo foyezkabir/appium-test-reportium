@@ -149,3 +149,22 @@ test('golden file', () => {
   while (html[i] === want[i]) i++;
   assert.fail(`report differs from the golden file at offset ${i}:\n  got:  …${html.slice(Math.max(0, i - 60), i + 80)}\n  want: …${want.slice(Math.max(0, i - 60), i + 80)}\nIf the change is intended: UPDATE_GOLDEN=1 npm test`);
 });
+
+test('a clean all-green run still shows gates, quarantine and filters, saying why they are empty', () => {
+  const tests = ['TC01: opens', 'TC02: signs in'].map((title) => ({ title, fullName: `Login ${title}`, group: ['Login'], status: 'passed', duration: 1000, errors: [] }));
+  const run = { startTime: Date.parse('2026-01-02T00:00:00Z'), duration: 2000, suites: [{ file: 'login.spec.ts', tests }] };
+  const base = { outputDirectory: tmpdir(), historyFile: false };
+
+  const first = renderReport(run, base);
+  assert.match(first, /Quality Gates[\s\S]*Not configured/);
+  assert.match(first, /Quarantine Registry[\s\S]*Needs history/);
+  assert.match(first, /<small>Status<\/small>/, 'Status filter is always offered');
+  assert.match(first, /data-f="st" data-v="failed"[^>]*disabled/, 'a status with no tests cannot be picked');
+  assert.match(first, /<small>Suite groups<\/small>/, 'offered even for a single suite');
+  assert.match(first, /StepRecorder\.step\(\)/, 'empty test detail says how to get steps');
+
+  const historyRuns = [{ startTime: run.startTime - 1000, duration: 2000, passed: 2, failed: 0, skipped: 0, flaky: 0, tests: {} }];
+  const later = renderReport(run, { ...base, historyRuns, qualityGates: { maxFailures: 0 } });
+  assert.match(later, /Quarantine Registry[\s\S]*0 flaky/);
+  assert.doesNotMatch(later, /Not configured/, 'configured gates get the full panel');
+});

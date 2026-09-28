@@ -334,7 +334,14 @@ Filters narrow the **Tests** list. Clicking one opens the Tests view.
 - **Within a group, one choice is active at a time.**
 - **Click an active filter again to turn it off.** **clear all** turns every
   filter off.
-- **A group only appears when it has something in it.**
+- **Status and Suite groups are always shown.** Attention and Failure kind
+  only appear when they have something in them. A status with no tests is
+  greyed out.
+
+#### Status
+
+**Passed**, **Failed** and **Skipped**, with a count each. The Passed,
+Failed and Flaky tiles at the top of the sidebar are the same filters.
 
 #### Attention (vs earlier runs)
 
@@ -385,7 +392,7 @@ explanation never replaces the evidence.
 The `describe` block a test belongs to. From JUnit XML this is the
 `classname`; from Jest it is the full describe path, for example
 `Checkout › Payment`. Long names are cut with "…"; hover to see the full
-name. The group only appears when a run has more than one.
+name. Shown even when the run has only one group.
 
 #### Search
 
@@ -405,8 +412,8 @@ Skipped tests have no filter of their own. Search for `skipped` to list them.
 | **Pass rate** | passed ÷ executed, with the change in points vs the previous run (`↓75%`) |
 | **Duration** | wall-clock time of the run, with the change vs the previous run in % |
 | Status breakdown | passed, failed and skipped, as bars |
-| **Quality Gates** | shown when you set [`qualityGates`](#quality-gates-and-quarantine). Each rule with its condition, actual value and PASSED / FAILED, plus a pass-rate chart for the last runs with your minimum as a dashed line. Hover any point to see that run's pass rate, counts, gate result and new failures |
-| **Quarantine Registry** | shown when any test is flaky enough to quarantine: at least the threshold (default 0.30), mixed passes and fails. Each test with its score and how often it failed, plus a chart of how many tests were flaky at each run. It says *quarantined* when `quarantine` is on (the list is written to `quarantine.json`), otherwise *flagged* |
+| **Quality Gates** | always shown. Without [`qualityGates`](#quality-gates-and-quarantine) it is a small *Not configured* panel that says how to add rules. With them: each rule with its condition, actual value and PASSED / FAILED, plus a pass-rate chart for the last runs with your minimum as a dashed line. Hover any point to see that run's pass rate, counts, gate result and new failures |
+| **Quarantine Registry** | always shown. On a first run it says *Needs history*; with history and no flaky test it says *0 flaky*. Otherwise it lists every test flaky enough to quarantine: at least the threshold (default 0.30), mixed passes and fails. Each test with its score and how often it failed, plus a chart of how many tests were flaky at each run. It says *quarantined* when `quarantine` is on (the list is written to `quarantine.json`), otherwise *flagged* |
 | **Attention required** | cards for new failures, performance regressions and flaky tests (only those with a count). Click one to filter the Tests list |
 | **Failure breakdown** | one card per failure kind in this run. Click one to filter |
 | **Failure clusters** | failures that share a cause, grouped: the same diagnosis, or the same first error line with numbers ignored. One cluster with many tests usually means one root cause |
