@@ -99,6 +99,15 @@ const GI = {
   vault: '<svg class="gicon" viewBox="12 5 40 45" aria-hidden="true"><path class="ic-body" d="M32 8L48 17.2V37.8L32 47L16 37.8V17.2L32 8Z"/>'
     + '<path class="ic-shackle" d="M26 27V21C26 17.69 28.69 15 32 15C35.31 15 38 17.69 38 21V27"/><rect class="ic-lock" x="23" y="27" width="18" height="14" rx="3.5"/>'
     + '<circle class="ic-key" cx="32" cy="33" r="1.8"/><path class="ic-keyline" d="M32 34.5V37"/></svg>',
+  // Warning triangle. Dark themes draw it as the "telemetry" design (dark body,
+  // glowing mark), light mode and print as the "precision" design (tinted body,
+  // solid mark); CSS picks one from the theme.
+  alert: '<svg class="gicon alert" viewBox="7 6 50 49" aria-hidden="true"><path class="ic-body" d="M32 9L53.65 47.5C54.8 49.5 53.3 52 51 52H13C10.7 52 9.2 49.5 10.35 47.5L32 9Z"/>'
+    + '<path class="ic-inner" d="M32 15L48.8 45.8C49.3 46.7 48.6 47.8 47.5 47.8H16.5C15.4 47.8 14.7 46.7 15.2 45.8L32 15Z"/>'
+    + '<rect class="ic-bang" x="30" y="23" width="4" height="13" rx="2"/><circle class="ic-bang" cx="32" cy="41" r="2.2"/></svg>',
+  // The same warning inside a squircle badge, for section headings.
+  alertBadge: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/>'
+    + '<path class="ic-tri" d="M32 17L44 39C44.6 40.1 43.8 41.5 42.5 41.5H21.5C20.2 41.5 19.4 40.1 20 39L32 17Z"/><path class="ic-stem" d="M32 26V32"/><circle class="ic-pip" cx="32" cy="36.5" r="1.3"/></svg>',
   // Squircle tiles for one rule's result.
   ok: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-mark" d="M22 32.5L28.5 39L42 24.5"/></svg>',
   no: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-mark" d="M24 24L40 40M40 24L24 40"/></svg>',
@@ -445,7 +454,7 @@ function page(c, options) {
   }
   const clusterHtml = [...clusters.entries()].sort((a, b) => b[1].length - a[1].length).map(([key, list]) => `
     <article class="cluster ${KINDS[list[0].kind].tone}">
-      <header>${icon(I.alert)}<b>${esc(key)}</b><span class="count">${list.length} test${list.length > 1 ? 's' : ''}</span></header>
+      <header><span class="gi">${GI.alert}</span><b>${esc(key)}</b><span class="count">${list.length} test${list.length > 1 ? 's' : ''}</span></header>
       <pre>${esc(list[0].firstLine)}</pre>
       <div class="chips">${list.map((t) => `<a class="chip" href="#${t.id}">${esc(t.tc || t.rest.slice(0, 28))}</a>`).join('')}</div>
       <small>${esc(KINDS[list[0].kind].label)} · ${esc([...new Set(list.map((t) => t.groupName))].join(', '))}</small>
@@ -517,7 +526,7 @@ function page(c, options) {
     <div class="qbody">
       <section class="qlist"><div class="qlh"><small>Gate evaluation policy</small><span>${bad ? `${bad} / ${rules.length} rules violated` : `${rules.length} / ${rules.length} rules met`}</span></div>
         ${rules.map(card).join('')}
-        <p class="qfoot">${icon(bad ? I.alert : I.pass)}${bad ? `Gate failed: ${bad} of ${rules.length} rule${rules.length === 1 ? '' : 's'} unmet.` : `All ${rules.length} rules met.`}</p></section>
+        <p class="qfoot"><span class="gi ${bad ? 'red' : 'green'}">${bad ? GI.alert : GI.ok}</span>${bad ? `Gate failed: ${bad} of ${rules.length} rule${rules.length === 1 ? '' : 's'} unmet.` : `All ${rules.length} rules met.`}</p></section>
       <section class="qchart"><div class="qch"><div><h4>Pass rate trend (last ${nRuns} run${nRuns === 1 ? '' : 's'})</h4><p>Pass rate of each run, oldest → current</p></div>
         <div class="qlegend"><span><i class="ln"></i>Pass rate (%)</span>${qg.minPassRate !== undefined ? `<span><i class="dash"></i>Min threshold (${qg.minPassRate}%)</span>` : ''}</div></div>
         ${runChart(rates, { max: 100, ticks: [20, 40, 60, 80, 100].concat(qg.minPassRate !== undefined && ![20, 40, 60, 80, 100].includes(qg.minPassRate) ? [qg.minPassRate] : []), fmt: (v) => `${v}%`, tone: c.gates.passed ? 'green' : 'red', tips: gateTips, threshold: qg.minPassRate !== undefined ? { value: qg.minPassRate } : null, xLabels: xLabels(`Run #${nRuns}`, 'Current') })}
@@ -580,11 +589,11 @@ function page(c, options) {
         `<div><span>${l}</span><span class="track"><i class="${cl}" style="width:${pct(n, total)}%"></i></span><b>${n}</b></div>`).join('')}
     </article>
   </div>
-  ${c.crashed.map((s) => `<article class="cluster red crash"><header>${icon(I.alert)}<b>Suite failed to run: ${esc(s.file)}</b></header>
+  ${c.crashed.map((s) => `<article class="cluster red crash"><header><span class="gi badge">${GI.alertBadge}</span><b>Suite failed to run: ${esc(s.file)}</b></header>
     <pre class="err">${esc(stripAnsi(s.error))}</pre></article>`).join('')}
   ${gatesHtml}${quarantineHtml}
   ${attCards ? `<h3 class="shead">${icon(I.bolt)}Attention required</h3><div class="atts">${attCards}</div>` : ''}
-  ${kindCards ? `<h3 class="shead">${icon(I.alert)}Failure breakdown</h3><div class="atts">${kindCards}</div>` : ''}
+  ${kindCards ? `<h3 class="shead"><span class="gi badge red">${GI.alertBadge}</span>Failure breakdown</h3><div class="atts">${kindCards}</div>` : ''}
   ${clusterHtml ? `<h3 class="shead">${icon(I.search)}Failure clusters</h3><div class="clusters">${clusterHtml}</div>` : ''}
   <h3 class="shead">${icon(I.bulb)}Quick insights</h3>
   <div class="insights">
@@ -708,7 +717,7 @@ function page(c, options) {
     trendsView = `<section class="view" id="v-trends" data-view="trends">
   <div class="thead2"><div><h2>Trends <span class="runs">${nRuns} runs</span></h2><p>Run history for the ${esc(project)} suite</p></div>
     <div class="tactions"><a class="tbtn" href="#comparison">${icon(I.scale)}Compare runs</a><span class="tbtn static">${icon(I.clock)}Last ${nRuns} runs</span>
-    ${failed ? `<a class="tbtn danger" href="#tests" data-go="st:failed">${icon(I.alert)}View failures</a>` : ''}</div></div>
+    ${failed ? `<a class="tbtn danger" href="#tests" data-go="st:failed"><span class="gi red">${GI.alert}</span>View failures</a>` : ''}</div></div>
   <div class="tgrid">
     ${card('blue', 'Pass rate', `Baseline: ${rates[L - 1]}%`, [`${dRate > 0 ? '+' : ''}${dRate} pts ${rateWord}`, rateTone], trendArea(rates, { tone: 'blue', fmt: (v) => `${v}%`, tips: gateTips, alertLast: dRate <= -20 }))}
     ${card('blue', 'Duration', `Peak: ${dur(Math.max(...durs))}`, durBadge, trendBars(durs, { tone: 'blue', fmt: dur, tips: durTips }))}
@@ -977,9 +986,15 @@ function css() {
 @font-face{font-family:"Space Grotesk";font-weight:400 700;font-display:swap;src:url(data:font/woff2;base64,${SPACE_GROTESK}) format("woff2")}
 @font-face{font-family:"JetBrains Mono";font-weight:400 700;font-display:swap;src:url(data:font/woff2;base64,${JETBRAINS_MONO}) format("woff2")}
 :root{${DARK};color-scheme:dark;--sans:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;--side-w:320px;--top-h:56px}
-@media(prefers-color-scheme:light){:root:not([data-theme]){${LIGHT};color-scheme:light}}
+@media(prefers-color-scheme:light){:root:not([data-theme]){${LIGHT};color-scheme:light}
+  :root:not([data-theme]) .gicon.alert .ic-body{fill:color-mix(in srgb,var(--t) 14%,#fff)}
+  :root:not([data-theme]) .gicon.alert .ic-bang{fill:var(--t)}
+  :root:not([data-theme]) .gicon.alert{filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--t) 25%,transparent))}}
 :root[data-theme="dark"]{${DARK};color-scheme:dark}
 :root[data-theme="light"]{${LIGHT};color-scheme:light}
+:root[data-theme="light"] .gicon.alert .ic-body{fill:color-mix(in srgb,var(--t) 14%,#fff)}
+:root[data-theme="light"] .gicon.alert .ic-bang{fill:var(--t)}
+:root[data-theme="light"] .gicon.alert{filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--t) 25%,transparent))}
 ${Object.entries(THEMES).map(([k, v]) => `:root[data-theme="${k}"]{${v};color-scheme:dark}`).join('\n')}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--fg)}
@@ -1450,6 +1465,21 @@ background:color-mix(in srgb,var(--tone) 14%,transparent);color:var(--tone);font
 .gicon .ic-dot{fill:var(--t)}
 .gicon .ic-shackle{fill:none;stroke:color-mix(in srgb,var(--t) 72%,#7a3b00);stroke-width:2.5;stroke-linecap:round}
 .gicon .ic-lock{fill:var(--t);stroke:color-mix(in srgb,var(--t) 72%,#7a3b00);stroke-width:1.5}
+/* inline icon holder: sized by context, colour from the nearest tone */
+.gi{display:inline-grid;place-items:center;flex:none;width:20px;height:20px;--t:var(--tone,var(--red))}
+.gi.badge{width:28px;height:28px}
+.gi.red{--t:var(--red)}.gi.green{--t:var(--green)}
+.qfoot .gi,.tbtn .gi{width:17px;height:17px}
+.shead .gi.badge{width:26px;height:26px}
+/* warning triangle: "telemetry" look by default (every theme but Light) */
+.gicon.alert .ic-body{fill:color-mix(in srgb,var(--t) 20%,#12060a);stroke:var(--t);stroke-width:2.2}
+.gicon.alert .ic-inner{fill:none;stroke:var(--t);stroke-opacity:.35;stroke-width:1.2}
+.gicon.alert .ic-bang{fill:color-mix(in srgb,var(--t) 22%,#fff)}
+.gicon.alert{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--t) 55%,transparent))}
+/* squircle warning badge */
+.gicon .ic-tri{fill:color-mix(in srgb,var(--t) 24%,var(--card));stroke:var(--t);stroke-width:2;stroke-linejoin:round}
+.gicon .ic-stem{fill:none;stroke:color-mix(in srgb,var(--t) 80%,#000);stroke-width:2.2;stroke-linecap:round}
+.gicon .ic-pip{fill:color-mix(in srgb,var(--t) 80%,#000)}
 .gicon .ic-key{fill:var(--card)}.gicon .ic-keyline{fill:none;stroke:var(--card);stroke-width:1.5;stroke-linecap:round}
 .rule.ok{--rt:var(--green)}.rule.no{--rt:var(--red)}.rule.skip{--rt:var(--mut)}
 .rtext,.qmain{display:grid;min-width:0;flex:1}
@@ -1621,6 +1651,7 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   /* Hover-only bits have no meaning on paper. */
   .spt::after,.tbar2::after{display:none!important}
   .qbadge i,.qbadge i::after{animation:none!important}
+  .gicon.alert .ic-body{fill:color-mix(in srgb,var(--t) 14%,#fff)}.gicon.alert .ic-bang{fill:var(--t)}.gicon.alert{filter:none}
   .sec.raw{display:block}.sec.raw>summary::after{display:none}
   .sec.raw[open] pre,.sec.raw pre{display:block}
   .shot img{max-height:320px}

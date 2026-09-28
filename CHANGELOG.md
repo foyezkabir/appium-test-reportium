@@ -53,6 +53,10 @@ Will ship as **0.1.1** (already set in `package.json`).
 - New icons: a gated shield for Quality Gates (red when a gate fails, green
   when all pass), a hexagonal padlock for the Quarantine Registry, and check
   and cross tiles for each gate rule. They take their colours from the theme.
+- New warning icons: a triangle (a dark, glowing version in dark themes and a
+  tinted one in light mode and print) on failure clusters, the "Gate failed"
+  line and the View failures button, and a squircle warning badge on the
+  Failure breakdown heading and on a suite that failed to run.
 - README: a full "Reading the report" guide covering the top bar, sidebar,
   every filter (Attention, Failure kind with each matching rule, Suite
   groups, Search) and every view (Overview, Tests, Trends, Comparison,
