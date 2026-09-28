@@ -254,24 +254,38 @@ function runChart(values, o) {
     ${dots}${callout}</div><div class="axl">${xl}</div></div>`;
 }
 
-/** A trend chart: one value per run, oldest → newest, with labelled points. */
-function trendChart(runs, pick, { max, fmt, tone, kind = 'area' }) {
-  const vals = runs.map(pick);
-  const top = max ?? Math.max(...vals, 1);
-  const W = 100, H = 50;
-  const pad = kind === 'bars' ? 6 : 2; // room so edge bars are not clipped
-  const x = (i) => (runs.length === 1 ? W / 2 : pad + (i / (runs.length - 1)) * (W - pad * 2));
-  const y = (v) => H - (v / (top || 1)) * (H - 6) - 3;
-  let body;
-  if (kind === 'bars') {
-    const bw = Math.min(10, (W / runs.length) * 0.6);
-    body = vals.map((v, i) => `<rect x="${(x(i) - bw / 2).toFixed(2)}" y="${y(v).toFixed(2)}" width="${bw.toFixed(2)}" height="${(H - y(v)).toFixed(2)}" rx="1" class="tbar ${i === vals.length - 1 ? 'cur' : ''}"/>`).join('');
-  } else {
-    const line = vals.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(2)},${y(v).toFixed(2)}`).join('');
-    body = `<path d="${line}L${x(vals.length - 1).toFixed(2)},${H}L${x(0).toFixed(2)},${H}Z" class="spark-fill"/><path d="${line}" class="spark-line" vector-effect="non-scaling-stroke"/>`;
-  }
-  const labels = runs.map((r, i) => `<span style="left:${x(i)}%" title="${esc(new Date(r.startTime).toLocaleString())}">${esc(fmt(vals[i]))}</span>`).join('');
-  return `<div class="trend ${tone}"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${body}</svg><div class="tlabels">${labels}</div></div>`;
+/**
+ * Trend card charts: one point or bar per run, oldest → newest, the value
+ * under each, the current run highlighted, and a hover tooltip per run.
+ */
+function trendArea(values, { tone, fmt, tips, alertLast = false }) {
+  const n = values.length;
+  const max = Math.max(...values, 1) * 1.12;
+  const X = (i) => (n === 1 ? 50 : 4 + (i / (n - 1)) * 92);
+  const Y = (v) => 8 + (1 - v / max) * 84;
+  const pts = values.map((v, i) => [X(i), Y(v)]);
+  const path = (from, to) => pts.slice(from, to + 1).map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join('');
+  const all = path(0, n - 1);
+  // A sharp fall into the current run is drawn in red so it cannot be missed.
+  const tail = alertLast && n > 1 ? `<path d="${path(n - 2, n - 1)}" class="tline alert" vector-effect="non-scaling-stroke"/>` : '';
+  const dots = pts.map(([x, y], i) => `<button type="button" class="spt${i === n - 1 ? ' cur' : ''}${i === n - 1 && alertLast ? ' alert' : ''}${i < 2 ? ' tl' : i >= n - 2 ? ' tr' : ''}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%" data-tip="${esc(tips[i] ?? '')}" aria-label="${esc((tips[i] ?? '').replace(/\n/g, ', '))}"></button>`).join('');
+  return `<div class="tplot ${tone}"><div class="tarea">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="tg-${tone}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" class="gs1"/><stop offset="1" class="gs2"/></linearGradient></defs>
+      <path d="${all}L${pts[n - 1][0]},100L${pts[0][0]},100Z" fill="url(#tg-${tone})"/><path d="${all}" class="tline" vector-effect="non-scaling-stroke"/>${tail}</svg>${dots}</div>
+    ${tlabels(values, fmt, X, true, alertLast)}</div>`;
+}
+
+function trendBars(values, { tone, fmt, tips }) {
+  const n = values.length;
+  const max = Math.max(...values, 1);
+  const X = (i) => ((i + 0.5) / n) * 100;
+  const bars = values.map((v, i) => `<div class="tbarcol" style="left:${X(i).toFixed(2)}%"><span class="tbar2${i === n - 1 ? ' cur' : ''}${i < 2 ? ' tl' : i >= n - 2 ? ' tr' : ''}" style="height:${Math.max(3, Math.round((v / max) * 88))}%" data-tip="${esc(tips[i] ?? '')}" tabindex="0"></span></div>`).join('');
+  return `<div class="tplot ${tone}"><div class="tarea">${bars}</div>${tlabels(values, fmt, X, true)}</div>`;
+}
+
+function tlabels(values, fmt, X, boxLast, alert = false) {
+  return `<div class="tlab">${values.map((v, i) => `<span class="${i === values.length - 1 && boxLast ? `cur${alert ? ' alert' : ''}` : ''}" style="left:${X(i).toFixed(2)}%">${esc(fmt(v))}</span>`).join('')}</div>`;
 }
 
 /**
@@ -628,18 +642,65 @@ function page(c, options) {
   const noHistory = (what) => `<div class="panel empty-state">${icon(I.trend)}<b>${what} appear from the second run</b>
     <p>Each report saves a summary of its run to <code>${esc(basename(c.histFile ?? 'testreportium-history.json'))}</code> next to the report. Run the suite again and this view fills in.</p></div>`;
   const fmtRun = (r) => new Date(r.startTime).toLocaleString(options.locale, { timeZone: options.timeZone, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const trendsView = `<section class="view" id="v-trends" data-view="trends">
-  <h2 class="vtitle">Trends <span class="muted mono">${series.length} run${series.length === 1 ? '' : 's'}</span></h2>
-  ${hasHistory ? `<div class="tcharts">
-    <article class="panel"><h4 class="ph">Pass rate</h4>${trendChart(series, rateOf, { max: 100, fmt: (v) => `${v}%`, tone: 'green' })}</article>
-    <article class="panel"><h4 class="ph">Duration</h4>${trendChart(series, (r) => r.duration, { fmt: dur, tone: 'blue', kind: 'bars' })}</article>
-    <article class="panel"><h4 class="ph">Failed tests</h4>${trendChart(series, (r) => r.failed, { fmt: String, tone: 'red', kind: 'bars' })}</article>
-    <article class="panel"><h4 class="ph">Flaky tests</h4>${trendChart(series, (r) => r.flaky ?? 0, { fmt: String, tone: 'yellow' })}</article>
+  let trendsView;
+  if (hasHistory) {
+    const rates = facts.map((f) => f.rate);
+    const durs = full.map((r) => r.duration);
+    const fails = full.map((r) => r.failed);
+    const flakies = facts.map((f) => f.flakyKeys.length);
+    const L = nRuns - 1;
+    const dRate = rates[L] - rates[L - 1];
+    const dDur = durs[L] - durs[L - 1];
+    const dFail = fails[L] - fails[L - 1];
+    const dFlaky = flakies[L] - flakies[L - 1];
+    const sev = (d) => (d <= -20 ? ['Critical', 'red'] : d < 0 ? ['Drop', 'orange'] : d > 0 ? ['Improved', 'green'] : ['Stable', 'mut']);
+    const [rateWord, rateTone] = sev(dRate);
+    const rel = durs[L - 1] ? dDur / durs[L - 1] : 0;
+    const durBadge = rel > 0.1 ? [`+${dur(dDur)} Surge`, 'red'] : rel < -0.1 ? [`−${dur(-dDur)} Faster`, 'green'] : [`${dDur >= 0 ? '+' : '−'}${dur(Math.abs(dDur))} Steady`, 'mut'];
+    const flakyBadge = dFlaky > 0 ? [`Rising flakiness (${flakies[L]})`, 'red'] : dFlaky < 0 ? [`Falling flakiness (${flakies[L]})`, 'green'] : [`Stable flakiness (${flakies[L]})`, 'yellow'];
+    const failedNames = (r) => Object.entries(r.tests).filter(([, v]) => v[0] === 'failed').map(([k]) => nameOf(k));
+    const durTips = full.map((r, i) => [when(r, i), `Duration ${dur(r.duration)}${i ? `  (${durs[i] - durs[i - 1] >= 0 ? '+' : '−'}${dur(Math.abs(durs[i] - durs[i - 1]))} vs previous)` : ''}`, `${r.passed + r.failed + r.skipped} tests`].join('\n'));
+    const failTips = full.map((r, i) => { const nm = failedNames(r); return [when(r, i), `${r.failed} failed of ${r.passed + r.failed + r.skipped}${i ? `  (${fails[i] - fails[i - 1] >= 0 ? '+' : ''}${fails[i] - fails[i - 1]} vs previous)` : ''}`, nm.slice(0, 3).join('\n') + (nm.length > 3 ? `\n+${nm.length - 3} more` : '')].filter(Boolean).join('\n'); });
+    const card = (dotTone, title, ctx, [badgeText, badgeTone], chart) => `<article class="tcard">
+      <header><span class="tdot ${dotTone}"></span><h4>${title}</h4><span class="tctx">${ctx}</span><span class="tbadge ${badgeTone}">${esc(badgeText)}</span></header>${chart}</article>`;
+    const specs = [...new Set(run.suites.map((x) => x.file))];
+
+    const tableRows = [...full].map((r, i) => ({ r, i })).reverse().map(({ r, i }) => {
+      const isCur = i === L;
+      const rate = rates[i];
+      const nm = failedNames(r);
+      const fk = facts[i].flakyKeys.map(nameOf);
+      const trendArrow = i > 0 ? (rate < rates[i - 1] ? ' ↘' : rate > rates[i - 1] ? ' ↗' : '') : '';
+      const details = `<tr class="rdetail" id="rd-${i}" hidden><td colspan="9"><div class="rdgrid">
+        <div><small>Failed (${nm.length})</small>${nm.length ? nm.map((x) => `<span>${esc(x)}</span>`).join('') : '<em>None</em>'}</div>
+        <div><small>Flaky at this run (${fk.length})</small>${fk.length ? fk.map((x) => `<span>${esc(x)}</span>`).join('') : '<em>None</em>'}</div>
+        <div><small>Gate</small>${facts[i].g ? `<span class="${facts[i].g.passed ? 'g' : 'r'}">${facts[i].g.passed ? 'Passed' : `Failed: ${esc(facts[i].g.rules.filter((x) => !x.passed).map((x) => x.label).join(', '))}`}</span>` : '<em>No gates configured</em>'}</div>
+      </div></td></tr>`;
+      return `<tr class="${isCur ? 'cur' : ''}">
+        <td><span class="rts">${esc(fmtRun(r))}</span>${isCur ? `<span class="thisrun">This run</span><span class="runno">#${i + 1}</span>` : `<span class="runno">#${i + 1}</span>`}</td>
+        <td>${r.passed + r.failed + r.skipped}</td><td class="g">${r.passed}</td><td class="${r.failed ? 'r' : ''}">${r.failed}</td><td>${r.skipped}</td>
+        <td class="${fk.length ? 'y' : ''}">${fk.length}</td><td class="rate ${rate >= 80 ? '' : rate >= 60 ? 'y' : 'r'}">${rate}%${trendArrow}</td><td class="${isCur ? 'b' : ''}">${dur(r.duration)}</td>
+        <td>${isCur ? '<a class="ract" href="#overview">Report</a>' : `<button type="button" class="rexp" data-rd="rd-${i}" aria-expanded="false" aria-label="Show run #${i + 1} details">›</button>`}</td></tr>${details}`;
+    }).join('');
+
+    trendsView = `<section class="view" id="v-trends" data-view="trends">
+  <div class="thead2"><div><h2>Trends <span class="runs">${nRuns} runs</span></h2><p>Run history for the ${esc(project)} suite</p></div>
+    <div class="tactions"><a class="tbtn" href="#comparison">${icon(I.scale)}Compare runs</a><span class="tbtn static">${icon(I.clock)}Last ${nRuns} runs</span>
+    ${failed ? `<a class="tbtn danger" href="#tests" data-go="st:failed">${icon(I.alert)}View failures</a>` : ''}</div></div>
+  <div class="tgrid">
+    ${card('blue', 'Pass rate', `Baseline: ${rates[L - 1]}%`, [`${dRate > 0 ? '+' : ''}${dRate} pts ${rateWord}`, rateTone], trendArea(rates, { tone: 'blue', fmt: (v) => `${v}%`, tips: gateTips, alertLast: dRate <= -20 }))}
+    ${card('blue', 'Duration', `Peak: ${dur(Math.max(...durs))}`, durBadge, trendBars(durs, { tone: 'blue', fmt: dur, tips: durTips }))}
+    ${card('red', 'Failed tests', `Total run specs: ${total}`, [`${failed} Failed (${dFail >= 0 ? '+' : ''}${dFail})`, dFail > 0 ? 'red' : dFail < 0 ? 'green' : 'mut'], trendBars(fails, { tone: 'red', fmt: String, tips: failTips }))}
+    ${card('yellow', 'Flaky tests', `Peak: ${Math.max(...flakies)}`, flakyBadge, trendArea(flakies, { tone: 'yellow', fmt: String, tips: flakyTips }))}
   </div>
-  <div class="panel tablewrap"><table class="rtable"><thead><tr><th>Run</th><th>Tests</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Flaky</th><th>Pass rate</th><th>Duration</th></tr></thead>
-    <tbody>${[...series].reverse().map((r, i) => `<tr class="${i === 0 ? 'cur' : ''}"><td>${esc(fmtRun(r))}${i === 0 ? ' <span class="tag blue">this run</span>' : ''}</td><td>${r.passed + r.failed + r.skipped}</td><td class="g">${r.passed}</td><td class="r">${r.failed}</td><td>${r.skipped}</td><td class="y">${r.flaky ?? 0}</td><td>${rateOf(r)}%</td><td>${dur(r.duration)}</td></tr>`).join('')}</tbody></table></div>`
-    : noHistory('Trends')}
+  <article class="rmatrix"><header>${icon(I.grid)}<b>Historical runs execution matrix</b><span class="muted">Showing last ${nRuns} executions</span>
+    <span class="spect">Spec target: ${esc(specs.join(', ').slice(0, 60))}</span></header>
+    <div class="tablewrap"><table class="htable"><thead><tr><th>Run timestamp</th><th>Tests</th><th>Passed</th><th>Failed</th><th>Skipped</th><th>Flaky</th><th>Pass rate</th><th>Duration</th><th>Action</th></tr></thead>
+    <tbody>${tableRows}</tbody></table></div></article>
 </section>`;
+  } else {
+    trendsView = `<section class="view" id="v-trends" data-view="trends"><h2 class="vtitle">Trends</h2>${noHistory('Trends')}</section>`;
+  }
 
   // ── comparison with the previous run ──────────────────────────────────
   let comparisonView;
@@ -1215,6 +1276,74 @@ pre .hl{color:var(--red);font-weight:600}pre .dim{color:var(--mut)}pre .own{colo
 .delta.flat{color:var(--fg2);background:var(--hover)}
 .mut{--tone:var(--mut)}.track .mut{background:var(--mut)}
 .more{display:inline-block;margin-top:10px;font-size:12px;color:var(--blue)}
+/* trends */
+.thead2{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:0 -24px 22px;padding:18px 24px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.thead2 h2{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600}
+.thead2 .runs{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--hover);color:var(--fg2)}
+.thead2 p{font-size:12.5px;color:var(--fg2);margin-top:4px}
+.tactions{display:flex;gap:10px;flex-wrap:wrap}
+.tbtn{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:12.5px;font-weight:500;color:var(--fg)}
+a.tbtn:hover{border-color:var(--glow);background:var(--hover)}
+.tbtn .i{width:14px;height:14px;color:var(--fg2)}
+.tbtn.static{cursor:default;color:var(--fg2)}
+.tbtn.danger{color:var(--red);border-color:color-mix(in srgb,var(--red) 50%,transparent);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.tbtn.danger .i{color:var(--red)}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:18px}
+.tcard{border:1px solid var(--border);border-radius:14px;background:var(--card);padding:16px 18px 12px}
+.tcard>header{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.tcard h4{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.tdot{width:8px;height:8px;border-radius:50%;background:var(--tone);box-shadow:0 0 6px var(--tone)}
+.tctx{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--fg2)}
+.tbadge{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 50%,transparent);background:color-mix(in srgb,var(--tone) 12%,transparent)}
+.tplot{--tone:var(--blue)}
+.tplot.red{--tone:var(--red)}.tplot.yellow{--tone:var(--yellow)}.tplot.blue{--tone:var(--blue)}
+.tarea{position:relative;height:170px}
+.tarea svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.gs1{stop-color:var(--tone);stop-opacity:.34}.gs2{stop-color:var(--tone);stop-opacity:.02}
+.tline{fill:none;stroke:var(--tone);stroke-width:2.5}
+.tline.alert{stroke:var(--red)}
+.spt.alert{--tone:var(--red)}
+.tbarcol{position:absolute;bottom:0;top:0;width:9%;transform:translateX(-50%);display:flex;align-items:flex-end}
+.tbar2{position:relative;display:block;width:100%;border-radius:5px 5px 0 0;background:color-mix(in srgb,var(--tone) 42%,transparent);cursor:pointer;outline:none}
+.tbar2:hover,.tbar2:focus-visible{background:color-mix(in srgb,var(--tone) 70%,transparent)}
+.tbar2.cur{background:var(--tone);box-shadow:0 0 18px -2px var(--tone)}
+.tbar2::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:5;min-width:220px;max-width:300px;padding:9px 11px;border-radius:9px;border:1px solid var(--border);
+background:var(--bg2);color:var(--fg);font:500 12px/1.55 var(--mono);text-align:left;white-space:pre-line;box-shadow:0 14px 34px -10px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .12s}
+.tbar2.tl::after{left:0;transform:none}.tbar2.tr::after{left:auto;right:0;transform:none}
+.tbar2:hover::after,.tbar2:focus-visible::after{opacity:1}
+.tlab{position:relative;height:30px;margin-top:10px;border-top:1px solid var(--border)}
+.tlab span{position:absolute;top:8px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--fg2);white-space:nowrap}
+.tlab span.cur.alert{--tone:var(--red)}
+.tlab span.cur{padding:1px 6px;border-radius:4px;color:var(--tone);font-weight:700;border:1px solid color-mix(in srgb,var(--tone) 50%,transparent);background:color-mix(in srgb,var(--tone) 12%,transparent);top:5px}
+.rmatrix{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
+.rmatrix>header{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.rmatrix>header .i{color:var(--blue)}
+.rmatrix>header b{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.rmatrix>header .muted{font-family:var(--mono);font-size:11px}
+.spect{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg2)}
+.htable{width:100%;border-collapse:collapse;font-size:13px}
+.htable th{padding:11px 16px;text-align:right;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);border-bottom:1px solid var(--border)}
+.htable td{padding:11px 16px;text-align:right;font-family:var(--mono);border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent);white-space:nowrap}
+.htable th:first-child,.htable td:first-child{text-align:left}
+.htable th:last-child,.htable td:last-child{text-align:center}
+.htable tr.cur td{background:color-mix(in srgb,var(--red) 6%,transparent)}
+.htable tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--red)}
+.htable td.g{color:var(--green)}.htable td.r{color:var(--red)}.htable td.y{color:var(--yellow)}.htable td.b{color:var(--blue);font-weight:700}
+.htable td.rate{font-weight:700}
+.rts{font-weight:600;color:var(--fg)}
+.thisrun{margin-left:10px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;color:var(--blue);border:1px solid color-mix(in srgb,var(--blue) 50%,transparent);background:color-mix(in srgb,var(--blue) 12%,transparent)}
+.runno{margin-left:8px;font-size:11px;color:var(--mut)}
+.ract{font-size:11px;font-weight:600;padding:3px 9px;border-radius:5px;border:1px solid var(--border);background:var(--hover)}
+.ract:hover{border-color:var(--glow)}
+.rexp{width:26px;height:26px;border-radius:6px;border:1px solid transparent;background:none;color:var(--fg2);font-size:17px;line-height:1;cursor:pointer;transition:transform .15s}
+.rexp:hover{border-color:var(--border);background:var(--hover);color:var(--fg)}
+.rexp.open{transform:rotate(90deg);color:var(--blue)}
+.rdetail td{background:var(--bg);text-align:left!important;white-space:normal}
+.rdgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:4px 2px}
+.rdgrid small{display:block;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2);margin-bottom:6px}
+.rdgrid span{display:block;font-size:12px;color:var(--fg);margin-bottom:3px}.rdgrid span.g{color:var(--green)}.rdgrid span.r{color:var(--red)}
+.rdgrid em{font-style:normal;font-size:12px;color:var(--mut)}
+@media(max-width:1100px){.tgrid{grid-template-columns:1fr}.rdgrid{grid-template-columns:1fr}}
 /* comparison: metric matrix + delta cards */
 .matrix{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
 .matrix>header{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border)}
@@ -1511,6 +1640,9 @@ $$('[data-exp]').forEach(function(b){b.addEventListener('click',function(){
     save(base+'.csv','text/csv',[cols.join(',')].concat(data.tests.map(function(t){return cols.map(function(c){return csvCell(t[c])}).join(',')})).join('\\n'));
   }
   if(b.dataset.exp==='print') window.print();
+})});
+$$('.rexp').forEach(function(b){b.addEventListener('click',function(){
+  var row=document.getElementById(b.dataset.rd), open=row.hidden; row.hidden=!open; b.setAttribute('aria-expanded',String(open)); b.classList.toggle('open',open);
 })});
 window.addEventListener('hashchange',route);
 apply(); route();

@@ -24,6 +24,13 @@ Will ship as **0.1.1** (already set in `package.json`).
 - Quality Gates and Quarantine pills: the status dot pulses (still for
   visitors who prefer reduced motion).
 - `npm run demo` builds and opens `demo/report.html` from the current code.
+- Trends page redesigned: four chart cards (pass rate, duration, failed tests,
+  flaky tests), each with a baseline or peak and a status badge (for example
+  "-75 pts Critical", "+414ms Surge"); the current run is highlighted and every
+  point or bar has a tooltip. A run table below; past runs expand to show
+  that run's failed tests, flaky tests and gate result.
+- Fix: the Pass rate and Flaky tests charts rendered as solid black, because
+  their styles had been removed along with the old sparklines.
 
 ## 0.1.0 · 2026-09-28
 

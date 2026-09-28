@@ -96,7 +96,12 @@ test('generateReport keeps a history and the second report uses it', () => {
   assert.match(cmp, /<h4>New tests<\/h4><span class="dcount">1<\/span>[\s\S]*?Not in run #1/);
   assert.match(cmp, /<h4>Fixed<\/h4><span class="dcount">0<\/span>[\s\S]*?No test that failed last run passes now/, 'empty card explains itself');
   assert.match(cmp, /<h4>Slower<\/h4><span class="dcount">1<\/span>[\s\S]*?2.00s → 3.00s[\s\S]*?\+1.00s/);
-  assert.match(html, /class="rtable"/, 'trends table');
+  const trends = html.slice(html.indexOf('id="v-trends"'), html.indexOf('id="v-comparison"'));
+  assert.match(trends, /Historical runs execution matrix[\s\S]*class="htable"/, 'trends table');
+  assert.match(trends, /Pass rate<\/h4><span class="tctx">Baseline: 100%<\/span><span class="tbadge red">-25 pts Critical<\/span>/);
+  assert.match(trends, /<span class="thisrun">This run<\/span><span class="runno">#2<\/span>/);
+  assert.match(trends, /class="rexp" data-rd="rd-0"[\s\S]*<tr class="rdetail" id="rd-0" hidden>/, 'past runs expand to their details');
+  assert.doesNotMatch(trends, /spark-fill|spark-line/, 'no chart may depend on the removed sparkline styles');
   assert.match(html, /Run history <span class="muted">\(last 2 runs\)/);
   assert.doesNotMatch(html, /appear from the second run/);
 });

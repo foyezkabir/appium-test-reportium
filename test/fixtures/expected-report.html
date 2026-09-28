@@ -331,6 +331,74 @@ pre .hl{color:var(--red);font-weight:600}pre .dim{color:var(--mut)}pre .own{colo
 .delta.flat{color:var(--fg2);background:var(--hover)}
 .mut{--tone:var(--mut)}.track .mut{background:var(--mut)}
 .more{display:inline-block;margin-top:10px;font-size:12px;color:var(--blue)}
+/* trends */
+.thead2{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:0 -24px 22px;padding:18px 24px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.thead2 h2{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600}
+.thead2 .runs{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--hover);color:var(--fg2)}
+.thead2 p{font-size:12.5px;color:var(--fg2);margin-top:4px}
+.tactions{display:flex;gap:10px;flex-wrap:wrap}
+.tbtn{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:12.5px;font-weight:500;color:var(--fg)}
+a.tbtn:hover{border-color:var(--glow);background:var(--hover)}
+.tbtn .i{width:14px;height:14px;color:var(--fg2)}
+.tbtn.static{cursor:default;color:var(--fg2)}
+.tbtn.danger{color:var(--red);border-color:color-mix(in srgb,var(--red) 50%,transparent);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.tbtn.danger .i{color:var(--red)}
+.tgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:18px}
+.tcard{border:1px solid var(--border);border-radius:14px;background:var(--card);padding:16px 18px 12px}
+.tcard>header{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.tcard h4{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.tdot{width:8px;height:8px;border-radius:50%;background:var(--tone);box-shadow:0 0 6px var(--tone)}
+.tctx{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--fg2)}
+.tbadge{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 50%,transparent);background:color-mix(in srgb,var(--tone) 12%,transparent)}
+.tplot{--tone:var(--blue)}
+.tplot.red{--tone:var(--red)}.tplot.yellow{--tone:var(--yellow)}.tplot.blue{--tone:var(--blue)}
+.tarea{position:relative;height:170px}
+.tarea svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.gs1{stop-color:var(--tone);stop-opacity:.34}.gs2{stop-color:var(--tone);stop-opacity:.02}
+.tline{fill:none;stroke:var(--tone);stroke-width:2.5}
+.tline.alert{stroke:var(--red)}
+.spt.alert{--tone:var(--red)}
+.tbarcol{position:absolute;bottom:0;top:0;width:9%;transform:translateX(-50%);display:flex;align-items:flex-end}
+.tbar2{position:relative;display:block;width:100%;border-radius:5px 5px 0 0;background:color-mix(in srgb,var(--tone) 42%,transparent);cursor:pointer;outline:none}
+.tbar2:hover,.tbar2:focus-visible{background:color-mix(in srgb,var(--tone) 70%,transparent)}
+.tbar2.cur{background:var(--tone);box-shadow:0 0 18px -2px var(--tone)}
+.tbar2::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:5;min-width:220px;max-width:300px;padding:9px 11px;border-radius:9px;border:1px solid var(--border);
+background:var(--bg2);color:var(--fg);font:500 12px/1.55 var(--mono);text-align:left;white-space:pre-line;box-shadow:0 14px 34px -10px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .12s}
+.tbar2.tl::after{left:0;transform:none}.tbar2.tr::after{left:auto;right:0;transform:none}
+.tbar2:hover::after,.tbar2:focus-visible::after{opacity:1}
+.tlab{position:relative;height:30px;margin-top:10px;border-top:1px solid var(--border)}
+.tlab span{position:absolute;top:8px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--fg2);white-space:nowrap}
+.tlab span.cur.alert{--tone:var(--red)}
+.tlab span.cur{padding:1px 6px;border-radius:4px;color:var(--tone);font-weight:700;border:1px solid color-mix(in srgb,var(--tone) 50%,transparent);background:color-mix(in srgb,var(--tone) 12%,transparent);top:5px}
+.rmatrix{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
+.rmatrix>header{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.rmatrix>header .i{color:var(--blue)}
+.rmatrix>header b{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.rmatrix>header .muted{font-family:var(--mono);font-size:11px}
+.spect{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg2)}
+.htable{width:100%;border-collapse:collapse;font-size:13px}
+.htable th{padding:11px 16px;text-align:right;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);border-bottom:1px solid var(--border)}
+.htable td{padding:11px 16px;text-align:right;font-family:var(--mono);border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent);white-space:nowrap}
+.htable th:first-child,.htable td:first-child{text-align:left}
+.htable th:last-child,.htable td:last-child{text-align:center}
+.htable tr.cur td{background:color-mix(in srgb,var(--red) 6%,transparent)}
+.htable tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--red)}
+.htable td.g{color:var(--green)}.htable td.r{color:var(--red)}.htable td.y{color:var(--yellow)}.htable td.b{color:var(--blue);font-weight:700}
+.htable td.rate{font-weight:700}
+.rts{font-weight:600;color:var(--fg)}
+.thisrun{margin-left:10px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;color:var(--blue);border:1px solid color-mix(in srgb,var(--blue) 50%,transparent);background:color-mix(in srgb,var(--blue) 12%,transparent)}
+.runno{margin-left:8px;font-size:11px;color:var(--mut)}
+.ract{font-size:11px;font-weight:600;padding:3px 9px;border-radius:5px;border:1px solid var(--border);background:var(--hover)}
+.ract:hover{border-color:var(--glow)}
+.rexp{width:26px;height:26px;border-radius:6px;border:1px solid transparent;background:none;color:var(--fg2);font-size:17px;line-height:1;cursor:pointer;transition:transform .15s}
+.rexp:hover{border-color:var(--border);background:var(--hover);color:var(--fg)}
+.rexp.open{transform:rotate(90deg);color:var(--blue)}
+.rdetail td{background:var(--bg);text-align:left!important;white-space:normal}
+.rdgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:4px 2px}
+.rdgrid small{display:block;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2);margin-bottom:6px}
+.rdgrid span{display:block;font-size:12px;color:var(--fg);margin-bottom:3px}.rdgrid span.g{color:var(--green)}.rdgrid span.r{color:var(--red)}
+.rdgrid em{font-style:normal;font-size:12px;color:var(--mut)}
+@media(max-width:1100px){.tgrid{grid-template-columns:1fr}.rdgrid{grid-template-columns:1fr}}
 /* comparison: metric matrix + delta cards */
 .matrix{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
 .matrix>header{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border)}
@@ -939,11 +1007,8 @@ Received: &quot;record saved&quot;
     </article><p class="empty pick">Select a test.</p></div>
   </div>
 </section>
-<section class="view" id="v-trends" data-view="trends">
-  <h2 class="vtitle">Trends <span class="muted mono">1 run</span></h2>
-  <div class="panel empty-state"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><b>Trends appear from the second run</b>
-    <p>Each report saves a summary of its run to <code>testreportium-history.json</code> next to the report. Run the suite again and this view fills in.</p></div>
-</section>
+<section class="view" id="v-trends" data-view="trends"><h2 class="vtitle">Trends</h2><div class="panel empty-state"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><b>Trends appear from the second run</b>
+    <p>Each report saves a summary of its run to <code>testreportium-history.json</code> next to the report. Run the suite again and this view fills in.</p></div></section>
 <section class="view" id="v-comparison" data-view="comparison"><h2 class="vtitle">Comparison</h2><div class="panel empty-state"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><b>Comparisons appear from the second run</b>
     <p>Each report saves a summary of its run to <code>testreportium-history.json</code> next to the report. Run the suite again and this view fills in.</p></div></section>
 <section class="view" id="v-gallery" data-view="gallery">
@@ -1041,6 +1106,9 @@ $$('[data-exp]').forEach(function(b){b.addEventListener('click',function(){
     save(base+'.csv','text/csv',[cols.join(',')].concat(data.tests.map(function(t){return cols.map(function(c){return csvCell(t[c])}).join(',')})).join('\n'));
   }
   if(b.dataset.exp==='print') window.print();
+})});
+$$('.rexp').forEach(function(b){b.addEventListener('click',function(){
+  var row=document.getElementById(b.dataset.rd), open=row.hidden; row.hidden=!open; b.setAttribute('aria-expanded',String(open)); b.classList.toggle('open',open);
 })});
 window.addEventListener('hashchange',route);
 apply(); route();
