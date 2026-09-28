@@ -21,8 +21,8 @@ Will ship as **0.2.0** (already set in `package.json`): screen recordings are a 
   suite and spec file, since TC numbers repeat across specs, and its failure
   kind in the filter's colour. The sort offers By suite, and every sort but
   test order heads each group with its name and count.
-- The Gallery uses a softer red and yellow (the theme's deeper shades blended
-  toward grey) and fainter red card borders, since many cards side by side
+- The Gallery uses a softer red, yellow and green (the theme's deeper shades
+  blended toward grey) and fainter red card borders, since many cards side by side
   glared.
 - Sidebar refresh: the pass ring and the Passed / Failed / Flaky tiles share
   one card, with tiles tinted in their colour (Failed stands out when there
