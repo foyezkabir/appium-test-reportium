@@ -595,7 +595,7 @@ function page(c, options) {
     const nf = l.filter((t) => t.st === 'failed').length;
     return `<div class="lgroup"><div class="lghead">${icon(I.folder)}<span>${esc(g)}</span>${nf ? `<span class="tag red">${nf} failing</span>` : `<span class="tag green">${l.length}</span>`}</div>
       ${l.map((t) => `<a class="titem ${t.st}" href="#${t.id}" data-id="${t.id}" data-st="${t.st}" data-kind="${t.kind ?? ''}" data-group="${esc(g)}" data-att="${t.att.join(' ')}">
-        <span class="dot"></span><span class="tt"><b>${t.tc ? `<em>${esc(t.tc)}</em> ` : ''}${esc(t.rest)}</b><small>${esc(t.kind ? KINDS[t.kind].label : t.steps.length ? `${t.steps.length} steps` : STATUS_LABEL[t.status] ?? t.status)}</small>${t.att.length ? `<span class="ttags">${attTags(t)}</span>` : ''}</span>
+        <span class="dot"></span><span class="tt"><b>${t.tc ? `<em>${esc(t.tc)}:</em> ` : ''}${esc(t.rest)}</b><small>${esc(t.kind ? KINDS[t.kind].label : t.steps.length ? `${t.steps.length} steps` : STATUS_LABEL[t.status] ?? t.status)}</small>${t.att.length ? `<span class="ttags">${attTags(t)}</span>` : ''}</span>
         <span class="td">${dur(t.duration)}</span></a>`).join('')}</div>`;
   }).join('');
 
@@ -618,7 +618,7 @@ function page(c, options) {
     const speed = t.ins.change !== undefined && Math.abs(t.ins.change) >= 0.05
       ? `<span class="speed ${t.ins.change > 0 ? 'bad' : 'good'}">${icon(I.clock)}${t.ins.change > 0 ? '↑' : '↓'}${Math.round(Math.abs(t.ins.change) * 100)}% ${t.ins.change > 0 ? 'slower' : 'faster'}</span>` : '';
     return `<article class="detail ${t.st}" id="d-${t.id}" data-id="${t.id}">
-      <header class="dhead"><span class="dot"></span><div class="dtitle"><h3>${t.tc ? `<em>${esc(t.tc)}</em> ` : ''}${esc(t.rest)}</h3>
+      <header class="dhead"><span class="dot"></span><div class="dtitle"><h3>${t.tc ? `<em>${esc(t.tc)}:</em> ` : ''}${esc(t.rest)}</h3>
         <div class="dmeta"><span class="chip mono">${esc(t.file)}</span>${t.groupName !== t.file ? `<span class="chip">${esc(t.groupName)}</span>` : ''}${attTags(t)}</div></div>
         <div class="dstat"><span class="mono">${dur(t.duration)}</span>${t.att.includes('flaky') || t.ins.health === 'skipped' ? '' : `<span class="tag ${ht}">${hl}</span>`}${t.kind ? `<span class="tag ${KINDS[t.kind].tone}">${esc(KINDS[t.kind].label)}</span>` : ''}<span class="pill ${t.st}">${esc(STATUS_LABEL[t.status] ?? t.status)}</span>${speed}</div></header>
       ${t.diag ? `<section class="block sec why"><h4>${icon(I.info)}What went wrong</h4><p>${esc(t.diag.why)}</p><p class="next">${esc(t.diag.next)}</p></section>` : ''}

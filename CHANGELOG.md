@@ -39,6 +39,8 @@ Will ship as **0.1.1** (already set in `package.json`).
   across a page break. Stack traces print in full and wrap; tables and bar
   charts fit the page; hover-only hints are left out.
 - Fix: a skipped test showed "Skipped" twice in its header.
+- A colon now separates the TC number from the title (`TC03: Duplicate…`) in
+  the test list, the test detail header, the breadcrumb and the PDF.
 - README: a full "Reading the report" guide covering the top bar, sidebar,
   every filter (Attention, Failure kind with each matching rule, Suite
   groups, Search) and every view (Overview, Tests, Trends, Comparison,
