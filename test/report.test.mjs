@@ -166,4 +166,9 @@ test('a clean all-green run still shows gates, quarantine and filters, saying wh
   const later = renderReport(run, { ...base, historyRuns, qualityGates: { maxFailures: 0 } });
   assert.match(later, /Quarantine Registry[\s\S]*0 flaky/);
   assert.doesNotMatch(later, /Not configured/, 'configured gates get the full panel');
+  for (const rule of ['Max failures', 'Min pass rate', 'Max flaky rate', 'Min stability grade', 'No new failures']) {
+    assert.match(later, new RegExp(`<b>${rule}</b>`), `${rule} is always listed`);
+  }
+  assert.match(later, /<b>Max flaky rate<\/b><small>No limit set[\s\S]*?<b>0%<\/b>[\s\S]*?<em>Not set<\/em>/, 'an unset rule still shows its value, zero included');
+  assert.match(later, /1 \/ 1 rules met/, 'only the rules you set count');
 });

@@ -544,14 +544,23 @@ function page(c, options) {
   if (c.gates) {
     const rules = c.gates.rules;
     const bad = rules.filter((x) => !x.passed).length;
+    // Every rule is listed. One you did not set still shows this run's value
+    // (0 included) and is marked "Not set"; it never decides the gate.
+    const actualOf = {
+      'Max failures': String(c.failed), 'Min pass rate': `${c.passRate}%`, 'Max flaky rate': `${c.flakyRate}%`,
+      'Min stability grade': c.grade ?? 'not recorded',
+      'No new failures': hasHistory ? `${c.newFailures.length} new failure${c.newFailures.length === 1 ? '' : 's'}` : 'first run, nothing to compare',
+    };
+    const shown = Object.keys(RULE_DESC).map((label) => rules.find((x) => x.label === label) ?? { label, actual: actualOf[label], limit: '', unset: true });
     const card = (x) => {
-      const st = x.skipped ? 'skip' : x.passed ? 'ok' : 'no';
+      const st = x.unset || x.skipped ? 'skip' : x.passed ? 'ok' : 'no';
+      const verdict = x.unset ? 'Not set' : x.skipped ? 'N/A' : x.passed ? 'Passed' : 'Failed';
       const m = String(x.actual).match(/^(\d+%?|[A-F])(.*)$/);
       const big = m ? m[1] : x.actual;
       const rest = m ? m[2] : '';
-      return `<div class="rule ${st}"><span class="rmark" role="img" aria-label="${x.skipped ? 'Not applicable' : x.passed ? 'Passed' : 'Failed'}">${GI[st]}</span>
-        <div class="rtext"><b>${esc(x.label)}</b><small>${esc(RULE_DESC[x.label]?.() ?? '')}</small></div>
-        <div class="rval"><span><b>${esc(big)}</b>${esc(rest)}${x.limit ? ` <i>${esc(x.limit)}</i>` : ''}</span><em>${x.skipped ? 'N/A' : x.passed ? 'Passed' : 'Failed'}</em></div></div>`;
+      return `<div class="rule ${st}"><span class="rmark" role="img" aria-label="${x.unset ? 'Not set' : x.skipped ? 'Not applicable' : verdict}">${GI[st]}</span>
+        <div class="rtext"><b>${esc(x.label)}</b><small>${esc(x.unset ? 'No limit set, shown for reference' : RULE_DESC[x.label]?.() ?? '')}</small></div>
+        <div class="rval"><span><b>${esc(big)}</b>${esc(rest)}${x.limit ? ` <i>${esc(x.limit)}</i>` : ''}</span><em>${verdict}</em></div></div>`;
     };
     const rates = facts.map((f) => f.rate);
     const d = nRuns > 1 ? rates[nRuns - 1] - rates[nRuns - 2] : 0;
@@ -559,7 +568,7 @@ function page(c, options) {
     ${panelHead(GI.shield, 'Quality Gates', 'Rules this run is checked against', `<span class="qrun">Run #${nRuns}</span><span class="qbadge"><i></i>Gate ${c.gates.passed ? 'passed' : 'failed'}</span>`)}
     <div class="qbody">
       <section class="qlist"><div class="qlh"><small>Gate evaluation policy</small><span>${bad ? `${bad} / ${rules.length} rules violated` : `${rules.length} / ${rules.length} rules met`}</span></div>
-        ${rules.map(card).join('')}
+        ${shown.map(card).join('')}
         <p class="qfoot"><span class="gi ${bad ? 'red' : 'green'}">${bad ? GI.alert : GI.ok}</span>${bad ? `Gate failed: ${bad} of ${rules.length} rule${rules.length === 1 ? '' : 's'} unmet.` : `All ${rules.length} rules met.`}</p></section>
       <section class="qchart"><div class="qch"><div><h4>Pass rate trend (last ${nRuns} run${nRuns === 1 ? '' : 's'})</h4><p>Pass rate of each run, oldest → current</p></div>
         <div class="qlegend"><span><i class="ln"></i>Pass rate (%)</span>${qg.minPassRate !== undefined ? `<span><i class="dash"></i>Min threshold (${qg.minPassRate}%)</span>` : ''}</div></div>

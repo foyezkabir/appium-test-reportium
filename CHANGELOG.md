@@ -10,6 +10,8 @@ to vanish when they had no data now stay, and say why they are empty.
 
 - Quality Gates is always on the Overview. Without `qualityGates` it is a
   compact *Not configured* panel showing how to add rules.
+- Quality Gates lists all five rules. One you did not set still shows this
+  run's value (0 included), marked *Not set*, and does not decide the gate.
 - Quarantine Registry is always on the Overview: *Needs history* on a first
   run, *0 flaky* when history shows no flaky test.
 - Suite groups is now shown even for a single suite. A filter with no tests is
