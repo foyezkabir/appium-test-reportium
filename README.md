@@ -15,6 +15,35 @@ npm install --save-dev testreportium
 
 Needs Node 18.3 or newer.
 
+![Overview: suite health, quality gates and pass-rate trend](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/overview.png)
+
+<details>
+<summary><b>More screenshots</b>: quality gates, test detail, trends, comparison, light theme</summary>
+
+**Quality Gates and Quarantine Registry.** Every point on the charts has a hover tooltip for that run.
+
+![Quality Gates and Quarantine Registry](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/quality-gates-quarantine.png)
+
+**Test detail.** Diagnosis, run history, step timeline, stack trace and the device screenshot at failure.
+
+![Test detail](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/test-detail.png)
+
+**Trends** across runs.
+
+![Trends](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/trends.png)
+
+**Comparison** with the previous run.
+
+![Comparison](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/comparison.png)
+
+**Light theme.** Nine themes in all, including System, which follows the OS setting.
+
+![Light theme](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/light-theme.png)
+
+</details>
+
+The screenshots use this repo's demo data with a simulated run history.
+
 ---
 
 ## Quick start
