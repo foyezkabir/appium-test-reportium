@@ -857,7 +857,7 @@ function page(c, options) {
 <script>try{var t=localStorage.getItem('testreportium-theme');if(t&&t!=='system')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>${css()}</style></head><body>
 <header class="top">
-  <button class="iconbtn" id="menu" aria-label="Toggle sidebar">${icon(I.menu)}</button>
+  <button class="iconbtn" id="menu" aria-label="Toggle sidebar" aria-controls="side" aria-expanded="true">${icon(I.menu)}</button>
   <div class="brand"><b>${esc(project)}</b></div>
   <nav class="crumb" aria-label="Breadcrumb"><a href="#overview">Tests</a><span class="sep">›</span><span id="crumb">Overview</span></nav>
   <label class="search">${icon(I.search)}<input id="q" type="search" placeholder="Search…" autocomplete="off"><kbd>⌘K</kbd></label>
@@ -1529,6 +1529,9 @@ font:500 12px/1.55 var(--mono);text-align:left;white-space:pre-line;box-shadow:0
 .empty-state b{color:var(--fg);font-size:16px}
 .empty-state p{max-width:520px;font-size:13px}
 .empty-state code{font-family:var(--mono);font-size:12px;padding:1px 6px;border-radius:4px;background:var(--hover)}
+/* collapsible sidebar (wide screens) */
+body.side-collapsed .shell{grid-template-columns:0 minmax(0,1fr)}
+body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
 /* ── responsive ── */
 @media(max-width:1200px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.search{width:200px}.tcharts{grid-template-columns:1fr}}
 @media(max-width:1060px){.topbtn span{display:none}.stamp{display:none}}
@@ -1536,6 +1539,9 @@ font:500 12px/1.55 var(--mono);text-align:left;white-space:pre-line;box-shadow:0
   .shell{grid-template-columns:minmax(0,1fr)}
   .side{position:fixed;left:0;top:var(--top-h);z-index:30;width:var(--side-w);transform:translateX(-100%);transition:transform .2s;box-shadow:12px 0 32px rgba(0,0,0,.4)}
   body.side-open .side{transform:none}
+  /* A desktop 'collapsed' choice must not hide the phone overlay. */
+  body.side-collapsed .shell{grid-template-columns:minmax(0,1fr)}
+  body.side-collapsed .side{visibility:visible;overflow-y:auto}
   .crumb,.stamp,kbd{display:none}
   .hgrid{grid-template-columns:1fr}
   .split{grid-template-columns:minmax(0,1fr);height:auto}
@@ -1624,7 +1630,7 @@ function show(view,id){
   $$('.titem').forEach(function(t){t.classList.toggle('on',t.dataset.id===id)});
   if(id){var d=$('#d-'+id); if(d) crumb=d.querySelector('h3').textContent; var it=$('.titem[data-id="'+id+'"]'); if(it&&it.scrollIntoView) it.scrollIntoView({block:'nearest'});}
   $('#crumb').textContent=crumb;
-  document.body.classList.remove('side-open');
+  document.body.classList.remove('side-open'); if(typeof syncMenu==='function') syncMenu();
   if(view!==cur){window.scrollTo(0,0); cur=view;}
 }
 function route(){
@@ -1668,7 +1674,18 @@ document.addEventListener('keydown',function(e){
     var n=items[Math.max(0,Math.min(items.length-1,i+(e.key==='j'?1:-1)))]; if(n) location.hash=n.dataset.id;
   }
 });
-$('#menu').addEventListener('click',function(){document.body.classList.toggle('side-open')});
+// The menu button collapses the sidebar on wide screens (remembered per
+// browser) and slides it in and out on narrow ones, where it overlays the page.
+var menuBtn=$('#menu'), narrow=window.matchMedia('(max-width:900px)');
+function syncMenu(){menuBtn.setAttribute('aria-expanded',String(narrow.matches?document.body.classList.contains('side-open'):!document.body.classList.contains('side-collapsed')));}
+try{if(localStorage.getItem('testreportium-side')==='collapsed')document.body.classList.add('side-collapsed')}catch(e){}
+menuBtn.addEventListener('click',function(){
+  if(narrow.matches){document.body.classList.toggle('side-open');}
+  else{var c=document.body.classList.toggle('side-collapsed');try{localStorage.setItem('testreportium-side',c?'collapsed':'open')}catch(e){}}
+  syncMenu();
+});
+if(narrow.addEventListener)narrow.addEventListener('change',syncMenu);
+syncMenu();
 var sel=$('#theme'); try{sel.value=localStorage.getItem('testreportium-theme')||'system'}catch(e){sel.value='system'}
 sel.addEventListener('change',function(){
   var v=sel.value; if(v==='system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',v);

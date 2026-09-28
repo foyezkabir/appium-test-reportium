@@ -293,6 +293,7 @@ Terms used below:
 
 | Item | What it does |
 |---|---|
+| ☰ Menu | collapses and expands the sidebar, so the report can use the full width. The choice is remembered per browser. On narrow screens it slides the sidebar in over the page |
 | Project name | `projectName`, else the `name` in your `package.json` |
 | Breadcrumb | where you are: `Tests › Overview`, or `Tests › <test name>` when a test is open |
 | Search (⌘K / Ctrl+K) | filters the Tests list; see [Search](#search) |
