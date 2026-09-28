@@ -158,8 +158,7 @@ test('a clean all-green run still shows gates, quarantine and filters, saying wh
   const first = renderReport(run, base);
   assert.match(first, /Quality Gates[\s\S]*Not configured/);
   assert.match(first, /Quarantine Registry[\s\S]*Needs history/);
-  assert.match(first, /<small>Status<\/small>/, 'Status filter is always offered');
-  assert.match(first, /data-f="st" data-v="failed"[^>]*disabled/, 'a status with no tests cannot be picked');
+  assert.doesNotMatch(first, /<small>Status<\/small>/, 'status filtering is the sidebar tiles, not a second list');
   assert.match(first, /<small>Suite groups<\/small>/, 'offered even for a single suite');
   assert.match(first, /StepRecorder\.step\(\)/, 'empty test detail says how to get steps');
 

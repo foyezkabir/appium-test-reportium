@@ -934,9 +934,7 @@ function page(c, options) {
   const tile = (n, label, tone, f, v, hot = false) => `<button class="tile ${tone}${hot && n ? ' hot' : ''}" data-f="${f}" data-v="${v}"${n ? '' : ' disabled'}><b>${n}</b><small>${label}</small></button>`;
   const clearBtn = '<button id="fclear" class="linkbtn" disabled>clear all</button>';
   const fgroups = [];
-  // Status and suite are always offered, even on an all-green single-suite run.
-  fgroups.push(['Status', [['passed', 'Passed', 'green', passed], ['failed', 'Failed', 'red', failed], ['skipped', 'Skipped', 'yellow', skipped]]
-    .map(([v, l, tone, n]) => rowChip('st', v, l, n, '<span class="sdot"></span>', tone, true)).join(''), plural(total, 'test', 'tests')]);
+  // Suite groups is always offered, even for a single suite; status filtering is the tiles above.
   if (attn.length) fgroups.push(['Attention', attn.map(([a, n]) => rowChip('att', a, ATT[a][0], n, '<span class="sdot"></span>', ATT[a][1])).join(''), 'vs earlier runs']);
   if (byKind.size) fgroups.push(['Failure kind', [...byKind.entries()].map(([k, l]) => rowChip('kind', k, KINDS[k].label, l.length, '<span class="sdot"></span>', KINDS[k].tone, true)).join(''), plural(byKind.size, 'category', 'categories')]);
   if (groups.length) fgroups.push(['Suite groups', groups.map((g) => rowChip('group', g, g, tests.filter((t) => t.groupName === g).length, icon(I.folder, 'fic'), 'group', true)).join(''), plural(groups.length, 'group', 'groups')]);

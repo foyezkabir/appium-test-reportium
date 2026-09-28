@@ -334,14 +334,10 @@ Filters narrow the **Tests** list. Clicking one opens the Tests view.
 - **Within a group, one choice is active at a time.**
 - **Click an active filter again to turn it off.** **clear all** turns every
   filter off.
-- **Status and Suite groups are always shown.** Attention and Failure kind
-  only appear when they have something in them. A status with no tests is
-  greyed out.
-
-#### Status
-
-**Passed**, **Failed** and **Skipped**, with a count each. The Passed,
-Failed and Flaky tiles at the top of the sidebar are the same filters.
+- **Suite groups is always shown.** Attention and Failure kind only appear
+  when they have something in them.
+- **To filter by status**, click the Passed, Failed or Flaky tile at the top
+  of the sidebar.
 
 #### Attention (vs earlier runs)
 
