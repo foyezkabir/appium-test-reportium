@@ -15,8 +15,8 @@ Will ship as **0.2.0** (already set in `package.json`): screen recordings are a 
   needs ffmpeg on the Appium host.
 - Gallery redesigned: counts for screenshots, recordings and failure captures;
   All / Screenshots / Videos tabs and a sort (failures first, test order,
-  failure kind, recordings first); four large cards with the screenshot and
-  REC pane side by side, then a compact list with View fullscreen and Watch
+  failure kind, recordings first); six large cards, three per row and all the
+  same size, with the screenshot and REC pane side by side, then a compact list with View fullscreen and Watch
   replay, both opening the fullscreen viewer. A kept recording of a passed
   test appears too, but only one made during this run.
 - Sidebar refresh: the pass ring and the Passed / Failed / Flaky tiles share

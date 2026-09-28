@@ -864,9 +864,10 @@ function page(c, options) {
   }
 
   // ── gallery ──
-  // One entry per test with media. The first four are shown large; the rest in a
-  // compact list. Client script re-deals them after filtering or sorting.
-  const FEATURED = 4;
+  // One entry per test with media. The first six (two rows of three) are shown
+  // large; the rest in a compact list. Client script re-deals them after
+  // filtering or sorting.
+  const FEATURED = 6;
   const failedMedia = media.filter((t) => t.st === 'failed');
   const gTile = (t) => {
     const status = STATUS_LABEL[t.status] ?? t.status;
@@ -899,7 +900,7 @@ function page(c, options) {
       <button type="button" data-gf="shot">${icon(I.image)}Screenshots <i>${shots.length}</i></button>
       <button type="button" data-gf="vid"${videos.length ? '' : ' disabled'}>${icon(I.play)}Videos <i>${videos.length}</i></button></div>
     <label class="gsort">${icon(I.list)}<select id="gsort" aria-label="Sort gallery"><option value="fail">Failures first</option><option value="order">By test order</option><option value="kind">By failure kind</option><option value="rec">Recordings first</option></select></label></div>
-  <div class="gfeat" id="gfeat">${itemsHtml.slice(0, FEATURED).join('')}</div>
+  <div class="gfeat" id="gfeat" data-n="${FEATURED}">${itemsHtml.slice(0, FEATURED).join('')}</div>
   <div class="gmore" id="gmore"${media.length > FEATURED ? '' : ' hidden'}><div class="gmorehead"><h3>${icon(I.image)}Additional run captures &amp; recordings</h3><span id="gmorecount">${media.length - FEATURED} more</span></div>
     <div class="glist" id="glist">${itemsHtml.slice(FEATURED).join('')}</div></div>
   <p class="empty" id="gnone" hidden>Nothing to show for this filter.</p>`
@@ -1399,7 +1400,7 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gsort .i{width:14px;height:14px}.gsort select{border:0;background:transparent;color:var(--fg);font-size:12.5px;outline:none;cursor:pointer}
 .gsort option{background:var(--card)}
 /* large cards */
-.gfeat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.gfeat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .gi-item .grow{display:none}
 .gi-item.featured .gcard,.gfeat .gi-item .gcard{display:flex}
 .glist .gi-item .gcard{display:none}.glist .gi-item .grow{display:flex}
@@ -1407,9 +1408,12 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gi-item.failed .gcard{border-color:color-mix(in srgb,var(--red) 38%,var(--border))}
 .gi-item.passed .gcard{border-color:color-mix(in srgb,var(--green) 38%,var(--border))}
 .gcard:hover{border-color:var(--glow)}
-.gcard .gmedia{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;padding:8px;background:var(--bg)}
+/* Every card is the same size: the media area has one fixed height, split into two
+   panes when there is a recording, one centred pane when there is only a screenshot. */
+.gcard .gmedia{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;padding:8px;height:380px;background:var(--bg)}
 .gp{position:relative;display:block;padding:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--bg2);cursor:zoom-in}
-.gp img,.gp video{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;object-position:top}
+.gp{height:100%}
+.gp img,.gp video{display:block;width:100%;height:100%;object-fit:contain;background:var(--bg2)}
 .gp video{object-fit:contain;background:#000;cursor:default}
 .gtag{position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:5px;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
 .gtag.shot{color:var(--blue);background:color-mix(in srgb,var(--bg) 70%,transparent);border:1px solid color-mix(in srgb,var(--blue) 55%,transparent)}
@@ -1428,6 +1432,7 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gstat{margin-left:auto;font-family:var(--mono);font-size:10.5px;font-weight:600;padding:1px 8px;border-radius:5px;color:var(--red);border:1px solid color-mix(in srgb,var(--red) 45%,transparent);background:color-mix(in srgb,var(--red) 10%,transparent)}
 .gi-item.passed .gstat{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent)}
 .gtitle{font-size:13.5px;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gbody small{min-height:calc(2 * 1.55em)}
 .gbody small{font-family:var(--mono);font-size:11px;line-height:1.55;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 /* compact list */
 .gmore{margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
@@ -1455,6 +1460,7 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .grmeta em{font-style:normal}.grmeta .ok{color:var(--green);font-weight:600}
 .lightbox video{max-width:min(92vw,560px);max-height:88vh;border-radius:12px;background:#000}
 @media(max-width:1300px){.gfeat{grid-template-columns:repeat(2,minmax(0,1fr))}.glist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1300px) and (min-width:1101px){.gfeat{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:700px){.gfeat,.glist{grid-template-columns:1fr}}
 .lightbox{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(0,0,0,.82);padding:24px}
 .lightbox img{max-width:min(92vw,560px);max-height:88vh;border-radius:12px}
@@ -1937,8 +1943,9 @@ function gDeal(){
     return a.dataset.idx-b.dataset.idx;});
   var shown=items.filter(function(it){return gf==='all'||(gf==='shot'?it.dataset.shot==='1':it.dataset.vid==='1');});
   items.forEach(function(it){it.hidden=shown.indexOf(it)<0; it.classList.toggle('only-shot',gf==='shot'); it.classList.toggle('only-vid',gf==='vid');});
-  shown.forEach(function(it,i){(i<4?gfeat:glist).appendChild(it); it.classList.toggle('featured',i<4);});
-  gmore.hidden=shown.length<=4; $('#gmorecount').textContent=(shown.length-4)+' more'; $('#gnone').hidden=shown.length>0;
+  var N=+gfeat.dataset.n||6;
+  shown.forEach(function(it,i){(i<N?gfeat:glist).appendChild(it); it.classList.toggle('featured',i<N);});
+  gmore.hidden=shown.length<=N; $('#gmorecount').textContent=(shown.length-N)+' more'; $('#gnone').hidden=shown.length>0;
 }
 $$('[data-gf]').forEach(function(b){b.addEventListener('click',function(){gf=b.dataset.gf; $$('[data-gf]').forEach(function(x){x.classList.toggle('on',x===b)}); gDeal();});});
 if($('#gsort')) $('#gsort').addEventListener('change',gDeal);

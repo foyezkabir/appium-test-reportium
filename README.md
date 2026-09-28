@@ -495,7 +495,7 @@ tests with any media).
 |---|---|
 | **All / Screenshots / Videos** | show everything, only screenshots, or only recordings |
 | **Sort** | **Failures first** (default), **By test order**, **By failure kind**, or **Recordings first** |
-| Large cards | the first four: screenshot and recording side by side (REC with its length), then the TC, status, title and diagnosis. Click the screenshot for fullscreen, the text to open the test |
+| Large cards | the first six, three per row and all the same size: screenshot and recording side by side (REC with its length), or the screenshot alone, then the TC, status, title and diagnosis. Click the screenshot for fullscreen, the text to open the test |
 | **Additional run captures & recordings** | the rest, as compact rows: **View fullscreen** for a screenshot, **Watch replay** for a recording |
 
 A passed test appears only if you kept its recording
