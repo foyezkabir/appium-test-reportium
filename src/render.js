@@ -1074,6 +1074,11 @@ function css() {
 ${Object.entries(THEMES).map(([k, v]) => `:root[data-theme="${k}"]{${v};color-scheme:dark}`).join('\n')}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--fg)}
+/* Calmer status colours across the whole report: the neon red, yellow, green and
+   blue glare at full strength, so every page uses each theme's deeper shade
+   blended toward grey. Set on body, so it applies in every theme and in print. */
+body{--red:color-mix(in srgb,var(--red-d) 68%,var(--fg2));--yellow:color-mix(in srgb,var(--yellow-d) 68%,var(--fg2));
+--green:color-mix(in srgb,var(--green-d) 68%,var(--fg2));--blue:color-mix(in srgb,var(--blue-d) 68%,var(--fg2))}
 /* Reserve scrollbar space so switching between a long and a short view never shifts the layout. */
 html{scrollbar-gutter:stable}
 body{font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh}
@@ -1373,9 +1378,6 @@ pre .hl{color:var(--red);font-weight:600}pre .dim{color:var(--mut)}pre .own{colo
 .shot img{max-width:280px;max-height:520px;border-radius:10px;border:1px solid var(--border);display:block;cursor:zoom-in}
 .shot figcaption{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px}
 /* gallery */
-/* Calmer red, yellow and green for the Gallery: many cards side by side glare at full
-   strength, so it uses the theme's deeper shades blended toward grey. */
-#v-gallery{--red:color-mix(in srgb,var(--red-d) 68%,var(--fg2));--yellow:color-mix(in srgb,var(--yellow-d) 68%,var(--fg2));--green:color-mix(in srgb,var(--green-d) 68%,var(--fg2))}
 .ghead2{margin:0 -24px 18px;padding:20px 24px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
 .gtitlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gtitlerow h2{font-size:22px;font-weight:600;margin-right:4px}
