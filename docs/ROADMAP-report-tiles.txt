@@ -1,0 +1,135 @@
+TEST PLAN: CLICKABLE KPI TILES
+================================================================================
+Feature   : Each KPI tile drills into exactly the data it counts
+File      : src/render.js
+Author    : QA
+Status    : DRAFT, not yet implemented
+Basis     : Verbal requirement, 2026-09-25. Not from a ticket, so every AC
+            below is an assumption until confirmed. Flagged AC:? where so.
+
+--------------------------------------------------------------------------------
+1. SCOPE
+--------------------------------------------------------------------------------
+Today the five KPI tiles are static counters. The requirement is that clicking a
+tile shows only the cases it counts. Passed shows passed cases only, Failed
+shows failed only, and so on.
+
+IN SCOPE
+  - Making all five tiles interactive.
+  - Filtering the suite list to the tile's own data set.
+  - Keeping the existing toolbar filter pills in step with the tiles.
+
+OUT OF SCOPE
+  - Any change to what the tiles COUNT. The numbers are already correct.
+  - Trend/history across runs. Each report covers exactly one run.
+  - Server-side anything. See section 2.
+
+--------------------------------------------------------------------------------
+2. NO API IS REQUIRED, AND WHY THAT MATTERS
+--------------------------------------------------------------------------------
+The requirement mentioned "its own page and data" and asked whether an API is
+needed. It is not, and adding one would break the report's core property.
+
+  - report.html is SELF-CONTAINED by contract. It is attached to tickets and
+    read offline, on locked-down networks, and inside attachment viewers. An
+    API call, or a second .html file, means it stops working the moment it
+    leaves the machine that produced it.
+  - Every test result is ALREADY in the file. Filtering is a DOM operation over
+    data that is present, not a fetch.
+  - The mechanism already exists: the toolbar pills (All / Failed / Passed /
+    Skipped) do exactly this today. Tiles reuse that code path.
+
+DECISION: implement as in-page views, not separate pages. One file, no network,
+no build step. If genuinely separate pages are wanted later, that is a different
+plan and it forfeits the single-file property. Say so explicitly before doing
+it.
+
+--------------------------------------------------------------------------------
+3. TILE → VIEW MAPPING
+--------------------------------------------------------------------------------
+  TILE            CLICK SHOWS                                 EMPTY STATE
+  -------------   -----------------------------------------   -----------------
+  Suites total    all groups, all tests (resets the view)      n/a
+  Tests total     all groups, all tests (same as above)        "No tests ran"
+  Passed tests    only tests with status=passed                "No tests passed"
+  Failed tests    only tests with status=failed                "Nothing failed"
+  Duration        all tests, re-ordered slowest first          n/a
+
+Notes
+  - Skipped has no tile but has a toolbar pill; both must stay reachable.
+  - Duration is the odd one out: it is not a filter, it is a SORT. Confirm
+    this is wanted (AC:?); the alternative is leaving Duration inert.
+
+--------------------------------------------------------------------------------
+4. TEST CASES
+--------------------------------------------------------------------------------
+Run against a report generated from a run containing at least: 2 passing tests,
+2 failing tests, 1 skipped test, across 2 describe groups, in 2 spec files.
+
+--- Filtering ------------------------------------------------------------------
+TC01  Clicking "Passed tests" shows every passed case and no other status
+TC02  Clicking "Failed tests" shows every failed case and no other status
+TC03  Clicking "Tests total" restores every case, whatever was shown before
+TC04  Clicking "Suites total" restores every case and every group
+TC05  A group whose cases are all filtered out is hidden, not left as an
+      empty shell                                                     [BR]
+TC06  A group with at least one matching case stays visible, showing only
+      the matching cases
+TC07  The counts on the tiles never change when a filter is applied; they
+      describe the run, not the view                                  [BR]
+
+--- Tile / pill parity ---------------------------------------------------------
+TC08  Clicking a tile marks the matching toolbar pill active
+TC09  Clicking a toolbar pill marks the matching tile active
+TC10  Only one tile is active at a time
+TC11  Clicking the active tile a second time clears the filter        [AC:?]
+
+--- Interaction with existing controls -----------------------------------------
+TC12  Tile filter and the search box compose: searching within a tile view
+      narrows further, it does not reset the tile
+TC13  "Expand all" applies only to cases visible in the current tile view
+TC14  Clearing the search box returns to the tile's full set, not to All
+TC15  A test opened before switching tiles is still open when it reappears
+
+--- Empty and edge states ------------------------------------------------------
+TC16  "Passed tests" on an all-failing run shows an empty state, not a blank
+      panel                                                           [BR]
+TC17  "Failed tests" on an all-green run shows an empty state
+TC18  A run with zero tests renders every tile as inert rather than broken
+TC19  A suite that crashed before running any test still appears under
+      Failed, since it has no test rows to filter                     [BR]
+
+--- Keyboard and accessibility -------------------------------------------------
+TC20  Tiles are reachable by Tab and activate with Enter and Space
+TC21  The active tile is distinguishable without relying on colour alone
+TC22  Screen-reader text states which filter is active                [AC:?]
+
+--- Non-regression (the report's contract) -------------------------------------
+TC23  report.html still makes ZERO network requests after the change  [BR]
+TC24  The file still renders correctly when copied alone to another
+      directory                                                       [BR]
+TC25  junit.xml is byte-identical: the gate parses it and must not be
+      affected by any reporter UI change                              [BR]
+TC26  Failure screenshots still render after filtering and re-showing a case
+TC27  Step timings still render after filtering
+
+Legend
+  [BR]   business rule already established for the report
+  [AC:?] assumption, needs confirming before it is built
+
+--------------------------------------------------------------------------------
+5. RISKS
+--------------------------------------------------------------------------------
+R1  Tiles and pills drifting out of sync: two controls over one piece of
+    state. Mitigate: ONE filter function, both controls call it.
+R2  Filtering by CSS class is brittle; statusOf() already parses className.
+    Mitigate: emit an explicit data-status attribute per row instead.
+R3  Growth in inline JS. Keep it small and dependency-free; the moment it
+    needs a framework, the single-file property is at risk.
+
+--------------------------------------------------------------------------------
+6. NOT TESTABLE HERE
+--------------------------------------------------------------------------------
+Everything above is verifiable against a generated report on this machine. No
+device, Appium server or credentials are needed. If a case cannot be reached,
+record it here with the reason rather than leaving it unwritten.

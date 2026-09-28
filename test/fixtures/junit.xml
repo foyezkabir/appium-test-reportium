@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="9" failures="7" errors="0" time="4.244">
+  <testsuite name="Orders: creation and validation" errors="0" failures="7" skipped="1" timestamp="2026-09-25T15:54:52" time="4.164" tests="9">
+    <testcase classname="Orders: creation and validation" name="TC01: Order is created with valid values" time="1.858">
+    </testcase>
+    <testcase classname="Orders: creation and validation" name="TC03: Duplicate code is rejected with a message" time="1.705">
+      <failure>Error: waitForText timed out after 15000ms: &quot;Code already exists&quot;
+    at /home/ci/orders-app/tests/orders.spec.ts:21:13
+    at async StepRecorder.step (/home/ci/orders-app/src/support/StepRecorder.ts:53:19)
+    at async /home/ci/orders-app/tests/orders.spec.ts:19:5
+    at async Object.inner (/home/ci/orders-app/jest.setup.ts:76:16)</failure>
+    </testcase>
+    <testcase classname="Orders: creation and validation" name="TC05: Notes accepts 500 characters" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Explainer coverage" name="TC10: locator not found" time="0.001">
+      <failure>Error: Can&apos;t call click on element with selector &quot;~Save&quot; because element wasn&apos;t found
+    at /home/ci/orders-app/tests/orders.spec.ts:28:55
+    at Object.inner (/home/ci/orders-app/jest.setup.ts:76:23)
+    at Promise.then.completed (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:316:40)
+    at async _runTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:252:3)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:126:9)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:121:9)
+    at async run (/home/ci/orders-app/node_modules/jest-circus/build/run.js:71:3)
+    at async runAndTransformResultsToJestFormat (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at async jestAdapter (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at async runTestInternal (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:367:16)
+    at async runTest (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Explainer coverage" name="TC11: stale element" time="0.001">
+      <failure>Error: stale element reference: element is not attached to the page document
+    at /home/ci/orders-app/tests/orders.spec.ts:29:51
+    at Object.inner (/home/ci/orders-app/jest.setup.ts:76:23)
+    at Promise.then.completed (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:316:40)
+    at async _runTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:252:3)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:126:9)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:121:9)
+    at async run (/home/ci/orders-app/node_modules/jest-circus/build/run.js:71:3)
+    at async runAndTransformResultsToJestFormat (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at async jestAdapter (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at async runTestInternal (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:367:16)
+    at async runTest (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Explainer coverage" name="TC12: session lost" time="0.001">
+      <failure>Error: IllegalStateException: UiAutomation not connected!
+    at /home/ci/orders-app/tests/orders.spec.ts:30:50
+    at Object.inner (/home/ci/orders-app/jest.setup.ts:76:23)
+    at Promise.then.completed (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:316:40)
+    at async _runTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:252:3)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:126:9)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:121:9)
+    at async run (/home/ci/orders-app/node_modules/jest-circus/build/run.js:71:3)
+    at async runAndTransformResultsToJestFormat (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at async jestAdapter (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at async runTestInternal (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:367:16)
+    at async runTest (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Explainer coverage" name="TC13: tls" time="0.001">
+      <failure>Error: java.security.cert.CertPathValidatorException: Trust anchor for certification path not found.
+    at /home/ci/orders-app/tests/orders.spec.ts:31:41
+    at Object.inner (/home/ci/orders-app/jest.setup.ts:76:23)
+    at Promise.then.completed (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:316:40)
+    at async _runTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:252:3)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:126:9)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:121:9)
+    at async run (/home/ci/orders-app/node_modules/jest-circus/build/run.js:71:3)
+    at async runAndTransformResultsToJestFormat (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at async jestAdapter (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at async runTestInternal (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:367:16)
+    at async runTest (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Explainer coverage" name="TC14: plain assertion" time="0.004">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: &quot;Code already exists&quot;
+Received: &quot;record saved&quot;
+    at /home/ci/orders-app/tests/orders.spec.ts:32:64
+    at Object.inner (/home/ci/orders-app/jest.setup.ts:76:23)
+    at Promise.then.completed (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:316:40)
+    at async _runTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:252:3)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:126:9)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:121:9)
+    at async run (/home/ci/orders-app/node_modules/jest-circus/build/run.js:71:3)
+    at async runAndTransformResultsToJestFormat (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at async jestAdapter (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at async runTestInternal (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:367:16)
+    at async runTest (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Explainer coverage" name="TC15: unmatched" time="0.001">
+      <failure>Error: Something entirely unanticipated happened in the bridge
+    at /home/ci/orders-app/tests/orders.spec.ts:33:47
+    at Object.inner (/home/ci/orders-app/jest.setup.ts:76:23)
+    at Promise.then.completed (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/home/ci/orders-app/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:316:40)
+    at async _runTest (/home/ci/orders-app/node_modules/jest-circus/build/run.js:252:3)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:126:9)
+    at async _runTestsForDescribeBlock (/home/ci/orders-app/node_modules/jest-circus/build/run.js:121:9)
+    at async run (/home/ci/orders-app/node_modules/jest-circus/build/run.js:71:3)
+    at async runAndTransformResultsToJestFormat (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at async jestAdapter (/home/ci/orders-app/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at async runTestInternal (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:367:16)
+    at async runTest (/home/ci/orders-app/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,62 @@
+{
+  "name": "testreportium",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Smart, self-contained HTML test reports for Appium scripts. One file, zero network calls, failure screenshots embedded. Attach it to a ticket and it still renders.",
+  "keywords": [
+    "appium",
+    "test-report",
+    "html-report",
+    "mobile-testing",
+    "smart-report",
+    "junit",
+    "webdriverio",
+    "mocha",
+    "jest",
+    "qa",
+    "automation"
+  ],
+  "license": "MIT",
+  "author": "foyezkabir",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foyezkabir/appium-test-reportium.git"
+  },
+  "homepage": "https://github.com/foyezkabir/appium-test-reportium#readme",
+  "bugs": {
+    "url": "https://github.com/foyezkabir/appium-test-reportium/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./jest": "./dist/adapters/jest.js",
+    "./junit": "./dist/adapters/junit.js",
+    "./step-recorder": "./dist/step-recorder.js",
+    "./slug": "./dist/slug.js"
+  },
+  "bin": {
+    "testreportium": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "assets/fonts/OFL-*.txt",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test test/*.test.mjs",
+    "prepublishOnly": "npm test",
+    "fonts": "node scripts/embed-fonts.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.0"
+  }
+}

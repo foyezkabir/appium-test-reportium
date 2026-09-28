@@ -1,0 +1,11 @@
+{"test":"Orders: creation and validation TC01: Order is created with valid values","title":"open Orders tab","ms":321,"status":"passed"}
+{"test":"Orders: creation and validation TC01: Order is created with valid values","title":"tap Add Order button","ms":181,"status":"passed"}
+{"test":"Orders: creation and validation TC01: Order is created with valid values","title":"fill Name input","ms":411,"status":"passed"}
+{"test":"Orders: creation and validation TC01: Order is created with valid values","title":"fill Code input","ms":262,"status":"passed"}
+{"test":"Orders: creation and validation TC01: Order is created with valid values","title":"tap Save button","ms":541,"status":"passed"}
+{"test":"Orders: creation and validation TC01: Order is created with valid values","title":"expect order is listed","ms":131,"status":"passed"}
+{"test":"Orders: creation and validation TC03: Duplicate code is rejected with a message","title":"open Orders tab","ms":301,"status":"passed"}
+{"test":"Orders: creation and validation TC03: Duplicate code is rejected with a message","title":"tap Add Order button","ms":172,"status":"passed"}
+{"test":"Orders: creation and validation TC03: Duplicate code is rejected with a message","title":"fill Code input with an existing code","ms":391,"status":"passed"}
+{"test":"Orders: creation and validation TC03: Duplicate code is rejected with a message","title":"tap Save button","ms":621,"status":"passed"}
+{"test":"Orders: creation and validation TC03: Duplicate code is rejected with a message","title":"expect duplicate-code error","ms":210,"status":"failed","error":"waitForText timed out after 15000ms: \"Code already exists\""}

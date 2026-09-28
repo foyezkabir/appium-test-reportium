@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hierarchy rotation="0">
+  <android.widget.FrameLayout package="com.example.orders" bounds="[0,0][1080,2400]">
+    <android.view.ViewGroup resource-id="com.example.orders:id/content" bounds="[0,120][1080,2138]">
+      <android.widget.TextView text="Add Order" bounds="[48,180][400,240]"/>
+      <android.widget.EditText content-desc="Name input" text="QA-AUTO Order 8842" bounds="[48,320][1032,440]"/>
+      <android.widget.EditText content-desc="Code input" text="ORD-DUP-01" bounds="[48,480][1032,600]"/>
+      <android.widget.Button content-desc="Save" text="Save" enabled="true" bounds="[48,1900][1032,2020]"/>
+    </android.view.ViewGroup>
+    <android.view.ViewGroup resource-id="bottom-nav" bounds="[0,2138][1080,2400]"/>
+  </android.widget.FrameLayout>
+</hierarchy>
