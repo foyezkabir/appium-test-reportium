@@ -5,7 +5,12 @@ version number when that version is published to npm.
 
 ## Unreleased
 
-Will ship as **0.2.0** (already set in `package.json`): screen recordings are a new feature.
+Nothing yet.
+
+## 0.2.0 · 2026-09-28
+
+Screen recordings of failed tests, a redesigned report, and everything since
+0.1.0 (0.1.1 was prepared but never published, so its changes are here too).
 
 - New: screen recordings of failed tests. `recordTest(driver)` before a test
   and `finishRecording(driver, title, { keep: failed })` after it; the video is
