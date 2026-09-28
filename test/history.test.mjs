@@ -89,10 +89,25 @@ test('generateReport keeps a history and the second report uses it', () => {
   assert.match(html, /New failures<\/span>/, 'attention card');
   assert.match(html, /Performance regressions<\/span>/);
   assert.match(html, /Quality Gates/);
-  assert.match(html, /id="v-comparison"[\s\S]*New failures <i>1<\/i>[\s\S]*New tests <i>1<\/i>/);
+  const cmp = html.slice(html.indexOf('id="v-comparison"'), html.indexOf('id="v-gallery"'));
+  assert.match(cmp, /Execution telemetry matrix[\s\S]*Previous \(Run #1\)[\s\S]*This run \(Run #2\)/);
+  assert.match(cmp, /<tr class="worse">[\s\S]*?Failed[\s\S]*?<span class="dbadge bad strong">↑1<\/span>/, 'failures up: filled red badge');
+  assert.match(cmp, /<h4>New failures<\/h4><span class="dcount">1<\/span>/);
+  assert.match(cmp, /<h4>New tests<\/h4><span class="dcount">1<\/span>[\s\S]*?Not in run #1/);
+  assert.match(cmp, /<h4>Fixed<\/h4><span class="dcount">0<\/span>[\s\S]*?No test that failed last run passes now/, 'empty card explains itself');
+  assert.match(cmp, /<h4>Slower<\/h4><span class="dcount">1<\/span>[\s\S]*?2.00s → 3.00s[\s\S]*?\+1.00s/);
   assert.match(html, /class="rtable"/, 'trends table');
   assert.match(html, /Run history <span class="muted">\(last 2 runs\)/);
   assert.doesNotMatch(html, /appear from the second run/);
+});
+
+test('comparison: a skipped test is never listed as faster or slower', () => {
+  const html = renderReport(mkRun(10_000, { a: ['skipped', 0], b: ['passed', 100] }), {
+    outputDirectory: tmp(), historyFile: false, historyRuns: [past(1_000, { a: ['passed', 900], b: ['passed', 100] })],
+  });
+  const cmp = html.slice(html.indexOf('id="v-comparison"'), html.indexOf('id="v-gallery"'));
+  assert.match(cmp, /<h4>Faster<\/h4><span class="dcount">0<\/span>/);
+  assert.match(cmp, /<h4>Slower<\/h4><span class="dcount">0<\/span>/);
 });
 
 test('re-rendering the same run never compares it with itself or double-counts', () => {

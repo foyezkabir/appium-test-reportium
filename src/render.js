@@ -70,6 +70,12 @@ const I = {
   trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
   scale: '<path d="M12 3v18M5 21h14M6 7h12M6 7l-3 7a3 3 0 006 0zM18 7l-3 7a3 3 0 006 0z"/>',
   gauge: '<path d="M12 14l4-4"/><path d="M3.3 17a9 9 0 1117.4 0"/>',
+  failTest: '<circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/>',
+  skip: '<path d="M5 4l10 8-10 8V4zM19 5v14"/>',
+  pie: '<path d="M21.2 15.9A10 10 0 118 2.8"/><path d="M22 12A10 10 0 0012 2v10z"/>',
+  grid: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+  tag: '<path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L2 12V2h10l8.6 8.6a2 2 0 010 2.8z"/><path d="M7 7h.01"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
   download: '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
@@ -640,37 +646,87 @@ function page(c, options) {
   if (prev) {
     const cur = new Map(tests.map((t) => [t.key, t]));
     const was = (k) => prev.tests[k]?.[0];
-    const list = (items, fmt) => items.length ? `<ul class="clist">${items.map(fmt).join('')}</ul>` : '<p class="muted">None</p>';
-    const link = (t, extra = '') => `<li><a href="#${t.id}">${esc(t.title)}</a>${extra}</li>`;
+    const prevMs = (t) => prev.tests[t.key]?.[1];
     const stillFailing = tests.filter((t) => t.st === 'failed' && was(t.key) === 'failed');
     const added = tests.filter((t) => !prev.tests[t.key]);
     const removed = Object.keys(prev.tests).filter((k) => !cur.has(k));
-    const moved = tests.filter((t) => t.ins.change !== undefined && prev.tests[t.key]?.[1] && t.duration != null)
-      .map((t) => ({ t, d: t.duration - prev.tests[t.key][1], r: (t.duration - prev.tests[t.key][1]) / prev.tests[t.key][1] }))
+    // A skipped test's 0 ms is not a speed-up: only compare tests that ran both times.
+    const moved = tests.filter((t) => prevMs(t) && t.duration != null && t.st !== 'skipped' && was(t.key) !== 'skipped')
+      .map((t) => ({ t, d: t.duration - prevMs(t) }))
       .filter((x) => Math.abs(x.d) >= 100);
-    const slowerNow = moved.filter((x) => x.d > 0).sort((a, b) => b.d - a.d).slice(0, 10);
-    const fasterNow = moved.filter((x) => x.d < 0).sort((a, b) => a.d - b.d).slice(0, 10);
-    const row = (label, a, b, opts) => `<tr><td>${label}</td><td>${a}</td><td>${b}</td><td>${delta(typeof b === 'number' ? b : parseFloat(b), typeof a === 'number' ? a : parseFloat(a), opts)}</td></tr>`;
+    const slowerNow = moved.filter((x) => x.d > 0).sort((p1, p2) => p2.d - p1.d);
+    const fasterNow = moved.filter((x) => x.d < 0).sort((p1, p2) => p1.d - p2.d);
+    const prevRun = nRuns - 1;
+
+    // ── the metric table ──
+    const badge = (now, before, { good = 'up', unit = '', relative = false, strong = false } = {}) => {
+      const d = relative ? (before ? Math.round(((now - before) / before) * 100) : 0) : Math.round(now - before);
+      if (!d) return { html: `<span class="dbadge flat">±0${unit}</span>`, bad: false };
+      const bad = good === 'up' ? d < 0 : d > 0;
+      return { html: `<span class="dbadge ${bad ? 'bad' : 'good'}${strong && bad ? ' strong' : ''}">${d > 0 ? '↑' : '↓'}${Math.abs(d)}${unit}</span>`, bad };
+    };
+    const rateTone = (v) => (v >= 80 ? 'g' : v >= 60 ? 'y' : 'r');
+    const rows = [
+      { ic: I.folder, label: 'Tests', a: prev.passed + prev.failed + prev.skipped, b: total, tone: '', o: {} },
+      { ic: I.pass, label: 'Passed', a: prev.passed, b: passed, tone: 'g', ict: 'green', o: { good: 'up' } },
+      { ic: I.failTest, label: 'Failed', a: prev.failed, b: failed, tone: 'r', ict: 'red', o: { good: 'down', strong: true }, tint: true },
+      { ic: I.skip, label: 'Skipped', a: prev.skipped, b: skipped, tone: '', o: { good: 'down' } },
+      { ic: I.bolt, label: 'Flaky', a: prev.flaky ?? 0, b: c.flaky.length, tone: 'y', ict: 'yellow', o: { good: 'down' }, tint: true },
+      { ic: I.pie, label: 'Pass rate', a: c.prevRate, b: passRate, fmt: (v) => `${v}%`, toneOf: rateTone, ict: 'blue', o: { good: 'up', unit: '%' }, tint: true },
+      { ic: I.clock, label: 'Duration', a: prev.duration, b: duration, fmt: dur, tone: '', o: { good: 'down', unit: '%', relative: true } },
+    ];
+    const matrix = rows.map((r) => {
+      const d = badge(r.b, r.a, r.o);
+      const f = r.fmt ?? String;
+      const ta = r.toneOf ? r.toneOf(r.a) : (r.a ? r.tone : '');
+      const tb = r.toneOf ? r.toneOf(r.b) : (r.b ? r.tone : '');
+      return `<tr class="${r.tint && d.bad ? 'worse' : ''}"><td><span class="mlabel">${icon(r.ic, r.ict ?? '')}${r.label}</span></td>
+        <td class="${ta}">${esc(f(r.a))}</td><td class="now ${tb}">${esc(f(r.b))}</td><td>${d.html}</td></tr>`;
+    }).join('');
+
+    // ── the delta cards ──
+    const tcOf = (t) => (t.tc ? `<b class="tcid">${esc(t.tc)}:</b> ${esc(t.rest)}` : esc(t.title));
+    const box = (t, sub, right = '') => `<a class="ditem" href="#${t.id}"><span class="dtitle">${tcOf(t)}</span>
+      <span class="dsub"><span>${esc(sub)}</span>${right ? `<em>${esc(right)}</em>` : ''}</span></a>`;
+    const line = (t) => `<a class="dline" href="#${t.id}">${tcOf(t)}</a>`;
+    const msChange = (t) => { const pm = prevMs(t); if (!pm || t.duration == null) return ''; const d = t.duration - pm; return Math.abs(d) >= 1 ? `${d > 0 ? '+' : '−'}${dur(Math.abs(d))}` : ''; };
+    const MAX = 6;
+    const more = (n) => (n > MAX ? `<p class="dmore">+ ${n - MAX} more</p>` : '');
+    const empty = (ic, sub) => `<div class="dempty">${ic ? `<span class="dicon">${icon(ic)}</span>` : ''}<b>None</b><small>${esc(sub)}</small></div>`;
+    const card = (title, tone, n, body, emptyIc, emptySub) => `<article class="dcard ${tone}">
+      <header><h4>${title}</h4><span class="dcount">${n}</span></header>
+      <div class="dbody">${n ? body : empty(emptyIc, emptySub)}</div></article>`;
+    const kindOf = (t) => (t.kind ? KINDS[t.kind].label : 'Failed now');
+    const cards = [
+      card('New failures', 'red', c.newFailures.length,
+        c.newFailures.slice(0, MAX).map((t, i) => (i === 0 ? box(t, kindOf(t), msChange(t)) : line(t))).join('') + more(c.newFailures.length),
+        I.pass, 'Nothing that passed last run fails now'),
+      card('Fixed', 'green', c.fixed.length,
+        c.fixed.slice(0, MAX).map((t) => box(t, 'Failed last run, passes now', msChange(t))).join('') + more(c.fixed.length),
+        I.pass, 'No test that failed last run passes now'),
+      card('Still failing', 'orange', stillFailing.length,
+        stillFailing.slice(0, MAX).map((t) => box(t, `Failed in the previous run too · ${kindOf(t)}`)).join('') + more(stillFailing.length),
+        I.pass, 'No test failed in both runs'),
+      card('New tests', 'blue', added.length,
+        added.slice(0, MAX).map((t) => box(t, `Not in run #${prevRun} · ${STATUS_LABEL[t.status] ?? t.status}`)).join('') + more(added.length),
+        I.plus, 'Same tests as the previous run'),
+      card('Slower', 'purple', slowerNow.length,
+        slowerNow.slice(0, MAX).map((x) => box(x.t, `${dur(prevMs(x.t))} → ${dur(x.t.duration)}`, `+${dur(x.d)}`)).join('') + more(slowerNow.length),
+        null, 'No test got slower by 100 ms or more'),
+      card('Faster', 'teal', fasterNow.length,
+        fasterNow.slice(0, MAX).map((x) => box(x.t, `${dur(prevMs(x.t))} → ${dur(x.t.duration)}`, `−${dur(-x.d)}`)).join('') + more(fasterNow.length),
+        null, 'No test got faster by 100 ms or more'),
+    ].join('');
+    const removedCard = removed.length ? card('Removed tests', 'mut', removed.length,
+      removed.slice(0, MAX).map((k) => `<span class="dline">${esc(k.split('::').slice(1).join('::'))}</span>`).join('') + more(removed.length), null, '') : '';
+
     comparisonView = `<section class="view" id="v-comparison" data-view="comparison">
-  <h2 class="vtitle">Comparison <span class="muted mono">${esc(fmtRun(prev))} → this run</span></h2>
-  <div class="panel tablewrap"><table class="rtable cmp"><thead><tr><th></th><th>Previous</th><th>This run</th><th>Change</th></tr></thead><tbody>
-    ${row('Tests', prev.passed + prev.failed + prev.skipped, total, { unit: '', good: 'up' })}
-    ${row('Passed', prev.passed, passed, { unit: '' })}
-    ${row('Failed', prev.failed, failed, { unit: '', good: 'down' })}
-    ${row('Skipped', prev.skipped, skipped, { unit: '', good: 'down' })}
-    ${row('Flaky', prev.flaky ?? 0, c.flaky.length, { unit: '', good: 'down' })}
-    <tr><td>Pass rate</td><td>${c.prevRate}%</td><td>${passRate}%</td><td>${delta(passRate, c.prevRate)}</td></tr>
-    <tr><td>Duration</td><td>${dur(prev.duration)}</td><td>${dur(duration)}</td><td>${delta(duration, prev.duration, { good: 'down', relative: true })}</td></tr>
-  </tbody></table></div>
-  <div class="cgrid">
-    <article class="panel cbox red"><h4 class="ph">New failures <i>${c.newFailures.length}</i></h4>${list(c.newFailures, (t) => link(t))}</article>
-    <article class="panel cbox green"><h4 class="ph">Fixed <i>${c.fixed.length}</i></h4>${list(c.fixed, (t) => link(t))}</article>
-    <article class="panel cbox orange"><h4 class="ph">Still failing <i>${stillFailing.length}</i></h4>${list(stillFailing, (t) => link(t))}</article>
-    <article class="panel cbox blue"><h4 class="ph">New tests <i>${added.length}</i></h4>${list(added, (t) => link(t))}</article>
-    <article class="panel cbox purple"><h4 class="ph">Slower <i>${slowerNow.length}</i></h4>${list(slowerNow, (x) => link(x.t, `<em class="bad">+${dur(x.d)}</em>`))}</article>
-    <article class="panel cbox green"><h4 class="ph">Faster <i>${fasterNow.length}</i></h4>${list(fasterNow, (x) => link(x.t, `<em class="good">−${dur(-x.d)}</em>`))}</article>
-    ${removed.length ? `<article class="panel cbox mut"><h4 class="ph">Removed tests <i>${removed.length}</i></h4><ul class="clist">${removed.map((k) => `<li>${esc(k.split('::').slice(1).join('::'))}</li>`).join('')}</ul></article>` : ''}
-  </div>
+  <h2 class="vtitle">Comparison <span class="muted mono">Run #${prevRun} (${esc(fmtRun(prev))}) → Run #${nRuns}</span></h2>
+  <article class="matrix"><header>${icon(I.grid)}<b>Execution telemetry matrix</b><span>Showing ${rows.length} compared metrics</span></header>
+    <div class="tablewrap"><table class="mtable"><thead><tr><th>Metric</th><th>Previous (Run #${prevRun})</th><th>This run (Run #${nRuns})</th><th>Change / delta</th></tr></thead>
+    <tbody>${matrix}</tbody></table></div></article>
+  <div class="dhead2">${icon(I.tag)}<b>Categorized delta inspection</b><span>Run #${prevRun} → Run #${nRuns}</span></div>
+  <div class="dgrid">${cards}${removedCard}</div>
 </section>`;
   } else {
     comparisonView = `<section class="view" id="v-comparison" data-view="comparison"><h2 class="vtitle">Comparison</h2>${noHistory('Comparisons')}</section>`;
@@ -1155,6 +1211,57 @@ pre .hl{color:var(--red);font-weight:600}pre .dim{color:var(--mut)}pre .own{colo
 .delta.flat{color:var(--fg2);background:var(--hover)}
 .mut{--tone:var(--mut)}.track .mut{background:var(--mut)}
 .more{display:inline-block;margin-top:10px;font-size:12px;color:var(--blue)}
+/* comparison: metric matrix + delta cards */
+.matrix{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
+.matrix>header{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border)}
+.matrix>header .i{color:var(--blue)}
+.matrix>header b{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.matrix>header span,.dhead2 span{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--mut)}
+.mtable{width:100%;border-collapse:collapse;font-size:13px}
+.mtable th{padding:12px 20px;text-align:right;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);border-bottom:1px solid var(--border)}
+.mtable td{padding:11px 20px;text-align:right;font-family:var(--mono);border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent);white-space:nowrap}
+.mtable th:first-child,.mtable td:first-child{text-align:left}
+.mtable tr:last-child td{border-bottom:0}
+.mtable tr.worse td{background:color-mix(in srgb,var(--red) 7%,transparent)}
+.mtable td.now{font-weight:700;color:var(--fg)}
+.mtable td.g{color:var(--green)}.mtable td.r{color:var(--red)}.mtable td.y{color:var(--yellow)}
+.mlabel{display:inline-flex;align-items:center;gap:10px;font-family:var(--sans);color:var(--fg)}
+.mlabel .i{width:15px;height:15px;color:var(--fg2)}
+.mlabel .i.green{color:var(--green)}.mlabel .i.red{color:var(--red)}.mlabel .i.yellow{color:var(--yellow)}.mlabel .i.blue{color:var(--blue)}
+.dbadge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:22px;padding:0 7px;border-radius:5px;font-family:var(--mono);font-size:11px;font-weight:700;border:1px solid}
+.dbadge.flat{color:var(--fg2);border-color:var(--border);background:var(--hover)}
+.dbadge.good{color:var(--green);border-color:color-mix(in srgb,var(--green) 50%,transparent);background:color-mix(in srgb,var(--green) 12%,transparent)}
+.dbadge.bad{color:var(--red);border-color:color-mix(in srgb,var(--red) 55%,transparent);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.dbadge.bad.strong{color:#fff;background:var(--red);border-color:var(--red)}
+.dhead2{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
+.dhead2 .i{color:var(--fg2)}
+.dhead2 b{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.dgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.dcard{display:flex;flex-direction:column;min-height:230px;border:1px solid color-mix(in srgb,var(--tone) 55%,var(--border));border-radius:12px;background:var(--card)}
+.dcard.teal{--tone:color-mix(in srgb,var(--green) 55%,var(--blue))}
+.dcard>header{display:flex;align-items:center;justify-content:space-between;margin:0 16px;padding:14px 0 12px;border-bottom:1px solid var(--border)}
+.dcard h4{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tone)}
+.dcount{min-width:22px;height:22px;padding:0 6px;display:grid;place-items:center;border-radius:5px;font-family:var(--mono);font-size:11px;font-weight:700;
+color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 55%,transparent);background:color-mix(in srgb,var(--tone) 15%,transparent)}
+.dbody{flex:1;display:flex;flex-direction:column;gap:8px;padding:12px 16px 16px}
+.ditem{display:grid;gap:4px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--tone) 35%,transparent);background:color-mix(in srgb,var(--tone) 7%,var(--bg))}
+.ditem:hover{border-color:var(--tone)}
+.dtitle{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsub{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:11px;color:var(--tone)}
+.dsub span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsub em{font-style:normal;font-weight:700;flex:none}
+.dline{font-family:var(--mono);font-size:12.5px;color:var(--fg);padding:2px 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+a.dline:hover{color:var(--tone)}
+.tcid{color:var(--tone);font-weight:600}
+.dtitle .tcid{color:var(--fg)}
+.dmore{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.dempty{flex:1;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center}
+.dicon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;color:var(--tone);background:color-mix(in srgb,var(--tone) 18%,transparent)}
+.dicon .i{width:16px;height:16px}
+.dempty b{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--fg2)}
+.dempty small{font-family:var(--mono);font-size:11px;color:var(--mut)}
+@media(max-width:1100px){.dgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.dgrid{grid-template-columns:1fr}}
 /* quality gates + quarantine registry */
 .qpanel{margin-top:18px;border:1px solid color-mix(in srgb,var(--tone) 30%,var(--border));border-radius:14px;background:var(--card);box-shadow:0 8px 24px -16px rgba(0,0,0,.5)}
 .qhead{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}

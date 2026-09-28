@@ -12,6 +12,12 @@ Will ship as **0.1.1** (already set in `package.json`).
   GitHub so they show on the npm page.
 - README and screenshots: device examples are general (Android / iOS, real or
   emulator) instead of naming one test device.
+- Comparison page redesigned: an "Execution telemetry matrix" table (previous
+  run vs this run, with a colour-coded change badge per metric) and six
+  "Categorized delta inspection" cards: new failures, fixed, still failing,
+  new tests, slower, faster. Empty cards say why they are empty.
+- Fix: a skipped test is no longer listed as faster (its 0 ms is not a
+  speed-up) or slower.
 
 ## 0.1.0 · 2026-09-28
 
