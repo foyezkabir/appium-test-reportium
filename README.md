@@ -96,7 +96,7 @@ npx testreportium reports/junit/*.xml --max-failures 0 --min-pass-rate 95 --no-n
 
 ```js
 // wdio.conf.js
-import { recordSession, captureFailure, StepRecorder, fromJUnit, writeReport } from 'testreportium';
+import { recordSession, captureFailure, recordTest, finishRecording, StepRecorder, fromJUnit, writeReport } from 'testreportium';
 import { readdirSync, readFileSync } from 'node:fs';
 
 export const config = {
@@ -106,12 +106,14 @@ export const config = {
     await recordSession(browser); // real device, OS, app, framework → Environment block
   },
 
-  beforeTest(test) {
+  async beforeTest(test) {
     // WDIO's JUnit classname is not the bare describe name, so pair by title.
     StepRecorder.setTest(test.title);
+    await recordTest(browser); // optional: a screen recording of each test
   },
   async afterTest(test, _ctx, { passed }) {
     if (!passed) await captureFailure(browser, test.title);
+    await finishRecording(browser, test.title, { keep: !passed }); // kept only for failures
   },
   onComplete() {
     const dir = 'appium-reports/junit';
@@ -157,6 +159,7 @@ Every entry point takes the same `ReportOptions`:
 | `pageTitle` | `<projectName> · Test Report` |
 | `historyFile` | `<outputDirectory>/testreportium-history.json`; `false` turns history off |
 | `maxHistoryRuns` | `10` |
+| `maxVideoSize` | `10485760` (10 MB): the largest failure recording embedded in the report |
 | `flakyThreshold` | `0.3`, the failure share across runs that counts as flaky |
 | `slowerThreshold` | `0.2`, i.e. 20% slower than the test's average (and ≥ 100 ms) counts as a regression |
 | `qualityGates` | none; see [Quality gates](#quality-gates-and-quarantine) |
@@ -431,7 +434,7 @@ through it, and links like `report.html#t3` open one test directly.
 | **Run history** | pass / fail dots for the last 10 runs of this test (the ringed dot is this run), its pass rate across them, and a duration bar per run with the average |
 | **Step timeline** | every recorded step as a coloured segment. Colours come from the step's first word: **Navigation** (open, navigate, go, launch, back, restart, activate), **Action** (tap, click, press, swipe, scroll, drag, long, double, hide), **Input** (fill, type, enter, set, select, clear, choose, pick), **Wait / check** (wait, expect, assert, verify, check, see, read, get), **Other**, and **Failed**. The slowest step is marked; a failed step shows its error |
 | **Full error & stack trace** | the raw error. Frames from your own code are highlighted; frames from `node_modules` and Node internals are dimmed |
-| **Device at failure** | the screenshot captured when the test failed; click to enlarge |
+| **Device at failure** | the screenshot captured when the test failed (click to enlarge) and, if you record tests, the screen recording beside it |
 
 ### Trends
 
@@ -484,8 +487,9 @@ Skipped tests are never slower or faster.
 
 ### Gallery
 
-Every failure screenshot in one grid, with the test and its diagnosis.
-Click one to open the test.
+One card per failed test, with its diagnosis. A test that has both a
+screenshot and a [recording](#failure-screenshots-and-recordings) shows them
+side by side. Click the screenshot or the caption to open the test.
 
 ### PDF export
 
@@ -535,13 +539,39 @@ Two guarantees hold:
   a test. A reporter that can redden a green run is a source of false
   findings.
 
-## Failure screenshots
+## Failure screenshots and recordings
 
 `captureFailure(driver, testTitle)` writes the screenshot and page source into
 `<outputDirectory>/failures/`, named so the report pairs them with the test.
 Both sides use the one `slug()` from `testreportium/slug`, so they cannot drift
 apart. In the project this grew out of, two copies did exist, and if they ever diverged every
 screenshot would silently vanish from the report.
+
+**Screen recordings** show how a test got to its failure. Wrap each test:
+
+```js
+await recordTest(driver);                                   // before the test
+await finishRecording(driver, testTitle, { keep: failed }); // after it
+```
+
+`finishRecording` keeps the video only when `keep` is true, so passing tests
+leave nothing behind. The file sits next to the screenshot and appears beside
+it in the test's **Device at failure** section and in the **Gallery**.
+
+| | Android (UiAutomator2) | iOS (XCUITest) |
+|---|---|---|
+| Needs | nothing extra: the device's own screen recorder | **ffmpeg** installed on the machine running Appium |
+| Default settings | 2 Mbps, up to 180 s | medium quality, 10 fps, up to 180 s |
+
+Change the settings with `recordTest(driver, { recordingOptions: { … } })`,
+passed straight to Appium's `startRecordingScreen`. Screens the app marks as
+secure (payment pages, for example) record as black on Android.
+
+**Size:** each recording is embedded in the report up to `maxVideoSize` (10 MB
+by default), so the report stays one file you can attach. A bigger recording
+is not embedded; the report says so and names the saved file instead. The PDF
+keeps the screenshot and notes that a recording exists. Neither helper ever
+throws, so a recording problem can never fail or hide a test.
 
 ## Never replaces JUnit XML
 

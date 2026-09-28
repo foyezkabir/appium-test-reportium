@@ -17,7 +17,7 @@
  * additive and purely human-facing.
  */
 
-import { readFileSync, readdirSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { slug } from './slug.js';
 import { defaultOutputDirectory } from './paths.js';
@@ -46,6 +46,9 @@ const dur = (ms) => {
   return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`;
 };
 const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
+/** Size of base64 data, as the decoded file would be. */
+const bytes = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+const kb = (b64) => bytes((b64.length * 3) / 4);
 
 /** Inline SVG, no icon font, so the report renders with no network. */
 const I = {
@@ -154,7 +157,7 @@ function indexArtifacts(dir) {
   const failDir = join(dir, 'failures');
   if (!existsSync(failDir)) return idx;
   for (const f of readdirSync(failDir).sort()) {
-    const m = basename(f).match(/^(.+?)__(.+)\.(png|xml)$/);
+    const m = basename(f).match(/^(.+?)__(.+)\.(png|xml|mp4)$/);
     if (!m) continue;
     const [, , name, ext] = m;
     const e = idx.get(name) ?? {};
@@ -349,6 +352,15 @@ function prepare(run, options) {
     if (art?.png) {
       try { t.png = readFileSync(art.png).toString('base64'); } catch { /* unreadable artefact must not break the report */ }
     }
+    // A recording is embedded up to maxVideoSize, so the report stays one file of a
+    // sensible size; a bigger one is named instead of silently bloating the page.
+    if (art?.mp4) {
+      try {
+        const bytes = statSync(art.mp4).size;
+        if (bytes <= (options.maxVideoSize ?? 10 * 1024 * 1024)) t.video = readFileSync(art.mp4).toString('base64');
+        else t.videoTooBig = { bytes, name: basename(art.mp4) };
+      } catch { /* unreadable artefact must not break the report */ }
+    }
   });
   const insight = analyzeTests(tests, past, options);
   for (const t of tests) {
@@ -425,6 +437,8 @@ function page(c, options) {
   const run = c.run;
   const workers = run.workers;
   const shots = tests.filter((t) => t.png);
+  const videos = tests.filter((t) => t.video);
+  const media = tests.filter((t) => t.png || t.video);
   const context = environment(c.dir, run.startTime, options.context);
   const ctxEntries = Object.entries(context).filter(([, v]) => v);
   const project = projectName(options);
@@ -655,7 +669,12 @@ function page(c, options) {
       ${historyBlock(t)}
       ${t.steps.length ? stepTimeline(t.steps) : ''}
       ${errs.map((m) => `<details class="block sec raw"${t.diag ? '' : ' open'}><summary>${icon(I.code)}Full error &amp; stack trace</summary><pre class="err">${highlight(stripAnsi(m))}</pre></details>`).join('')}
-      ${t.png ? `<section class="block sec media"><h4>${icon(I.device)}Device at failure</h4><figure class="shot"><img alt="device at failure: ${esc(t.title)}" src="data:image/png;base64,${t.png}"><figcaption>${((t.png.length * 3) / 4 / 1024).toFixed(0)} KB<span class="noprint"> · click to enlarge</span></figcaption></figure></section>` : ''}
+      ${t.png || t.video || t.videoTooBig ? `<section class="block sec media"><h4>${icon(I.device)}Device at failure</h4><div class="mediarow">
+        ${t.png ? `<figure class="shot"><img alt="device at failure: ${esc(t.title)}" src="data:image/png;base64,${t.png}"><figcaption>Screenshot · ${kb(t.png)}<span class="noprint"> · click to enlarge</span></figcaption></figure>` : ''}
+        ${t.video ? `<figure class="shot vid"><video controls preload="metadata" playsinline src="data:video/mp4;base64,${t.video}"></video><figcaption>Recording · ${kb(t.video)}</figcaption></figure>` : ''}
+        ${t.videoTooBig ? `<p class="vnote noprint">Recording not embedded: ${bytes(t.videoTooBig.bytes)} is over the ${bytes(options.maxVideoSize ?? 10485760)} limit (maxVideoSize). It is saved in the failures folder as <code>${esc(t.videoTooBig.name)}</code>.</p>` : ''}
+        ${t.video ? '<p class="print-only vnote">A screen recording of this test is in the HTML report.</p>' : ''}
+      </div></section>` : ''}
       ${!errs.length && !t.steps.length ? `<p class="empty">${t.st === 'passed' ? 'Passed. No steps were recorded for this test.' : 'Not run.'}</p>` : ''}
     </article>`;
   }).join('');
@@ -825,9 +844,11 @@ function page(c, options) {
   }
 
   const galleryView = `<section class="view" id="v-gallery" data-view="gallery">
-  <h2 class="vtitle">Gallery <span class="muted mono">${shots.length} screenshot${shots.length === 1 ? '' : 's'}</span></h2>
-  ${shots.length ? `<div class="gallery">${shots.map((t) => `<a class="gitem" href="#${t.id}"><img alt="" data-from="${t.id}"><span><b>${esc(t.tc || t.rest)}</b><small>${esc(t.diag?.why ?? t.firstLine)}</small></span></a>`).join('')}</div>`
-    : '<p class="empty">No failure screenshots in this run.</p>'}
+  <h2 class="vtitle">Gallery <span class="muted mono">${shots.length} screenshot${shots.length === 1 ? '' : 's'}${videos.length ? ` · ${videos.length} recording${videos.length === 1 ? '' : 's'}` : ''}</span></h2>
+  ${media.length ? `<div class="gallery">${media.map((t) => `<div class="gitem${t.png && t.video ? ' both' : ''}">
+      <div class="gmedia">${t.png ? `<a class="gpane" href="#${t.id}"><img alt="screenshot: ${esc(t.title)}" data-from="${t.id}"><em>Screenshot</em></a>` : ''}${t.video ? `<div class="gpane"><video controls preload="metadata" playsinline data-from="${t.id}"></video><em>Recording</em></div>` : ''}</div>
+      <a class="gcap" href="#${t.id}"><b>${esc(t.tc || t.rest)}</b><small>${esc(t.diag?.why ?? t.firstLine)}</small></a></div>`).join('')}</div>`
+    : '<p class="empty">No failure screenshots or recordings in this run.</p>'}
 </section>`;
 
   // ── sidebar ───────────────────────────────────────────────────────────
@@ -851,7 +872,7 @@ function page(c, options) {
       <a href="#tests" data-nav="tests">${icon(I.list)}<span>Tests</span><i>${total}</i><em class="navdot"></em></a>
       <a href="#trends" data-nav="trends">${icon(I.trend)}<span>Trends</span>${hasHistory ? `<i>${series.length}</i>` : ''}<em class="navdot"></em></a>
       <a href="#comparison" data-nav="comparison">${icon(I.scale)}<span>Comparison</span><em class="navdot"></em></a>
-      <a href="#gallery" data-nav="gallery">${icon(I.image)}<span>Gallery</span><i>${shots.length}</i><em class="navdot"></em></a>
+      <a href="#gallery" data-nav="gallery">${icon(I.image)}<span>Gallery</span><i>${media.length}</i><em class="navdot"></em></a>
     </nav>
     <div class="filters">
       <div class="fhead"><small class="lbl">Filters</small><button id="fclear" class="linkbtn" disabled>clear all</button></div>
@@ -875,6 +896,7 @@ function page(c, options) {
       id: t.key, title: t.title, group: t.groupName, file: t.file, status: t.status, duration: t.duration ?? null,
       error: t.firstLine || null, diagnosis: t.diag?.why ?? null, kind: t.kind, health: t.ins.health,
       flakiness: t.ins.flakiness ?? null, newFailure: t.ins.newFailure, fixed: t.ins.fixed, slower: t.ins.slower,
+      screenshot: Boolean(t.png), recording: Boolean(t.video),
     })),
   }).replace(/</g, '\\u003c');
 
@@ -1284,17 +1306,29 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 55%,transparent
 pre{font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto}
 pre.err{white-space:pre-wrap;word-break:break-word}
 pre .hl{color:var(--red);font-weight:600}pre .dim{color:var(--mut)}pre .own{color:var(--blue)}
+.mediarow{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.shot video{max-width:280px;max-height:520px;border-radius:10px;border:1px solid var(--border);display:block;background:#000}
+.vnote{font-size:12px;color:var(--fg2);max-width:420px;align-self:center}
+.vnote code{font-family:var(--mono);font-size:11px;padding:1px 5px;border-radius:4px;background:var(--hover);color:var(--fg)}
 .shot{margin:0}
 .shot img{max-width:280px;max-height:520px;border-radius:10px;border:1px solid var(--border);display:block;cursor:zoom-in}
 .shot figcaption{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px}
 /* gallery */
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
-.gitem{display:grid;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
-.gitem:hover{border-color:var(--red)}
-.gitem img{width:100%;aspect-ratio:9/16;object-fit:cover;object-position:top;background:var(--bg);display:block}
-.gitem span{display:grid;padding:10px 12px;border-top:1px solid var(--border)}
-.gitem b{font-family:var(--mono);font-size:12px;color:var(--red)}
-.gitem small{font-size:11.5px;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;grid-auto-flow:dense}
+.gitem{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+.gitem:hover{border-color:color-mix(in srgb,var(--red) 60%,var(--border))}
+/* a failed test with both a screenshot and a recording spans two columns, side by side */
+.gitem.both{grid-column:span 2}
+.gmedia{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:1px;background:var(--border)}
+.gpane{position:relative;display:block;background:var(--bg)}
+.gpane img,.gpane video{width:100%;aspect-ratio:9/16;object-fit:cover;object-position:top;display:block;background:var(--bg)}
+.gpane video{object-fit:contain;background:#000}
+.gpane em{position:absolute;top:8px;left:8px;font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+padding:2px 7px;border-radius:5px;color:#fff;background:rgba(0,0,0,.55);pointer-events:none}
+.gcap{display:grid;padding:10px 12px;border-top:1px solid var(--border)}
+.gcap b{font-family:var(--mono);font-size:12px;color:var(--red)}
+.gcap small{font-size:11.5px;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:560px){.gitem.both{grid-column:auto}}
 .lightbox{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(0,0,0,.82);padding:24px}
 .lightbox img{max-width:min(92vw,560px);max-height:88vh;border-radius:12px}
 .lightbox .iconbtn{position:absolute;top:16px;right:16px}
@@ -1655,6 +1689,8 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   .sec.raw{display:block}.sec.raw>summary::after{display:none}
   .sec.raw[open] pre,.sec.raw pre{display:block}
   .shot img{max-height:320px}
+  .shot.vid,.gpane video,.gpane:has(video){display:none!important}
+  .gitem.both{grid-column:auto}
   a{color:inherit;text-decoration:none}
   .noprint{display:none!important}
   pre,pre.err{white-space:pre-wrap!important;word-break:break-word;overflow:visible!important}
@@ -1753,6 +1789,7 @@ sel.addEventListener('change',function(){
 });
 // Gallery reuses each screenshot's data URI instead of embedding it twice.
 $$('.gitem img[data-from]').forEach(function(img){var s=$('#d-'+img.dataset.from+' .shot img'); if(s) img.src=s.src;});
+$$('.gitem video[data-from]').forEach(function(v){var s=$('#d-'+v.dataset.from+' .shot video'); if(s) v.src=s.src;});
 var lb=$('#lb');
 document.addEventListener('click',function(e){
   var img=e.target.closest&&e.target.closest('.shot img'); if(img){$('img',lb).src=img.src; lb.hidden=false; return;}

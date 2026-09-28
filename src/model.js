@@ -59,6 +59,8 @@
  * @property {import('./history.js').QualityGates} [qualityGates] Rules shown on the Overview.
  * @property {boolean | { threshold?: number, maxQuarantined?: number, outputFile?: string }} [quarantine]
  *   Write quarantine.json listing flaky tests. The Overview panel shows regardless.
+ * @property {number} [maxVideoSize] Largest failure recording (bytes) embedded in the report.
+ *   Default 10 MB; a bigger one is named in the report instead of embedded.
  * @property {string} [locale] Locale for the run timestamp. Defaults to the system's.
  * @property {string} [timeZone] Time zone for the run timestamp. Defaults to the system's.
  */

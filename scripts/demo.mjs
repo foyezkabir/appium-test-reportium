@@ -2,7 +2,7 @@
  * Builds demo/report.html from the current code, so every view can be looked
  * at after a change: `npm run demo` (builds first, then opens the report).
  *
- * Uses the repo's fixtures plus six SIMULATED earlier runs, so the history
+ * Uses the repo's fixtures, a stand-in screen recording, and six SIMULATED earlier runs, so the history
  * features (trends, comparison, flaky tests, quality gates, quarantine) have
  * something to show. demo/ is git-ignored and rebuilt from scratch each time.
  */
@@ -17,6 +17,12 @@ rmSync(dir, { recursive: true, force: true });
 mkdirSync(dir, { recursive: true });
 cpSync(`${root}test/fixtures/failures`, `${dir}/failures`, { recursive: true });
 cpSync(`${root}test/fixtures/steps.jsonl`, `${dir}/steps.jsonl`);
+
+// A stand-in screen recording for three failed tests, so the Gallery shows
+// both kinds of card: screenshot + recording, and screenshot only.
+for (const tc of ['TC03_Duplicate_code_is_rejected_with_a_message', 'TC10_locator_not_found', 'TC13_tls']) {
+  cpSync(`${root}test/fixtures/recording.mp4`, `${dir}/failures/2099-01-01T00-00-00-000Z__${tc}.mp4`);
+}
 
 const base = fromJUnit(readFileSync(`${root}test/fixtures/junit.xml`, 'utf8'));
 const options = {

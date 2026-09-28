@@ -5,8 +5,14 @@ version number when that version is published to npm.
 
 ## Unreleased
 
-Will ship as **0.1.1** (already set in `package.json`).
+Will ship as **0.2.0** (already set in `package.json`): screen recordings are a new feature.
 
+- New: screen recordings of failed tests. `recordTest(driver)` before a test
+  and `finishRecording(driver, title, { keep: failed })` after it; the video is
+  kept only for failures and shown beside the screenshot in the test's Device
+  at failure section and in the Gallery. Embedded up to `maxVideoSize` (10 MB
+  by default); a bigger one is named instead. Android needs nothing extra, iOS
+  needs ffmpeg on the Appium host.
 - README: install command at the top, then a numbered "Screenshots" section
   (overview, quality gates and quarantine, test detail, trends, comparison,
   light theme), each under its own heading and linked from GitHub so they

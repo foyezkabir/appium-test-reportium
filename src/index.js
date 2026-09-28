@@ -3,6 +3,7 @@ export { loadHistory, analyzeTests, evaluateGates } from './history.js';
 export { fromJUnit } from './adapters/junit.js';
 export { fromJest } from './adapters/jest.js';
 export { captureFailure } from './capture.js';
+export { recordTest, finishRecording } from './record.js';
 export { recordSession, describeSession, frameworkFromApp, frameworkFromFiles } from './session.js';
 export { StepRecorder } from './step-recorder.js';
 export { slug } from './slug.js';
