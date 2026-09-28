@@ -15,34 +15,45 @@ npm install --save-dev testreportium
 
 Needs Node 18.3 or newer.
 
-![Overview: suite health, quality gates and pass-rate trend](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/overview.png)
+## Screenshots
 
-<details>
-<summary><b>More screenshots</b>: quality gates, test detail, trends, comparison, light theme</summary>
+From this repo's demo data (`npm run demo`) with a simulated run history.
 
-**Quality Gates and Quarantine Registry.** Every point on the charts has a hover tooltip for that run.
+### 1. Overview
+
+Suite health, pass rate and duration vs the last run, and the Quality Gates panel.
+
+![Overview](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/overview.png)
+
+### 2. Quality Gates and Quarantine Registry
+
+Every rule with its limit, and the flakiest tests. Hover any point on the charts for that run.
 
 ![Quality Gates and Quarantine Registry](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/quality-gates-quarantine.png)
 
-**Test detail.** Diagnosis, run history, step timeline, stack trace and the device screenshot at failure.
+### 3. Test detail
+
+Diagnosis, run history, step timeline, stack trace and the device screenshot at failure.
 
 ![Test detail](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/test-detail.png)
 
-**Trends** across runs.
+### 4. Trends
+
+Pass rate, duration, failed and flaky tests across runs, and the run table.
 
 ![Trends](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/trends.png)
 
-**Comparison** with the previous run.
+### 5. Comparison
+
+This run against the previous one: every metric, then new failures, fixed, slower and faster tests.
 
 ![Comparison](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/comparison.png)
 
-**Light theme.** Nine themes in all, including System, which follows the OS setting.
+### 6. Light theme
+
+One of nine themes; System follows your OS setting.
 
 ![Light theme](https://raw.githubusercontent.com/foyezkabir/appium-test-reportium/main/docs/screenshots/light-theme.png)
-
-</details>
-
-The screenshots use this repo's demo data with a simulated run history.
 
 ---
 
@@ -555,9 +566,14 @@ src/session.js                 live session → Environment rows, framework dete
 src/step-recorder.ts           times each step, writes steps.jsonl
 src/slug.js, src/paths.js      the shared naming and directory contracts
 assets/fonts/                  the woff2 sources and their OFL licences
+scripts/demo.mjs               `npm run demo`: builds and opens demo/report.html
+scripts/embed-fonts.mjs        `npm run fonts`: regenerates src/fonts.js
+docs/screenshots/              the README screenshots (not in the npm package)
 docs/reference/                how the Jest adapter is wired in a real project
-docs/ROADMAP-report-tiles.txt  unbuilt: clickable KPI tiles, with 27 test cases
+docs/ROADMAP-report-tiles.txt  the original test plan for the clickable tiles
+test/*.test.mjs                the test suite (node --test), run against dist/
 test/fixtures/                 a REAL captured run, the golden fixture
+CHANGELOG.md                   what changed in each release; "Unreleased" is next
 ```
 
 `test/fixtures/` is a genuine run: `junit.xml`, `steps.jsonl` and failure

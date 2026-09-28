@@ -7,9 +7,10 @@ version number when that version is published to npm.
 
 Will ship as **0.1.1** (already set in `package.json`).
 
-- README: install command at the top, six screenshots (overview, quality gates
-  and quarantine, test detail, trends, comparison, light theme) linked from
-  GitHub so they show on the npm page.
+- README: install command at the top, then a numbered "Screenshots" section
+  (overview, quality gates and quarantine, test detail, trends, comparison,
+  light theme), each under its own heading and linked from GitHub so they
+  show on the npm page. Repository layout lists every folder and script.
 - README and screenshots: device examples are general (Android / iOS, real or
   emulator) instead of naming one test device.
 - Comparison page redesigned: an "Execution telemetry matrix" table (previous
