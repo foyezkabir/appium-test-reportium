@@ -864,10 +864,8 @@ function page(c, options) {
   }
 
   // ── gallery ──
-  // One entry per test with media. The first six (two rows of three) are shown
-  // large; the rest in a compact list. Client script re-deals them after
-  // filtering or sorting.
-  const FEATURED = 6;
+  // One card per test with media, every one the same size. Client script
+  // re-orders them after filtering or sorting.
   const failedMedia = media.filter((t) => t.st === 'failed');
   const gTile = (t) => {
     const status = STATUS_LABEL[t.status] ?? t.status;
@@ -877,18 +875,12 @@ function page(c, options) {
     const whereHtml = `<span class="gsuite" title="${esc(where)}">${icon(I.folder)}<span>${esc(where)}</span></span>`;
     const shotPane = t.png ? `<button type="button" class="gp gp-shot" data-lb="img" data-from="${t.id}" aria-label="View screenshot fullscreen"><img alt="screenshot: ${esc(t.title)}" data-from="${t.id}"><span class="gtag shot">Screenshot</span><span class="gtime">${esc(clockStr(t.duration))}</span></button>` : '';
     const vidPane = t.video ? `<div class="gp gp-vid"><video controls preload="metadata" playsinline data-from="${t.id}"></video><span class="gtag rec"><i></i>Rec</span><span class="gtime" data-vlen="${t.id}"></span></div>` : '';
-    const thumb = t.png ? `<button type="button" class="gthumb" data-lb="img" data-from="${t.id}" aria-label="View screenshot fullscreen"><img alt="" data-from="${t.id}"><span>Img</span></button>`
-      : `<button type="button" class="gthumb vid" data-lb="vid" data-from="${t.id}" aria-label="Watch recording"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5.5 3.5-5.5 3.5z"/></svg><span data-vlen="${t.id}"></span></button>`;
-    const act = t.png ? `<button type="button" class="gact" data-lb="img" data-from="${t.id}">${icon(I.eye)}View fullscreen</button>` : '';
-    const actV = t.video ? `<button type="button" class="gact" data-lb="vid" data-from="${t.id}">${icon(I.play)}Watch replay</button>` : '';
     return `<article class="gi-item ${t.st}" data-idx="${tests.indexOf(t)}" data-kind="${t.kind ?? ''}" data-suite="${esc(t.groupName)}" data-shot="${t.png ? 1 : 0}" data-vid="${t.video ? 1 : 0}">
       <div class="gcard">
         <div class="gmedia${t.png && t.video ? ' both' : ''}">${shotPane}${vidPane}</div>
         <a class="gbody" href="#${t.id}"><span class="ghead"><span class="gdot"></span><b>${esc(t.tc || 'Test')}</b><span class="gstat">${esc(status)}</span></span>
           <span class="gtitle">${esc(t.rest)}</span>${whereHtml}<small>${esc(sub)}</small></a>
       </div>
-      <div class="grow">${thumb}<div class="grtext"><a class="grt" href="#${t.id}">${t.tc ? `${esc(t.tc)}: ` : ''}${esc(t.rest)}</a>${whereHtml}<small>${esc(sub)}</small><span class="gacts">${act}${actV}</span></div>
-        <span class="grmeta">${t.st === 'failed' ? `<em>${esc(t.png ? kb(t.png) : kb(t.video))}</em>` : `<em class="ok">${esc(status)}</em>`}</span></div>
     </article>`;
   };
   const itemsHtml = [...media].sort((a, b) => (a.st === 'failed' ? 0 : 1) - (b.st === 'failed' ? 0 : 1)).map(gTile);
@@ -903,9 +895,7 @@ function page(c, options) {
       <button type="button" data-gf="shot">${icon(I.image)}Screenshots <i>${shots.length}</i></button>
       <button type="button" data-gf="vid"${videos.length ? '' : ' disabled'}>${icon(I.play)}Videos <i>${videos.length}</i></button></div>
     <label class="gsort">${icon(I.list)}<select id="gsort" aria-label="Sort gallery"><option value="fail">Failures first</option><option value="order">By test order</option><option value="suite">By suite</option><option value="kind">By failure kind</option><option value="rec">Recordings first</option></select></label></div>
-  <div class="gfeat" id="gfeat" data-n="${FEATURED}">${itemsHtml.slice(0, FEATURED).join('')}</div>
-  <div class="gmore" id="gmore"${media.length > FEATURED ? '' : ' hidden'}><div class="gmorehead"><h3>${icon(I.image)}Additional run captures &amp; recordings</h3><span id="gmorecount">${media.length - FEATURED} more</span></div>
-    <div class="glist" id="glist">${itemsHtml.slice(FEATURED).join('')}</div></div>
+  <div class="gfeat" id="gfeat">${itemsHtml.join('')}</div>
   <p class="empty" id="gnone" hidden>Nothing to show for this filter.</p>`
     : '<p class="empty">No failure screenshots or recordings in this run.</p>'}
 </section>`;
@@ -1402,9 +1392,7 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gsort option{background:var(--card)}
 /* large cards */
 .gfeat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-.gi-item .grow{display:none}
-.gi-item.featured .gcard,.gfeat .gi-item .gcard{display:flex}
-.glist .gi-item .gcard{display:none}.glist .gi-item .grow{display:flex}
+.gi-item .gcard{display:flex}
 .gcard{flex-direction:column;height:100%;border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
 .gi-item.failed .gcard{border-color:color-mix(in srgb,var(--red) 38%,var(--border))}
 .gi-item.passed .gcard{border-color:color-mix(in srgb,var(--green) 38%,var(--border))}
@@ -1438,34 +1426,10 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gsuite .i{width:13px;height:13px;flex:none}
 .gsuite span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gbody small{font-family:var(--mono);font-size:11px;line-height:1.55;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-/* compact list */
-.gmore{margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
-.gmorehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.gmorehead h3{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600}
-.gmorehead h3 .i{color:var(--blue)}
-.gmorehead span{font-family:var(--mono);font-size:11px;color:var(--mut)}
-.glist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.grow{align-items:center;gap:14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);min-width:0}
-.gi-item.passed .grow{border-color:color-mix(in srgb,var(--green) 40%,var(--border))}
-.gthumb{position:relative;flex:none;width:64px;height:64px;padding:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--bg);cursor:pointer}
-.gthumb img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
-.gthumb span{position:absolute;top:4px;left:4px;font-family:var(--mono);font-size:8.5px;font-weight:700;text-transform:uppercase;padding:0 4px;border-radius:3px;background:color-mix(in srgb,var(--bg) 75%,transparent);color:var(--fg2)}
-.gthumb.vid{display:grid;place-items:center;border-color:color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 8%,var(--bg))}
-.gthumb.vid svg{width:28px;height:28px;fill:none;stroke:var(--green);stroke-width:1.6}.gthumb.vid svg path{fill:var(--green);stroke:none}
-.grtext{display:grid;gap:3px;min-width:0;flex:1}
-.grt{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--red);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gi-item.passed .grt{color:var(--green)}
-.grtext small{font-size:11.5px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gacts{display:flex;gap:12px;flex-wrap:wrap}
-.gact{display:inline-flex;align-items:center;gap:5px;padding:0;border:0;background:none;color:var(--blue);font-size:11.5px;font-weight:500;cursor:pointer}
-.gi-item.passed .gact{color:var(--green)}
-.gact .i{width:13px;height:13px}.gact:hover{text-decoration:underline}
-.grmeta{align-self:flex-start;font-family:var(--mono);font-size:10.5px;color:var(--mut)}
-.grmeta em{font-style:normal}.grmeta .ok{color:var(--green);font-weight:600}
 .lightbox video{max-width:min(92vw,560px);max-height:88vh;border-radius:12px;background:#000}
-@media(max-width:1300px){.gfeat{grid-template-columns:repeat(2,minmax(0,1fr))}.glist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1300px){.gfeat{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:1300px) and (min-width:1101px){.gfeat{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:700px){.gfeat,.glist{grid-template-columns:1fr}}
+@media(max-width:700px){.gfeat{grid-template-columns:1fr}}
 .lightbox{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(0,0,0,.82);padding:24px}
 .lightbox img{max-width:min(92vw,560px);max-height:88vh;border-radius:12px}
 .lightbox .iconbtn{position:absolute;top:16px;right:16px}
@@ -1827,9 +1791,9 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   .sec.raw{display:block}.sec.raw>summary::after{display:none}
   .sec.raw[open] pre,.sec.raw pre{display:block}
   .shot img{max-height:320px}
-  .shot.vid,.gp-vid,.gtools,.gacts{display:none!important}
-  .gfeat{grid-template-columns:repeat(2,minmax(0,1fr))!important}.glist{grid-template-columns:1fr!important}
-  .gcard,.grow{break-inside:avoid}
+  .shot.vid,.gp-vid,.gtools{display:none!important}
+  .gfeat{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .gcard{break-inside:avoid}
   a{color:inherit;text-decoration:none}
   .noprint{display:none!important}
   pre,pre.err{white-space:pre-wrap!important;word-break:break-word;overflow:visible!important}
@@ -1933,8 +1897,8 @@ $$('#v-gallery img[data-from]').forEach(function(img){img.src=srcOf(img.dataset.
 $$('#v-gallery video[data-from]').forEach(function(v){v.src=srcOf(v.dataset.from,'vid');
   v.addEventListener('loadedmetadata',function(){var d=v.duration; if(!isFinite(d))return; var t=Math.floor(d/60)+':'+String(Math.round(d%60)).padStart(2,'0');
     $$('[data-vlen="'+v.dataset.from+'"]').forEach(function(x){x.textContent=t;});},{once:true});});
-// Filter (All / Screenshots / Videos) and sort; the first four visible are shown large.
-var gf='all', gfeat=$('#gfeat'), glist=$('#glist'), gmore=$('#gmore');
+// Filter (All / Screenshots / Videos) and sort; every card stays full size.
+var gf='all', gfeat=$('#gfeat');
 function gDeal(){
   if(!gfeat) return;
   var items=$$('#v-gallery .gi-item'), mode=($('#gsort')||{}).value||'fail';
@@ -1948,9 +1912,8 @@ function gDeal(){
     return a.dataset.idx-b.dataset.idx;});
   var shown=items.filter(function(it){return gf==='all'||(gf==='shot'?it.dataset.shot==='1':it.dataset.vid==='1');});
   items.forEach(function(it){it.hidden=shown.indexOf(it)<0; it.classList.toggle('only-shot',gf==='shot'); it.classList.toggle('only-vid',gf==='vid');});
-  var N=+gfeat.dataset.n||6;
-  shown.forEach(function(it,i){(i<N?gfeat:glist).appendChild(it); it.classList.toggle('featured',i<N);});
-  gmore.hidden=shown.length<=N; $('#gmorecount').textContent=(shown.length-N)+' more'; $('#gnone').hidden=shown.length>0;
+  items.forEach(function(it){gfeat.appendChild(it);});
+  $('#gnone').hidden=shown.length>0;
 }
 $$('[data-gf]').forEach(function(b){b.addEventListener('click',function(){gf=b.dataset.gf; $$('[data-gf]').forEach(function(x){x.classList.toggle('on',x===b)}); gDeal();});});
 if($('#gsort')) $('#gsort').addEventListener('change',gDeal);

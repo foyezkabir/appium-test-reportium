@@ -342,9 +342,7 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gsort option{background:var(--card)}
 /* large cards */
 .gfeat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-.gi-item .grow{display:none}
-.gi-item.featured .gcard,.gfeat .gi-item .gcard{display:flex}
-.glist .gi-item .gcard{display:none}.glist .gi-item .grow{display:flex}
+.gi-item .gcard{display:flex}
 .gcard{flex-direction:column;height:100%;border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
 .gi-item.failed .gcard{border-color:color-mix(in srgb,var(--red) 38%,var(--border))}
 .gi-item.passed .gcard{border-color:color-mix(in srgb,var(--green) 38%,var(--border))}
@@ -378,34 +376,10 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gsuite .i{width:13px;height:13px;flex:none}
 .gsuite span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gbody small{font-family:var(--mono);font-size:11px;line-height:1.55;color:var(--fg2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-/* compact list */
-.gmore{margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
-.gmorehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.gmorehead h3{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600}
-.gmorehead h3 .i{color:var(--blue)}
-.gmorehead span{font-family:var(--mono);font-size:11px;color:var(--mut)}
-.glist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.grow{align-items:center;gap:14px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);min-width:0}
-.gi-item.passed .grow{border-color:color-mix(in srgb,var(--green) 40%,var(--border))}
-.gthumb{position:relative;flex:none;width:64px;height:64px;padding:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--bg);cursor:pointer}
-.gthumb img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
-.gthumb span{position:absolute;top:4px;left:4px;font-family:var(--mono);font-size:8.5px;font-weight:700;text-transform:uppercase;padding:0 4px;border-radius:3px;background:color-mix(in srgb,var(--bg) 75%,transparent);color:var(--fg2)}
-.gthumb.vid{display:grid;place-items:center;border-color:color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 8%,var(--bg))}
-.gthumb.vid svg{width:28px;height:28px;fill:none;stroke:var(--green);stroke-width:1.6}.gthumb.vid svg path{fill:var(--green);stroke:none}
-.grtext{display:grid;gap:3px;min-width:0;flex:1}
-.grt{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--red);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gi-item.passed .grt{color:var(--green)}
-.grtext small{font-size:11.5px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gacts{display:flex;gap:12px;flex-wrap:wrap}
-.gact{display:inline-flex;align-items:center;gap:5px;padding:0;border:0;background:none;color:var(--blue);font-size:11.5px;font-weight:500;cursor:pointer}
-.gi-item.passed .gact{color:var(--green)}
-.gact .i{width:13px;height:13px}.gact:hover{text-decoration:underline}
-.grmeta{align-self:flex-start;font-family:var(--mono);font-size:10.5px;color:var(--mut)}
-.grmeta em{font-style:normal}.grmeta .ok{color:var(--green);font-weight:600}
 .lightbox video{max-width:min(92vw,560px);max-height:88vh;border-radius:12px;background:#000}
-@media(max-width:1300px){.gfeat{grid-template-columns:repeat(2,minmax(0,1fr))}.glist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1300px){.gfeat{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:1300px) and (min-width:1101px){.gfeat{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:700px){.gfeat,.glist{grid-template-columns:1fr}}
+@media(max-width:700px){.gfeat{grid-template-columns:1fr}}
 .lightbox{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(0,0,0,.82);padding:24px}
 .lightbox img{max-width:min(92vw,560px);max-height:88vh;border-radius:12px}
 .lightbox .iconbtn{position:absolute;top:16px;right:16px}
@@ -767,9 +741,9 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   .sec.raw{display:block}.sec.raw>summary::after{display:none}
   .sec.raw[open] pre,.sec.raw pre{display:block}
   .shot img{max-height:320px}
-  .shot.vid,.gp-vid,.gtools,.gacts{display:none!important}
-  .gfeat{grid-template-columns:repeat(2,minmax(0,1fr))!important}.glist{grid-template-columns:1fr!important}
-  .gcard,.grow{break-inside:avoid}
+  .shot.vid,.gp-vid,.gtools{display:none!important}
+  .gfeat{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .gcard{break-inside:avoid}
   a{color:inherit;text-decoration:none}
   .noprint{display:none!important}
   pre,pre.err{white-space:pre-wrap!important;word-break:break-word;overflow:visible!important}
@@ -1239,65 +1213,49 @@ Received: &quot;record saved&quot;
       <button type="button" data-gf="shot"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Screenshots <i>7</i></button>
       <button type="button" data-gf="vid" disabled><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>Videos <i>0</i></button></div>
     <label class="gsort"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><select id="gsort" aria-label="Sort gallery"><option value="fail">Failures first</option><option value="order">By test order</option><option value="suite">By suite</option><option value="kind">By failure kind</option><option value="rec">Recordings first</option></select></label></div>
-  <div class="gfeat" id="gfeat" data-n="6"><article class="gi-item failed" data-idx="1" data-kind="app" data-suite="Orders: creation and validation" data-shot="1" data-vid="0">
+  <div class="gfeat" id="gfeat"><article class="gi-item failed" data-idx="1" data-kind="app" data-suite="Orders: creation and validation" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t2" aria-label="View screenshot fullscreen"><img alt="screenshot: TC03: Duplicate code is rejected with a message" data-from="t2"><span class="gtag shot">Screenshot</span><span class="gtime">00:01.705</span></button></div>
         <a class="gbody" href="#t2"><span class="ghead"><span class="gdot"></span><b>TC03</b><span class="gstat">Failed</span></span>
           <span class="gtitle">Duplicate code is rejected with a message</span><span class="gsuite" title="Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Orders: creation and validation</span></span><small>The app never showed the text “Code already exists” within the wait.</small></a>
       </div>
-      <div class="grow"><button type="button" class="gthumb" data-lb="img" data-from="t2" aria-label="View screenshot fullscreen"><img alt="" data-from="t2"><span>Img</span></button><div class="grtext"><a class="grt" href="#t2">TC03: Duplicate code is rejected with a message</a><span class="gsuite" title="Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Orders: creation and validation</span></span><small>The app never showed the text “Code already exists” within the wait.</small><span class="gacts"><button type="button" class="gact" data-lb="img" data-from="t2"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View fullscreen</button></span></div>
-        <span class="grmeta"><em>1 KB</em></span></div>
     </article><article class="gi-item failed" data-idx="3" data-kind="test" data-suite="Explainer coverage" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t4" aria-label="View screenshot fullscreen"><img alt="screenshot: TC10: locator not found" data-from="t4"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t4"><span class="ghead"><span class="gdot"></span><b>TC10</b><span class="gstat">Failed</span></span>
           <span class="gtitle">locator not found</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The locator matched nothing on the current screen.</small></a>
       </div>
-      <div class="grow"><button type="button" class="gthumb" data-lb="img" data-from="t4" aria-label="View screenshot fullscreen"><img alt="" data-from="t4"><span>Img</span></button><div class="grtext"><a class="grt" href="#t4">TC10: locator not found</a><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The locator matched nothing on the current screen.</small><span class="gacts"><button type="button" class="gact" data-lb="img" data-from="t4"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View fullscreen</button></span></div>
-        <span class="grmeta"><em>1 KB</em></span></div>
     </article><article class="gi-item failed" data-idx="4" data-kind="test" data-suite="Explainer coverage" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t5" aria-label="View screenshot fullscreen"><img alt="screenshot: TC11: stale element" data-from="t5"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t5"><span class="ghead"><span class="gdot"></span><b>TC11</b><span class="gstat">Failed</span></span>
           <span class="gtitle">stale element</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The element handle went stale: the view re-rendered between finding it and using it.</small></a>
       </div>
-      <div class="grow"><button type="button" class="gthumb" data-lb="img" data-from="t5" aria-label="View screenshot fullscreen"><img alt="" data-from="t5"><span>Img</span></button><div class="grtext"><a class="grt" href="#t5">TC11: stale element</a><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The element handle went stale: the view re-rendered between finding it and using it.</small><span class="gacts"><button type="button" class="gact" data-lb="img" data-from="t5"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View fullscreen</button></span></div>
-        <span class="grmeta"><em>1 KB</em></span></div>
     </article><article class="gi-item failed" data-idx="5" data-kind="env" data-suite="Explainer coverage" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t6" aria-label="View screenshot fullscreen"><img alt="screenshot: TC12: session lost" data-from="t6"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t6"><span class="ghead"><span class="gdot"></span><b>TC12</b><span class="gstat">Failed</span></span>
           <span class="gtitle">session lost</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>Appium could not take control of the device: another automation client already holds it.</small></a>
       </div>
-      <div class="grow"><button type="button" class="gthumb" data-lb="img" data-from="t6" aria-label="View screenshot fullscreen"><img alt="" data-from="t6"><span>Img</span></button><div class="grtext"><a class="grt" href="#t6">TC12: session lost</a><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>Appium could not take control of the device: another automation client already holds it.</small><span class="gacts"><button type="button" class="gact" data-lb="img" data-from="t6"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View fullscreen</button></span></div>
-        <span class="grmeta"><em>1 KB</em></span></div>
     </article><article class="gi-item failed" data-idx="6" data-kind="env" data-suite="Explainer coverage" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t7" aria-label="View screenshot fullscreen"><img alt="screenshot: TC13: tls" data-from="t7"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t7"><span class="ghead"><span class="gdot"></span><b>TC13</b><span class="gstat">Failed</span></span>
           <span class="gtitle">tls</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The app could not reach its API because the TLS certificate was rejected.</small></a>
       </div>
-      <div class="grow"><button type="button" class="gthumb" data-lb="img" data-from="t7" aria-label="View screenshot fullscreen"><img alt="" data-from="t7"><span>Img</span></button><div class="grtext"><a class="grt" href="#t7">TC13: tls</a><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The app could not reach its API because the TLS certificate was rejected.</small><span class="gacts"><button type="button" class="gact" data-lb="img" data-from="t7"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View fullscreen</button></span></div>
-        <span class="grmeta"><em>1 KB</em></span></div>
     </article><article class="gi-item failed" data-idx="7" data-kind="app" data-suite="Explainer coverage" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t8" aria-label="View screenshot fullscreen"><img alt="screenshot: TC14: plain assertion" data-from="t8"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.004</span></button></div>
         <a class="gbody" href="#t8"><span class="ghead"><span class="gdot"></span><b>TC14</b><span class="gstat">Failed</span></span>
           <span class="gtitle">plain assertion</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The app produced &quot;record saved&quot; where the test required &quot;Code already exists&quot;.</small></a>
       </div>
-      <div class="grow"><button type="button" class="gthumb" data-lb="img" data-from="t8" aria-label="View screenshot fullscreen"><img alt="" data-from="t8"><span>Img</span></button><div class="grtext"><a class="grt" href="#t8">TC14: plain assertion</a><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>The app produced &quot;record saved&quot; where the test required &quot;Code already exists&quot;.</small><span class="gacts"><button type="button" class="gact" data-lb="img" data-from="t8"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View fullscreen</button></span></div>
-        <span class="grmeta"><em>1 KB</em></span></div>
-    </article></div>
-  <div class="gmore" id="gmore"><div class="gmorehead"><h3><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Additional run captures &amp; recordings</h3><span id="gmorecount">1 more</span></div>
-    <div class="glist" id="glist"><article class="gi-item failed" data-idx="8" data-kind="unknown" data-suite="Explainer coverage" data-shot="1" data-vid="0">
+    </article><article class="gi-item failed" data-idx="8" data-kind="unknown" data-suite="Explainer coverage" data-shot="1" data-vid="0">
       <div class="gcard">
         <div class="gmedia"><button type="button" class="gp gp-shot" data-lb="img" data-from="t9" aria-label="View screenshot fullscreen"><img alt="screenshot: TC15: unmatched" data-from="t9"><span class="gtag shot">Screenshot</span><span class="gtime">00:00.001</span></button></div>
         <a class="gbody" href="#t9"><span class="ghead"><span class="gdot"></span><b>TC15</b><span class="gstat">Failed</span></span>
           <span class="gtitle">unmatched</span><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>Error: Something entirely unanticipated happened in the bridge</small></a>
       </div>
-      <div class="grow"><button type="button" class="gthumb" data-lb="img" data-from="t9" aria-label="View screenshot fullscreen"><img alt="" data-from="t9"><span>Img</span></button><div class="grtext"><a class="grt" href="#t9">TC15: unmatched</a><span class="gsuite" title="Explainer coverage · Orders: creation and validation"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Explainer coverage · Orders: creation and validation</span></span><small>Error: Something entirely unanticipated happened in the bridge</small><span class="gacts"><button type="button" class="gact" data-lb="img" data-from="t9"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View fullscreen</button></span></div>
-        <span class="grmeta"><em>1 KB</em></span></div>
-    </article></div></div>
+    </article></div>
   <p class="empty" id="gnone" hidden>Nothing to show for this filter.</p>
 </section>
 </main></div>
@@ -1385,8 +1343,8 @@ $$('#v-gallery img[data-from]').forEach(function(img){img.src=srcOf(img.dataset.
 $$('#v-gallery video[data-from]').forEach(function(v){v.src=srcOf(v.dataset.from,'vid');
   v.addEventListener('loadedmetadata',function(){var d=v.duration; if(!isFinite(d))return; var t=Math.floor(d/60)+':'+String(Math.round(d%60)).padStart(2,'0');
     $$('[data-vlen="'+v.dataset.from+'"]').forEach(function(x){x.textContent=t;});},{once:true});});
-// Filter (All / Screenshots / Videos) and sort; the first four visible are shown large.
-var gf='all', gfeat=$('#gfeat'), glist=$('#glist'), gmore=$('#gmore');
+// Filter (All / Screenshots / Videos) and sort; every card stays full size.
+var gf='all', gfeat=$('#gfeat');
 function gDeal(){
   if(!gfeat) return;
   var items=$$('#v-gallery .gi-item'), mode=($('#gsort')||{}).value||'fail';
@@ -1400,9 +1358,8 @@ function gDeal(){
     return a.dataset.idx-b.dataset.idx;});
   var shown=items.filter(function(it){return gf==='all'||(gf==='shot'?it.dataset.shot==='1':it.dataset.vid==='1');});
   items.forEach(function(it){it.hidden=shown.indexOf(it)<0; it.classList.toggle('only-shot',gf==='shot'); it.classList.toggle('only-vid',gf==='vid');});
-  var N=+gfeat.dataset.n||6;
-  shown.forEach(function(it,i){(i<N?gfeat:glist).appendChild(it); it.classList.toggle('featured',i<N);});
-  gmore.hidden=shown.length<=N; $('#gmorecount').textContent=(shown.length-N)+' more'; $('#gnone').hidden=shown.length>0;
+  items.forEach(function(it){gfeat.appendChild(it);});
+  $('#gnone').hidden=shown.length>0;
 }
 $$('[data-gf]').forEach(function(b){b.addEventListener('click',function(){gf=b.dataset.gf; $$('[data-gf]').forEach(function(x){x.classList.toggle('on',x===b)}); gDeal();});});
 if($('#gsort')) $('#gsort').addEventListener('change',gDeal);

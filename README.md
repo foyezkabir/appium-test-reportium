@@ -501,8 +501,7 @@ tests with any media).
 | **All / Screenshots / Videos** | show everything, only screenshots, or only recordings |
 | **Sort** | **Failures first** (default), **By test order**, **By suite**, **By failure kind**, or **Recordings first** |
 | Suite line | every card names its suite and spec file (TC numbers repeat across specs), for example `Login · specs/login.e2e.ts` |
-| Large cards | the first six, three per row and all the same size: screenshot and recording side by side (REC with its length), or the screenshot alone, then the TC, status, title and diagnosis. Click the screenshot for fullscreen, the text to open the test |
-| **Additional run captures & recordings** | the rest, as compact rows: **View fullscreen** for a screenshot, **Watch replay** for a recording |
+| Cards | one for every capture, three per row, all the same size: screenshot and recording side by side (REC with its length), or the screenshot alone, then the TC, status, suite and spec, title and diagnosis. Click the screenshot for fullscreen, play the recording in place, click the text to open the test |
 
 A passed test appears only if you kept its recording
 (`finishRecording(..., { keep: true })`), and only a recording made during

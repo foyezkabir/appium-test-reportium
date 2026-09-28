@@ -65,7 +65,7 @@ test('report embeds the recording beside the screenshot, once, and the Gallery p
   assert.match(gallery, /<div class="gmedia both"><button type="button" class="gp gp-shot"[\s\S]*?<span class="gtag shot">Screenshot<\/span>[\s\S]*?<video controls preload="metadata" playsinline data-from="t1"><\/video><span class="gtag rec"><i><\/i>Rec<\/span>/);
   assert.match(gallery, /1 screenshot<\/span>[\s\S]*?1 recording<\/span>[\s\S]*?1 failure capture<\/span>/);
   assert.match(gallery, /data-gf="all">[\s\S]*?All <i>2<\/i>[\s\S]*?Screenshots <i>1<\/i>[\s\S]*?Videos <i>1<\/i>/);
-  assert.match(gallery, /data-lb="img" data-from="t1">[\s\S]*?View fullscreen[\s\S]*?data-lb="vid" data-from="t1">[\s\S]*?Watch replay/);
+  assert.match(gallery, /<button type="button" class="gp gp-shot" data-lb="img" data-from="t1"/, 'the screenshot opens fullscreen');
   assert.match(html, /"recording":true/);
 });
 
@@ -110,4 +110,18 @@ test('gallery cards name the suite and spec, since TC numbers repeat across spec
   assert.match(gallery, /<b>TC01<\/b>[\s\S]*?<span class="gsuite" title="Login · specs\/login\.e2e\.ts">/);
   assert.match(gallery, /<b>TC01<\/b>[\s\S]*?<span class="gsuite" title="Cart · specs\/cart\.e2e\.ts">/);
   assert.match(gallery, /<option value="suite">By suite<\/option>/);
+});
+
+test('every capture gets a full card: 10 failures, 10 cards, no second section', () => {
+  const dir = tmp();
+  mkdirSync(join(dir, 'failures'), { recursive: true });
+  const tests = Array.from({ length: 10 }, (_, i) => {
+    const n = String(i + 1).padStart(2, '0');
+    writeFileSync(join(dir, 'failures', `2026-01-01T00-00-00-000Z__TC${n}_case.png`), Buffer.from('png'));
+    return { title: `TC${n}: case`, fullName: `Suite TC${n}: case`, group: ['Suite'], status: 'failed', duration: 5, errors: ['Error: x'] };
+  });
+  const html = renderReport({ startTime: 1, duration: 1, suites: [{ file: 's.e2e', tests }] }, { outputDirectory: dir, historyFile: false });
+  const gallery = html.split('id="v-gallery"')[1].split('id="lb"')[0];
+  assert.equal(gallery.match(/<div class="gcard">/g)?.length, 10);
+  assert.doesNotMatch(gallery, /Additional run captures|class="glist"|class="grow"/);
 });
