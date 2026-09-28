@@ -1373,7 +1373,9 @@ pre .hl{color:var(--red);font-weight:600}pre .dim{color:var(--mut)}pre .own{colo
 .shot img{max-width:280px;max-height:520px;border-radius:10px;border:1px solid var(--border);display:block;cursor:zoom-in}
 .shot figcaption{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px}
 /* gallery */
-/* gallery */
+/* A calmer red for the Gallery: many red cards side by side glare at full
+   strength, so it uses the theme's deeper red blended toward grey. */
+#v-gallery{--red:color-mix(in srgb,var(--red-d) 68%,var(--fg2))}
 .ghead2{margin:0 -24px 18px;padding:20px 24px 16px;border-bottom:1px solid var(--border);background:var(--bg2)}
 .gtitlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gtitlerow h2{font-size:22px;font-weight:600;margin-right:4px}
@@ -1396,7 +1398,7 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .gfeat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .gi-item .gcard{display:flex}
 .gcard{flex-direction:column;height:100%;border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
-.gi-item.failed .gcard{border-color:color-mix(in srgb,var(--red) 38%,var(--border))}
+.gi-item.failed .gcard{border-color:color-mix(in srgb,var(--red) 24%,var(--border))}
 .gi-item.passed .gcard{border-color:color-mix(in srgb,var(--green) 38%,var(--border))}
 .gcard:hover{border-color:var(--glow)}
 /* Every card is the same size: the media area has one fixed height, split into two
