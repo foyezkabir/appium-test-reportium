@@ -25,7 +25,7 @@ const OPTS = {
   pageTitle: 'Orders · Appium Automation Report',
   projectName: 'Orders App',
   historyFile: false,
-  context: { Platform: 'android', Framework: 'rn', Device: 'Pixel 7 Pro (Android 14)', App: 'com.example.orders' },
+  context: { Platform: 'Android / iOS', Framework: 'Auto-detected', Device: 'Real or emulator', App: 'com.example.app' },
   locale: 'en-US',
   timeZone: 'UTC',
 };

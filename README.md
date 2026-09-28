@@ -219,16 +219,16 @@ written to `quarantine.json`, so your runner can skip those tests:
 
 The sidebar's Environment block describes the device and app the run
 **actually** used, read from the live Appium session by
-`recordSession(driver)`. Nothing is hardcoded. Switch from a Pixel to an
-iPhone and the report follows.
+`recordSession(driver)`. Nothing is hardcoded: run on any Android or iOS
+device, real or emulated, and the report shows that device.
 
 | Row | Where it comes from |
 |---|---|
-| Platform | `platformName` + `platformVersion` → `Android 14`, `iOS 17.4` |
-| Device | `deviceManufacturer` + `deviceModel` (Android), else `deviceName` → `Google Pixel 7 Pro` |
+| Platform | `platformName` + `platformVersion`: the OS and its version |
+| Device | `deviceManufacturer` + `deviceModel` (Android), else `deviceName`: the maker and model |
 | Framework | the app build's own files (below), else the driver (`automationName: Flutter`), else view-hierarchy markers; `+ WebView` when a WEBVIEW context exists |
 | App | `appPackage` / `bundleId`, else the `app` file name |
-| Automation | `automationName` → `UiAutomator2`, `XCUITest` |
+| Automation | `automationName`: the Appium driver in use |
 | UDID | `udid` |
 | Appium | the server's version from `/status` |
 
