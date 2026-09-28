@@ -36,7 +36,7 @@
     "./slug": "./dist/slug.js"
   },
   "bin": {
-    "testreportium": "./dist/cli.js"
+    "testreportium": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -44,6 +44,10 @@
     "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "engines": {
     "node": ">=18.3"
   },
