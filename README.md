@@ -9,8 +9,11 @@ Works with any test runner. WebdriverIO, Mocha, Jest, pytest and most others
 can write JUnit XML, and testreportium reads that. Jest also has a native
 reporter adapter.
 
-> **Status: pre-release.** `package.json` is still `"private": true`. See
-> [Publishing](#publishing).
+```sh
+npm install --save-dev testreportium
+```
+
+Needs Node 18.3 or newer.
 
 ---
 
@@ -376,17 +379,18 @@ test/fixtures/                 a REAL captured run, the golden fixture
 artefacts. `expected-report.html` is the golden output rendered from them;
 after an intended visual change, regenerate it with `UPDATE_GOLDEN=1 npm test`.
 
-## Publishing
+## Releasing
 
-Done: the three hardcoded couplings (output directory, `APPIUM_*` context,
-`StepRecorder` path) are options, `dist/` ships compiled JS + `.d.ts`, and the
-tests cover the golden file, zero network requests and self-containment.
+1. Bump `version` in `package.json`.
+2. `npm publish`. `prepublishOnly` builds `dist/` and runs every test first,
+   so a failing build or test stops the release.
 
-Left:
+Only `dist/`, `README.md`, `LICENSE` and the font licences are published
+(`npm pack --dry-run` lists them).
 
-- Flip `"private": true` off and `npm publish`.
-- Optional: native Mocha / WebdriverIO reporter adapters, so no JUnit step is
-  needed.
+## Roadmap
+
+- Native Mocha and WebdriverIO reporter adapters, so no JUnit step is needed.
 
 ---
 
