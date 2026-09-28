@@ -456,7 +456,8 @@ a.dline:hover{color:var(--tone)}
 /* quality gates + quarantine registry */
 .qpanel{margin-top:18px;border:1px solid color-mix(in srgb,var(--tone) 30%,var(--border));border-radius:14px;background:var(--card);box-shadow:0 8px 24px -16px rgba(0,0,0,.5)}
 .qhead{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.qicon{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid color-mix(in srgb,var(--tone) 45%,transparent);background:color-mix(in srgb,var(--tone) 12%,transparent);color:var(--tone);flex:none}
+.qicon{display:grid;place-items:center;width:46px;height:46px;flex:none;--t:var(--tone)}
+.qpanel.yellow .qicon{--t:var(--yellow)}
 .qtitle{display:grid;min-width:0}.qtitle b{font-size:16px;font-weight:600}.qtitle small{font-size:12px;color:var(--fg2)}
 .qright{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .qrun{font-family:var(--mono);font-size:12px;color:var(--fg2)}
@@ -472,8 +473,17 @@ background:color-mix(in srgb,var(--tone) 14%,transparent);color:var(--tone);font
 .qlh small{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
 .qlh span{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tone)}
 .rule,.qitem{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
-.rmark{display:grid;place-items:center;width:26px;height:26px;border-radius:7px;font-size:13px;font-weight:700;flex:none;
-color:var(--rt);border:1px solid color-mix(in srgb,var(--rt) 45%,transparent);background:color-mix(in srgb,var(--rt) 14%,transparent)}
+.rmark{display:grid;place-items:center;width:34px;height:34px;flex:none;--t:var(--rt)}
+/* the icon set: body tinted from --t, strokes in --t */
+.gicon{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 2px 4px color-mix(in srgb,var(--t) 26%,transparent))}
+.gicon .ic-body{fill:color-mix(in srgb,var(--t) 13%,var(--card));stroke:var(--t);stroke-width:2;stroke-linejoin:round}
+.gicon .ic-inner{fill:none;stroke:var(--t);stroke-opacity:.2;stroke-width:1.5}
+.gicon .ic-line{fill:none;stroke:var(--t);stroke-width:2.5;stroke-linecap:round}
+.gicon .ic-mark{fill:none;stroke:var(--t);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.gicon .ic-dot{fill:var(--t)}
+.gicon .ic-shackle{fill:none;stroke:color-mix(in srgb,var(--t) 72%,#7a3b00);stroke-width:2.5;stroke-linecap:round}
+.gicon .ic-lock{fill:var(--t);stroke:color-mix(in srgb,var(--t) 72%,#7a3b00);stroke-width:1.5}
+.gicon .ic-key{fill:var(--card)}.gicon .ic-keyline{fill:none;stroke:var(--card);stroke-width:1.5;stroke-linecap:round}
 .rule.ok{--rt:var(--green)}.rule.no{--rt:var(--red)}.rule.skip{--rt:var(--mut)}
 .rtext,.qmain{display:grid;min-width:0;flex:1}
 .rtext b,.qmain b{font-size:13.5px;font-weight:600;line-height:1.4}

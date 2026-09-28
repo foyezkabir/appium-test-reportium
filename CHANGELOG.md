@@ -50,6 +50,9 @@ Will ship as **0.1.1** (already set in `package.json`).
 - Fix: the ☰ menu button did nothing on wide screens. It now collapses and
   expands the sidebar (remembered per browser); on narrow screens it still
   slides the sidebar in over the page.
+- New icons: a gated shield for Quality Gates (red when a gate fails, green
+  when all pass), a hexagonal padlock for the Quarantine Registry, and check
+  and cross tiles for each gate rule. They take their colours from the theme.
 - README: a full "Reading the report" guide covering the top bar, sidebar,
   every filter (Attention, Failure kind with each matching rule, Suite
   groups, Search) and every view (Overview, Tests, Trends, Comparison,

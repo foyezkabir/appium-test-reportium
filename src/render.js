@@ -86,6 +86,25 @@ const I = {
 const icon = (d, cls = '') =>
   `<svg class="i ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 
+/**
+ * Status icons for the Quality Gates and Quarantine panels, after the
+ * supplied designs. Their colour comes from --t, so they follow the theme
+ * (and the gate shield turns green when the gates pass) instead of fixed hex.
+ */
+const GI = {
+  // Shield with a security gate: Quality Gates.
+  shield: '<svg class="gicon" viewBox="10 3 44 54" aria-hidden="true"><path class="ic-body" d="M32 6L48 13.5V28C48 40.5 41.2 49.8 32 54C22.8 49.8 16 40.5 16 28V13.5L32 6Z"/>'
+    + '<path class="ic-line" d="M26 39V24C26 20.69 28.69 18 32 18C35.31 18 38 20.69 38 24V39"/><path class="ic-line" d="M23 30H41"/><circle class="ic-dot" cx="32" cy="24" r="2.5"/></svg>',
+  // Hexagonal isolation badge with a padlock: Quarantine Registry.
+  vault: '<svg class="gicon" viewBox="12 5 40 45" aria-hidden="true"><path class="ic-body" d="M32 8L48 17.2V37.8L32 47L16 37.8V17.2L32 8Z"/>'
+    + '<path class="ic-shackle" d="M26 27V21C26 17.69 28.69 15 32 15C35.31 15 38 17.69 38 21V27"/><rect class="ic-lock" x="23" y="27" width="18" height="14" rx="3.5"/>'
+    + '<circle class="ic-key" cx="32" cy="33" r="1.8"/><path class="ic-keyline" d="M32 34.5V37"/></svg>',
+  // Squircle tiles for one rule's result.
+  ok: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-mark" d="M22 32.5L28.5 39L42 24.5"/></svg>',
+  no: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-mark" d="M24 24L40 40M40 24L24 40"/></svg>',
+  skip: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-mark" d="M24 32H40"/></svg>',
+};
+
 /** Filled glyph: at 13px the stroked outline reads as a padlock. */
 const ANDROID = '<svg class="i os" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.52 15.34a1 1 0 110-2 1 1 0 010 2m-11.05 0a1 1 0 110-2 1 1 0 010 2m11.4-6.02l2-3.46a.42.42 0 00-.72-.42l-2.02 3.5A12.3 12.3 0 0012 8.08c-1.85 0-3.59.33-5.14.87l-2.02-3.5a.42.42 0 00-.72.41l2 3.46A11.9 11.9 0 000 18.76h24a11.9 11.9 0 00-6.12-9.44"/></svg>';
 
@@ -475,7 +494,7 @@ function page(c, options) {
     'Min stability grade': () => `Target: suite grade ${qg.minStabilityGrade} or better`,
     'No new failures': () => 'Nothing that passed last run may fail now',
   };
-  const panelHead = (ic, title, sub, right) => `<header class="qhead"><span class="qicon">${icon(ic)}</span>
+  const panelHead = (svg, title, sub, right) => `<header class="qhead"><span class="qicon">${svg}</span>
       <div class="qtitle"><b>${title}</b><small>${esc(sub)}</small></div><div class="qright">${right}</div></header>`;
 
   let gatesHtml = '';
@@ -487,14 +506,14 @@ function page(c, options) {
       const m = String(x.actual).match(/^(\d+%?|[A-F])(.*)$/);
       const big = m ? m[1] : x.actual;
       const rest = m ? m[2] : '';
-      return `<div class="rule ${st}"><span class="rmark">${x.skipped ? '–' : x.passed ? '✓' : '✕'}</span>
+      return `<div class="rule ${st}"><span class="rmark" role="img" aria-label="${x.skipped ? 'Not applicable' : x.passed ? 'Passed' : 'Failed'}">${GI[st]}</span>
         <div class="rtext"><b>${esc(x.label)}</b><small>${esc(RULE_DESC[x.label]?.() ?? '')}</small></div>
         <div class="rval"><span><b>${esc(big)}</b>${esc(rest)}${x.limit ? ` <i>${esc(x.limit)}</i>` : ''}</span><em>${x.skipped ? 'N/A' : x.passed ? 'Passed' : 'Failed'}</em></div></div>`;
     };
     const rates = facts.map((f) => f.rate);
     const d = nRuns > 1 ? rates[nRuns - 1] - rates[nRuns - 2] : 0;
     gatesHtml = `<article class="qpanel ${c.gates.passed ? 'green' : 'red'}">
-    ${panelHead(I.shield, 'Quality Gates', 'Rules this run is checked against', `<span class="qrun">Run #${nRuns}</span><span class="qbadge"><i></i>Gate ${c.gates.passed ? 'passed' : 'failed'}</span>`)}
+    ${panelHead(GI.shield, 'Quality Gates', 'Rules this run is checked against', `<span class="qrun">Run #${nRuns}</span><span class="qbadge"><i></i>Gate ${c.gates.passed ? 'passed' : 'failed'}</span>`)}
     <div class="qbody">
       <section class="qlist"><div class="qlh"><small>Gate evaluation policy</small><span>${bad ? `${bad} / ${rules.length} rules violated` : `${rules.length} / ${rules.length} rules met`}</span></div>
         ${rules.map(card).join('')}
@@ -520,7 +539,7 @@ function page(c, options) {
         <div class="qscore"><b>${q.score.toFixed(2)}</b><em>${enabled ? 'Quarantined' : 'Candidate'}</em></div></a>`;
     };
     quarantineHtml = `<article class="qpanel yellow">
-    ${panelHead(I.lock, 'Quarantine Registry', enabled ? 'Flaky tests set aside, written to quarantine.json' : 'Tests flaky enough to set aside', `<span class="qrun">Policy threshold ≥ ${c.qThreshold.toFixed(2)} flakiness</span><span class="qbadge"><i></i>${c.quarantined.length} test${c.quarantined.length === 1 ? '' : 's'} ${enabled ? 'quarantined' : 'flagged'}</span>`)}
+    ${panelHead(GI.vault, 'Quarantine Registry', enabled ? 'Flaky tests set aside, written to quarantine.json' : 'Tests flaky enough to set aside', `<span class="qrun">Policy threshold ≥ ${c.qThreshold.toFixed(2)} flakiness</span><span class="qbadge"><i></i>${c.quarantined.length} test${c.quarantined.length === 1 ? '' : 's'} ${enabled ? 'quarantined' : 'flagged'}</span>`)}
     <div class="qbody">
       <section class="qlist"><div class="qlh"><small>Isolated test candidates</small><span>Score · Status</span></div>
         ${c.quarantined.map(qcard).join('')}
@@ -1404,7 +1423,8 @@ a.dline:hover{color:var(--tone)}
 /* quality gates + quarantine registry */
 .qpanel{margin-top:18px;border:1px solid color-mix(in srgb,var(--tone) 30%,var(--border));border-radius:14px;background:var(--card);box-shadow:0 8px 24px -16px rgba(0,0,0,.5)}
 .qhead{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.qicon{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid color-mix(in srgb,var(--tone) 45%,transparent);background:color-mix(in srgb,var(--tone) 12%,transparent);color:var(--tone);flex:none}
+.qicon{display:grid;place-items:center;width:46px;height:46px;flex:none;--t:var(--tone)}
+.qpanel.yellow .qicon{--t:var(--yellow)}
 .qtitle{display:grid;min-width:0}.qtitle b{font-size:16px;font-weight:600}.qtitle small{font-size:12px;color:var(--fg2)}
 .qright{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .qrun{font-family:var(--mono);font-size:12px;color:var(--fg2)}
@@ -1420,8 +1440,17 @@ background:color-mix(in srgb,var(--tone) 14%,transparent);color:var(--tone);font
 .qlh small{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
 .qlh span{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tone)}
 .rule,.qitem{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
-.rmark{display:grid;place-items:center;width:26px;height:26px;border-radius:7px;font-size:13px;font-weight:700;flex:none;
-color:var(--rt);border:1px solid color-mix(in srgb,var(--rt) 45%,transparent);background:color-mix(in srgb,var(--rt) 14%,transparent)}
+.rmark{display:grid;place-items:center;width:34px;height:34px;flex:none;--t:var(--rt)}
+/* the icon set: body tinted from --t, strokes in --t */
+.gicon{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 2px 4px color-mix(in srgb,var(--t) 26%,transparent))}
+.gicon .ic-body{fill:color-mix(in srgb,var(--t) 13%,var(--card));stroke:var(--t);stroke-width:2;stroke-linejoin:round}
+.gicon .ic-inner{fill:none;stroke:var(--t);stroke-opacity:.2;stroke-width:1.5}
+.gicon .ic-line{fill:none;stroke:var(--t);stroke-width:2.5;stroke-linecap:round}
+.gicon .ic-mark{fill:none;stroke:var(--t);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.gicon .ic-dot{fill:var(--t)}
+.gicon .ic-shackle{fill:none;stroke:color-mix(in srgb,var(--t) 72%,#7a3b00);stroke-width:2.5;stroke-linecap:round}
+.gicon .ic-lock{fill:var(--t);stroke:color-mix(in srgb,var(--t) 72%,#7a3b00);stroke-width:1.5}
+.gicon .ic-key{fill:var(--card)}.gicon .ic-keyline{fill:none;stroke:var(--card);stroke-width:1.5;stroke-linecap:round}
 .rule.ok{--rt:var(--green)}.rule.no{--rt:var(--red)}.rule.skip{--rt:var(--mut)}
 .rtext,.qmain{display:grid;min-width:0;flex:1}
 .rtext b,.qmain b{font-size:13.5px;font-weight:600;line-height:1.4}
