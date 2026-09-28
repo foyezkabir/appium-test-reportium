@@ -276,69 +276,224 @@ viewers, which defeats the entire point of attaching it to a ticket. So all
 CSS is inline, every icon is an inline SVG, and the fonts are embedded as
 base64. The test suite asserts both properties.
 
-## What the report contains
+## Reading the report
 
-One HTML file laid out like an app.
+One HTML file laid out like an app: a top bar, a sidebar, and five views. This
+section explains every part, and exactly when a test shows up in each one.
 
-**Top bar**: the project name, a breadcrumb (`Tests › Overview`, or
-`Tests › <test>`), ⌘K search, **Export** (results as JSON or CSV, or print /
-save as PDF), a theme picker and the run time.
+Terms used below:
 
-**Sidebar**: the pass-rate ring, Passed / Failed / Flaky tiles (click to
-filter), navigation (Overview, Tests, Trends, Comparison, Gallery), filters
-and the Environment block. Filters narrow the **Tests** list: Attention (new
-failure, regression, flaky, fixed), Status, Failure kind and Suite group
-combine, and "clear all" resets them.
+- **Executed** tests are passed plus failed. Skipped tests never count
+  towards a pass rate.
+- **Earlier runs** come from the [run history](#run-history). On a first run
+  there are none, so everything that compares runs is shown as absent, never
+  estimated.
 
-**Overview**
-- Suite health (A–F grade from pass rate, stability and performance), pass
-  rate and duration with their change vs the last run, and a status breakdown.
-- **Quality Gates** and **Quarantine** panels, drawn over a sparkline of
-  pass rate and flaky count across runs.
-- **Attention required**: new failures, performance regressions, flaky tests.
-- **Failure breakdown**: failures split by *whose problem it probably is*:
-  possible app defects, locator & wait issues, environment issues (device,
-  session, TLS: not a test result at all), hangs & timeouts, and unclassified.
-  Click any card to filter the test list.
-- **Failure clusters**: failures that share a cause, grouped into one card.
-- **Quick insights**: the slowest test, the most flaky test, and the pass-rate trend.
-- A per-test duration chart.
+### Top bar
 
-**Tests**: a filterable list beside a detail pane. For each test:
-
-| Section | Holds |
+| Item | What it does |
 |---|---|
-| What went wrong | a plain-language diagnosis + the concrete next step |
-| Run history | pass/fail dots and duration bars for the last runs of this test |
-| Step timeline | a segmented bar (navigation / action / input / wait / failed) and every step with its timing, the slowest marked |
-| Full error & stack trace | the raw trace, your frames highlighted |
-| Device at failure | the screenshot at the moment of failure (click to enlarge) |
+| Project name | `projectName`, else the `name` in your `package.json` |
+| Breadcrumb | where you are: `Tests › Overview`, or `Tests › <test name>` when a test is open |
+| Search (⌘K / Ctrl+K) | filters the Tests list; see [Search](#search) |
+| Export | **Results (JSON)** and **Results (CSV)**: every test with its status, duration, health, flakiness, failure kind, diagnosis and first error line, no screenshots. **Print / Save as PDF**: a paged document; see [PDF export](#pdf-export) |
+| Theme | System (follows your OS), Dark, Light, Ocean, Sunset, Dracula, Cyberpunk, Forest, Rose. Remembered per browser |
+| Run time | when the run started; the dot is green when nothing failed, red otherwise |
 
-Links like `report.html#t3` open a specific test. `j`/`k` move through the list.
+### Sidebar
 
-**Trends** and **Comparison**: see [Run history](#run-history).
+| Item | What it shows |
+|---|---|
+| Pass-rate ring | passed ÷ executed, as a percentage |
+| **Passed** / **Failed** / **Flaky** tiles | counts for this run. Click one to filter the Tests list to it; click again to clear |
+| Navigation | Overview, Tests, Trends, Comparison, Gallery. The number is the count in that view |
+| Filters | narrow the Tests list; see [Filters](#filters) |
+| Environment | the device and app this run used, read from the live session; see [Environment](#environment) |
 
-**Gallery**: every failure screenshot in one grid.
+### Filters
 
-**Themes**: System, Dark, Light, Ocean, Sunset, Dracula, Cyberpunk, Forest, Rose.
-Dark is the default: near-black surfaces with neon green, red and yellow for
-pass, fail and skip. The choice is remembered per browser.
+Filters narrow the **Tests** list. Clicking one opens the Tests view.
 
-**Fonts**: Space Grotesk and JetBrains Mono are embedded (latin subset, ~54 KB
-before base64, SIL OFL 1.1, licences in `assets/fonts/`). Regenerate with
-`npm run fonts` after changing a font file.
+- **Different groups combine** (AND): *New failure* + *Locator & wait issues*
+  shows tests that are both.
+- **Within a group, one choice is active at a time.**
+- **Click an active filter again to turn it off.** **clear all** turns every
+  filter off.
+- **A group only appears when it has something in it.**
 
-### The diagnosis is a classifier, not a guess
+#### Attention (vs earlier runs)
 
-Each rule matches a failure shape Appium suites actually produce: `waitForText`
-timeout, WebdriverIO `still not displayed after`, element not found, stale
-element, `UiAutomation not connected`, trust-anchor/TLS, `ECONNREFUSED`, runner
-timeout (Jest, Mocha, WebdriverIO), assertion diff.
+Needs at least one earlier run. A test can carry several of these at once.
 
-**An unrecognised error gets no explanation at all**, rather than a
-plausible-sounding wrong one. A confident misdiagnosis costs more than
-silence. The raw trace is always one click away, so the explainer never
-replaces the evidence.
+| Filter | A test is in it when |
+|---|---|
+| **New failure** | it failed in this run and **passed the last time it ran** |
+| **Regression** | it is **more than 20% slower than its average** over earlier runs **and** at least 100 ms slower (so a 3 ms test "doubling" never counts). Tune with `slowerThreshold` |
+| **Flaky** | it **failed in at least 30% of its runs** (this one included, skipped runs left out) **and passed at least once**. Tune with `flakyThreshold` |
+| **Fixed** | it passed in this run and **failed the last time it ran** |
+
+A test that has failed every time it ran is **failing**, not flaky: it is
+broken, not unstable.
+
+#### Failure kind
+
+Every failed test gets exactly one kind, from its error message. The rules are
+checked top to bottom, and the first one that matches wins.
+
+| Kind | Rule: the error contains… | What it usually means |
+|---|---|---|
+| **Possible app defects** | `waitForText` together with `timed out` | the app never showed the text the test expected: a real defect, or the copy changed |
+| **Locator & wait issues** | `waitVisible`, `still displayed` or `never became visible`, together with `timed out` / `timeout` | something the test waited for never appeared; if the screen is right, the locator is stale |
+| **Locator & wait issues** | `waitGone` together with `timed out` / `timeout` | something that should have disappeared (a dialog, sheet, spinner) was still there |
+| **Locator & wait issues** | `still not displayed / existing / clickable / enabled after` (WebdriverIO waits) | an element never reached the state the test needed |
+| **Locator & wait issues** | `no such element`, `NoSuchElement`, `element wasn't found`, `Can't call … on element` | the locator matched nothing on the current screen |
+| **Locator & wait issues** | `stale element`, `StaleElementReference` | the view re-rendered between finding the element and using it |
+| **Environment issues** | `UiAutomation not connected`, `IllegalStateException` | another automation client holds the device; not a test result at all |
+| **Environment issues** | `Trust anchor`, `NSURLErrorDomain`, `certificate`, `SSL`, `CERT_` | the app's TLS connection was rejected, often device clock skew |
+| **Environment issues** | `ECONNREFUSED`, `socket hang up`, `connect ETIMEDOUT`, `Failed to create session` | the Appium server was unreachable or refused a session |
+| **Hangs & timeouts** | `Exceeded timeout of`, `Async callback was not invoked` (Jest), `Timeout of …ms exceeded` (Mocha, WebdriverIO) | the test hit the runner's timeout; the step timings show where it stalled |
+| **Possible app defects** | an `Expected: …` and a `Received: …` line (assertion diff) | the app produced a different value than the test required |
+| **Unclassified** | none of the above | no known failure shape matched; read the trace |
+
+Each kind comes with a plain-language **What went wrong** and a concrete next
+step. **An error that matches no rule gets no explanation**, rather than a
+plausible-sounding wrong one. The raw trace is always shown underneath, so the
+explanation never replaces the evidence.
+
+#### Suite groups
+
+The `describe` block a test belongs to. From JUnit XML this is the
+`classname`; from Jest it is the full describe path, for example
+`Checkout › Payment`. Long names are cut with "…"; hover to see the full
+name. The group only appears when a run has more than one.
+
+#### Search
+
+The search box (top bar) and **Filter tests…** (above the Tests list) match
+every word you type, in any order, against the test title, its group, error
+message, diagnosis and step names. Search combines with the filters.
+
+Skipped tests have no filter of their own. Search for `skipped` to list them.
+
+### Overview
+
+| Part | What it shows |
+|---|---|
+| **Suite health** | an A–F grade: A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60, otherwise F. On a first run it is the pass rate. With history it is 40% pass rate + 35% **Stability** + 25% **Perf** |
+| Stability | 100 minus the average flakiness of all tests that have history |
+| Perf | the share of timed tests that did **not** regress |
+| **Pass rate** | passed ÷ executed, with the change in points vs the previous run (`↓75%`) |
+| **Duration** | wall-clock time of the run, with the change vs the previous run in % |
+| Status breakdown | passed, failed and skipped, as bars |
+| **Quality Gates** | shown when you set [`qualityGates`](#quality-gates-and-quarantine). Each rule with its condition, actual value and PASSED / FAILED, plus a pass-rate chart for the last runs with your minimum as a dashed line. Hover any point to see that run's pass rate, counts, gate result and new failures |
+| **Quarantine Registry** | shown when any test is flaky enough to quarantine: at least the threshold (default 0.30), mixed passes and fails. Each test with its score and how often it failed, plus a chart of how many tests were flaky at each run. It says *quarantined* when `quarantine` is on (the list is written to `quarantine.json`), otherwise *flagged* |
+| **Attention required** | cards for new failures, performance regressions and flaky tests (only those with a count). Click one to filter the Tests list |
+| **Failure breakdown** | one card per failure kind in this run. Click one to filter |
+| **Failure clusters** | failures that share a cause, grouped: the same diagnosis, or the same first error line with numbers ignored. One cluster with many tests usually means one root cause |
+| **Quick insights** | the slowest test; the most flaky test (or, without history, the slowest step); and a pass-rate strip per run: green ≥ 90%, yellow ≥ 70%, red below |
+| **Test duration profile** | one bar per test (first 40), coloured by status. Click a bar to open that test |
+| **Pass ratio** | a ring of passed, failed and skipped, with pass rate, total duration and suite count |
+
+### Tests
+
+A list grouped by suite beside a detail pane. Each list row shows the TC ID,
+title, failure kind (or step count) and duration, plus tags such as
+**New failure**, **Flaky**, **Regression** or **Fixed**.
+[Filters](#filters) and [Search](#search) narrow the list. `j` / `k` move
+through it, and links like `report.html#t3` open one test directly.
+
+**Detail header chips:**
+
+| Chip | Meaning |
+|---|---|
+| Health | **New** (no earlier run), **Stable** (flakiness under 10%), **Unstable** (10% to 30%), **Flaky** (30% or more, with at least one pass), **Failing** (failed every time), **Skipped** |
+| Failure kind | see [Failure kind](#failure-kind) |
+| Status | Passed, Failed or Skipped |
+| `↑48% slower` / `↓20% faster` | this run vs the test's average over earlier runs; shown when the change is 5% or more |
+
+**Detail sections, in order:**
+
+| Section | What it holds |
+|---|---|
+| **What went wrong** | the diagnosis sentence and the next step (failed tests with a known failure kind) |
+| **Run history** | pass / fail dots for the last 10 runs of this test (the ringed dot is this run), its pass rate across them, and a duration bar per run with the average |
+| **Step timeline** | every recorded step as a coloured segment. Colours come from the step's first word: **Navigation** (open, navigate, go, launch, back, restart, activate), **Action** (tap, click, press, swipe, scroll, drag, long, double, hide), **Input** (fill, type, enter, set, select, clear, choose, pick), **Wait / check** (wait, expect, assert, verify, check, see, read, get), **Other**, and **Failed**. The slowest step is marked; a failed step shows its error |
+| **Full error & stack trace** | the raw error. Frames from your own code are highlighted; frames from `node_modules` and Node internals are dimmed |
+| **Device at failure** | the screenshot captured when the test failed; click to enlarge |
+
+### Trends
+
+Needs at least one earlier run. The last 10 runs are kept.
+
+| Card | Right side | Badge wording |
+|---|---|---|
+| **Pass rate** | the previous run's rate as the baseline | points vs the previous run: **Critical** (down 20 or more), **Drop** (down), **Improved** (up), **Stable** (no change). A critical drop into this run is drawn in red |
+| **Duration** | the slowest run | **Surge** (more than 10% slower than the previous run), **Faster** (more than 10% faster), **Steady** otherwise |
+| **Failed tests** | tests in this run | this run's failures and the change vs the previous run |
+| **Flaky tests** | the highest flaky count | **Rising**, **Falling** or **Stable flakiness**, with this run's count |
+
+Hover any point or bar for that run's details, including which tests failed
+or were flaky. The current run is highlighted in every chart.
+
+**Historical runs execution matrix**: one row per run, newest first. Pass rate
+is yellow below 80% and red below 60%; ↘ / ↗ mark a fall or rise vs the run
+before. This run links to its **Report**. Click **›** on a past run to see
+its failed tests, flaky tests and gate result, recalculated from the history.
+
+### Comparison
+
+This run against the one right before it.
+
+**Execution telemetry matrix**: tests, passed, failed, skipped, flaky, pass rate
+and duration, side by side, each with a change badge. The badge is grey
+for no change, green when better and red when worse. More failures get a
+solid red badge. Rows that got worse (failed, flaky, pass rate) are tinted.
+
+**Categorized delta inspection:**
+
+| Card | A test is in it when |
+|---|---|
+| **New failures** | it failed now and passed the last time it ran |
+| **Fixed** | it passed now and failed the last time it ran |
+| **Still failing** | it failed in both runs |
+| **New tests** | it was not in the previous run |
+| **Slower** | it ran in both runs and took at least 100 ms longer than in the previous run |
+| **Faster** | it ran in both runs and took at least 100 ms less |
+| **Removed tests** | it was in the previous run but not in this one (the card only appears when there are some) |
+
+**Slower** here is not the same as the **Regression** filter.
+
+| | Compares against | Threshold |
+|---|---|---|
+| **Slower** (Comparison) | the previous run only | a plain 100 ms |
+| **Regression** (Attention filter) | the test's average over all earlier runs | more than 20% **and** at least 100 ms |
+
+Skipped tests are never slower or faster.
+
+### Gallery
+
+Every failure screenshot in one grid, with the test and its diagnosis.
+Click one to open the test.
+
+### PDF export
+
+**Export → Print / Save as PDF** prints the whole report:
+
+- A4 pages, light colours, with each view on a new page.
+- No card, chart, table row or test block is split across pages.
+- Stack traces are printed in full.
+- Hover-only hints are left out.
+
+To remove the file path and page numbers the browser adds at the top and
+bottom, untick **Headers and footers** in the print dialog.
+
+### Look and feel
+
+- **Themes:** Dark is the default, with neon green, red and yellow for pass,
+  fail and skip.
+- **Fonts:** Space Grotesk and JetBrains Mono are embedded (latin subset,
+  about 54 KB, SIL OFL 1.1, licences in `assets/fonts/`). Regenerate them with
+  `npm run fonts` after changing a font file.
 
 ## Per-step timings
 

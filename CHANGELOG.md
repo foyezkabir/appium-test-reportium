@@ -39,6 +39,10 @@ Will ship as **0.1.1** (already set in `package.json`).
   across a page break. Stack traces print in full and wrap; tables and bar
   charts fit the page; hover-only hints are left out.
 - Fix: a skipped test showed "Skipped" twice in its header.
+- README: a full "Reading the report" guide covering the top bar, sidebar,
+  every filter (Attention, Failure kind with each matching rule, Suite
+  groups, Search) and every view (Overview, Tests, Trends, Comparison,
+  Gallery, PDF export), with the exact rule for when a test lands in each.
 
 ## 0.1.0 · 2026-09-28
 
