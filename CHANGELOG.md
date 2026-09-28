@@ -45,7 +45,7 @@ Will ship as **0.1.1** (already set in `package.json`).
   28px chevron button in the section's colour instead of a tiny glyph.
 - Fix: the current-run label on the Quality Gates and Quarantine charts
   ("13%") sat on top of the trend line; it now sits to the right of the last
-  point, where no line can run.
+  point, where no line can run, in a fixed margin just wide enough for it.
 - Fix: the ☰ menu button did nothing on wide screens. It now collapses and
   expands the sidebar (remembered per browser); on narrow screens it still
   slides the sidebar in over the page.

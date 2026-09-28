@@ -229,9 +229,9 @@ function runChart(values, o) {
   const n = values.length;
   if (n < 2) return `<div class="achart empty ${o.tone}"><p>The trend appears from the second run.</p></div>`;
   const top = o.max || 1;
-  // The last point stops at 86%: the space to its right holds the callout, and no
-  // line can ever run there, because the current run is always the rightmost point.
-  const X = (i) => 3 + (i / (n - 1)) * 83;
+  // The plot keeps a fixed right margin (CSS) for the callout: the current run is
+  // always the rightmost point, so no line can ever run through that space.
+  const X = (i) => 3 + (i / (n - 1)) * 94;
   const Y = (v) => 6 + (1 - Math.max(0, Math.min(v, top)) / top) * 88;
   const pts = values.map((v, i) => [X(i), Y(v)]);
   let line = `M${pts[0][0]},${pts[0][1].toFixed(2)}`;
@@ -1450,7 +1450,7 @@ border:1px solid color-mix(in srgb,var(--orange) 50%,transparent);background:col
 .achart{flex:1;display:flex;flex-direction:column;min-height:220px}
 .achart.green{--tone:var(--green)}.achart.red{--tone:var(--red)}.achart.yellow{--tone:var(--yellow)}
 .achart.empty{display:grid;place-items:center;color:var(--fg2);font-size:12.5px}
-.aplot{position:relative;flex:1;margin-left:38px;min-height:190px}
+.aplot{position:relative;flex:1;margin:0 52px 0 38px;min-height:190px}
 .aplot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .afill{fill:color-mix(in srgb,var(--tone) 18%,transparent)}
 .aline{fill:none;stroke:var(--tone);stroke-width:2.5}
@@ -1458,9 +1458,9 @@ border:1px solid color-mix(in srgb,var(--orange) 50%,transparent);background:col
 .gl span{position:absolute;right:calc(100% + 8px);top:-7px;font-family:var(--mono);font-size:10px;color:var(--mut)}
 .gl.th span{color:var(--blue);font-weight:700}
 .thr{position:absolute;left:0;right:0;border-top:2px dashed color-mix(in srgb,var(--blue) 80%,transparent)}
-.callout{position:absolute;transform:translate(12px,-50%);padding:3px 8px;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--tone);
+.callout{position:absolute;transform:translate(10px,-50%);padding:3px 8px;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--tone);
 border:1px solid var(--tone);background:var(--card);pointer-events:none;white-space:nowrap}
-.axl{position:relative;height:34px;margin:8px 0 0 38px}
+.axl{position:relative;height:34px;margin:8px 52px 0 38px}
 .axl span{position:absolute;transform:translateX(-50%);display:grid;justify-items:center;font-family:var(--mono);font-size:10px;color:var(--mut);white-space:nowrap}
 .axl small{font-size:9.5px;opacity:.85}
 .axl span.cur{color:var(--tone);font-weight:700}
