@@ -31,6 +31,8 @@ Will ship as **0.1.1** (already set in `package.json`).
   that run's failed tests, flaky tests and gate result.
 - Fix: the Pass rate and Flaky tests charts rendered as solid black, because
   their styles had been removed along with the old sparklines.
+- Trend bars are softer: the current run is a fading gradient with a bright
+  top edge instead of a solid, glowing block.
 
 ## 0.1.0 · 2026-09-28
 
