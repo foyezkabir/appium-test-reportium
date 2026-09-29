@@ -670,10 +670,19 @@ function page(c, options) {
     : noInsight(I.trend, 'Pass rate trend', 'Needs history', 'Appears from the second run');
 
   const maxDur = Math.max(...tests.map((t) => t.duration ?? 0), 1);
-  const bars = tests.slice(0, 40).map((t) => `<a class="bar-col" href="#${t.id}" title="${esc(t.title)}: ${dur(t.duration)}">
+  // Every test gets a bar, grouped by spec on one shared time scale. The chart
+  // scrolls sideways when the bars do not fit; a group's width follows its test
+  // count, so a few tests still fill the panel.
+  const barOf = (t) => `<a class="bar-col" href="#${t.id}" title="${esc(t.groupName)} · ${esc(t.title)}: ${dur(t.duration)}">
       <span class="bar-val">${dur(t.duration)}</span>
       <span class="bar-wrap"><i class="bar ${t.st}" style="height:${Math.max(2, Math.round(((t.duration ?? 0) / maxDur) * 100))}%"></i></span>
-      <span class="bar-lbl">${esc((t.tc || t.rest).slice(0, 8))}</span></a>`).join('');
+      <span class="bar-lbl">${esc((t.tc || t.rest).slice(0, 8))}</span></a>`;
+  const bars = groups.map((g) => {
+    const l = tests.filter((t) => t.groupName === g);
+    return `<div class="bgroup" data-spec="${esc(g)}" style="flex-grow:${l.length}"><div class="bcols">${l.map(barOf).join('')}</div>
+      <div class="bspec" title="${esc(g)}"><span class="bname">${icon(I.folder)}<span>${esc(g)}</span></span><em>${l.length}</em></div></div>`;
+  }).join('');
+  const specPick = groups.length > 1 ? `<label class="gsort bpick">${icon(I.folder)}<select id="bspec" aria-label="Spec shown in the duration profile"><option value="">All specs (${groups.length})</option>${groups.map((g) => `<option value="${esc(g)}">${esc(g)}</option>`).join('')}</select></label>` : '';
 
   const healthTone = c.health >= 90 ? 'green' : c.health >= 70 ? 'blue' : c.health >= 60 ? 'yellow' : 'red';
   const overview = `<section class="view" id="v-overview" data-view="overview">
@@ -705,8 +714,8 @@ function page(c, options) {
     ${trendStrip}
   </div>
   <div class="panels">
-    <section class="panel"><h3 class="ptitle">${icon(I.chart)}Test duration profile</h3>
-      <p class="psub">Per-test execution time${tests.length > 40 ? ' (first 40 shown)' : ''}</p>
+    <section class="panel"><div class="phead"><h3 class="ptitle">${icon(I.chart)}Test duration profile</h3>${specPick}</div>
+      <p class="psub">Per-test execution time, grouped by spec${tests.length > 16 ? ' · scroll sideways for more' : ''}</p>
       <div class="chart"><div class="bars">${bars || '<p class="empty">No tests ran.</p>'}</div></div></section>
     <section class="panel"><h3 class="ptitle">${icon(I.pass)}Pass ratio</h3>
       <p class="psub">Across every spec in this run</p>
@@ -1348,9 +1357,11 @@ a.insight[href]:hover{border-color:var(--glow)}
 .psub{font-size:12px;color:var(--fg2);margin-bottom:18px}
 .donut-wrap{position:relative;display:grid;place-items:center;margin:4px 0 20px}
 .donut{width:200px;height:200px}
-.dtrack{fill:none;stroke:var(--hover);stroke-width:11}
+/* Clean edges: no glow (it blurred outward like rays), and the track a touch
+   narrower than the arcs so its anti-aliased edge never peeks out around them. */
+.dtrack{fill:none;stroke:var(--hover);stroke-width:10}
 .darc{fill:none;stroke-width:11}
-.darc.green{stroke:var(--green);filter:drop-shadow(0 0 4px color-mix(in srgb,var(--green) 60%,transparent))}
+.darc.green{stroke:var(--green)}
 .darc.red{stroke:var(--red)}.darc.yellow{stroke:var(--yellow)}
 .donut-mid{position:absolute;text-align:center;line-height:1.15}
 .donut-mid b{display:block;font-family:var(--mono);font-size:28px;font-weight:700}
@@ -1365,7 +1376,19 @@ a.insight[href]:hover{border-color:var(--glow)}
 /* chart */
 .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
 .chart{height:230px;position:relative;background:repeating-linear-gradient(to bottom,transparent 0 45px,color-mix(in srgb,var(--border) 60%,transparent) 45px 46px)}
-.bars{position:absolute;inset:0;display:flex;gap:10px;overflow-x:auto}
+.bars{position:absolute;inset:0;display:flex;gap:10px;overflow-x:auto;overflow-y:hidden}
+/* One group per spec: its bars, then the spec's name and test count under them. */
+.bgroup{flex:1 0 auto;display:grid;grid-template-rows:1fr auto;min-width:0}
+.bgroup+.bgroup{border-left:1px dashed var(--border);padding-left:10px}
+.bcols{display:flex;gap:10px;min-height:0}
+.bspec{display:flex;align-items:center;gap:6px;padding:5px 2px 0;border-top:1px solid var(--border);font-family:var(--mono);font-size:10.5px;color:var(--fg2);min-width:0}
+.bspec .i{width:12px;height:12px;flex:none;color:var(--blue)}
+/* The spec name sticks to the left edge while any of its bars are in view. */
+.bname{position:sticky;left:0;display:flex;align-items:center;gap:6px;min-width:0;max-width:100%;background:var(--card);padding-right:6px}
+.bname span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bspec em{font-style:normal;margin-left:auto;padding-left:6px;color:var(--mut)}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bpick select{max-width:220px}
 .bar-col{flex:1 0 38px;max-width:80px;display:grid;grid-template-rows:18px 1fr 22px;justify-items:center}
 .bar-val,.bar-lbl{font-family:var(--mono);font-size:10px;color:var(--fg2);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .bar-val{align-self:end}.bar-lbl{padding-top:6px}
@@ -1933,6 +1956,7 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   .dstat{justify-content:flex-start}
   /* Bars share the width on paper; a scrollbar cannot be scrolled in a PDF. */
   .bars{overflow:hidden!important;gap:6px}.bar-col{flex:1 1 0!important;min-width:0!important;max-width:none}
+  .bgroup{flex-shrink:1!important;min-width:0}.bcols{gap:3px}.bpick{display:none}
   .tablewrap{overflow:visible!important}
   /* Tables fit the page: no Action column (nothing to click on paper), tighter cells. */
   .htable th:last-child,.htable td:last-child{display:none}
@@ -1990,6 +2014,7 @@ $('#fclear').addEventListener('click',function(){for(var k in filters) filters[k
 $$('[data-go]').forEach(function(b){b.addEventListener('click',function(e){
   e.preventDefault(); var p=b.dataset.go.split(':'); var chip=$('[data-f="'+p[0]+'"][data-v="'+p[1]+'"]'); if(chip&&!chip.classList.contains('on')) chip.click(); location.hash='tests';
 })});
+var bsel=$('#bspec'); if(bsel) bsel.addEventListener('change',function(){$$('.bgroup').forEach(function(g){g.hidden=!!bsel.value&&g.dataset.spec!==bsel.value}); var b=$('.bars'); if(b) b.scrollLeft=0;});
 $$('[data-expand]').forEach(function(b){b.addEventListener('click',function(){$$('[hidden]',b.parentElement).forEach(function(x){x.hidden=false}); b.remove();})});
 q.addEventListener('input',function(){apply(); if(q.value&&!/^#?(tests|t\\d+)$/.test(location.hash.slice(1))) location.hash='tests';});
 tf.addEventListener('input',apply);

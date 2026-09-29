@@ -235,3 +235,13 @@ test('quick insights always has three cards, saying why when one has no data', (
   assert.match(row, /No steps recorded/);
   assert.match(row, /Needs history/);
 });
+
+test('duration profile draws every test, grouped by spec, with a spec picker for several specs', () => {
+  const mk = (file, n) => ({ file, tests: Array.from({ length: n }, (_, i) => ({ title: `TC-${i + 1}: t`, fullName: `${file} TC-${i + 1}`, group: [file], status: 'passed', duration: 100 + i, errors: [] })) });
+  const html = renderReport({ startTime: 1, duration: 1, suites: [mk('tests/a.spec.ts', 30), mk('tests/b.spec.ts', 25)] }, { outputDirectory: tmpdir(), historyFile: false });
+  assert.equal((html.match(/class="bar-col"/g) ?? []).length, 55, 'no 40-test cap');
+  assert.deepEqual([...html.matchAll(/class="bgroup" data-spec="([^"]*)"/g)].map((m) => m[1]), ['a.spec.ts', 'b.spec.ts']);
+  assert.match(html, /<select id="bspec"[^>]*><option value="">All specs \(2\)<\/option>/);
+  const one = renderReport({ startTime: 1, duration: 1, suites: [mk('tests/a.spec.ts', 3)] }, { outputDirectory: tmpdir(), historyFile: false });
+  assert.doesNotMatch(one, /id="bspec"/, 'no picker for one spec');
+});

@@ -215,9 +215,11 @@ a.insight[href]:hover{border-color:var(--glow)}
 .psub{font-size:12px;color:var(--fg2);margin-bottom:18px}
 .donut-wrap{position:relative;display:grid;place-items:center;margin:4px 0 20px}
 .donut{width:200px;height:200px}
-.dtrack{fill:none;stroke:var(--hover);stroke-width:11}
+/* Clean edges: no glow (it blurred outward like rays), and the track a touch
+   narrower than the arcs so its anti-aliased edge never peeks out around them. */
+.dtrack{fill:none;stroke:var(--hover);stroke-width:10}
 .darc{fill:none;stroke-width:11}
-.darc.green{stroke:var(--green);filter:drop-shadow(0 0 4px color-mix(in srgb,var(--green) 60%,transparent))}
+.darc.green{stroke:var(--green)}
 .darc.red{stroke:var(--red)}.darc.yellow{stroke:var(--yellow)}
 .donut-mid{position:absolute;text-align:center;line-height:1.15}
 .donut-mid b{display:block;font-family:var(--mono);font-size:28px;font-weight:700}
@@ -232,7 +234,19 @@ a.insight[href]:hover{border-color:var(--glow)}
 /* chart */
 .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
 .chart{height:230px;position:relative;background:repeating-linear-gradient(to bottom,transparent 0 45px,color-mix(in srgb,var(--border) 60%,transparent) 45px 46px)}
-.bars{position:absolute;inset:0;display:flex;gap:10px;overflow-x:auto}
+.bars{position:absolute;inset:0;display:flex;gap:10px;overflow-x:auto;overflow-y:hidden}
+/* One group per spec: its bars, then the spec's name and test count under them. */
+.bgroup{flex:1 0 auto;display:grid;grid-template-rows:1fr auto;min-width:0}
+.bgroup+.bgroup{border-left:1px dashed var(--border);padding-left:10px}
+.bcols{display:flex;gap:10px;min-height:0}
+.bspec{display:flex;align-items:center;gap:6px;padding:5px 2px 0;border-top:1px solid var(--border);font-family:var(--mono);font-size:10.5px;color:var(--fg2);min-width:0}
+.bspec .i{width:12px;height:12px;flex:none;color:var(--blue)}
+/* The spec name sticks to the left edge while any of its bars are in view. */
+.bname{position:sticky;left:0;display:flex;align-items:center;gap:6px;min-width:0;max-width:100%;background:var(--card);padding-right:6px}
+.bname span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bspec em{font-style:normal;margin-left:auto;padding-left:6px;color:var(--mut)}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bpick select{max-width:220px}
 .bar-col{flex:1 0 38px;max-width:80px;display:grid;grid-template-rows:18px 1fr 22px;justify-items:center}
 .bar-val,.bar-lbl{font-family:var(--mono);font-size:10px;color:var(--fg2);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .bar-val{align-self:end}.bar-lbl{padding-top:6px}
@@ -800,6 +814,7 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   .dstat{justify-content:flex-start}
   /* Bars share the width on paper; a scrollbar cannot be scrolled in a PDF. */
   .bars{overflow:hidden!important;gap:6px}.bar-col{flex:1 1 0!important;min-width:0!important;max-width:none}
+  .bgroup{flex-shrink:1!important;min-width:0}.bcols{gap:3px}.bpick{display:none}
   .tablewrap{overflow:visible!important}
   /* Tables fit the page: no Action column (nothing to click on paper), tighter cells. */
   .htable th:last-child,.htable td:last-child{display:none}
@@ -929,36 +944,37 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
     <div class="insight none"><span class="ico"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span><span><small>Pass rate trend</small><b>Needs history</b><em>Appears from the second run</em></span></div>
   </div>
   <div class="panels">
-    <section class="panel"><h3 class="ptitle"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Test duration profile</h3>
-      <p class="psub">Per-test execution time</p>
-      <div class="chart"><div class="bars"><a class="bar-col" href="#t1" title="TC01: Order is created with valid values: 1.86s">
+    <section class="panel"><div class="phead"><h3 class="ptitle"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Test duration profile</h3></div>
+      <p class="psub">Per-test execution time, grouped by spec</p>
+      <div class="chart"><div class="bars"><div class="bgroup" data-spec="Orders: creation and validation" style="flex-grow:9"><div class="bcols"><a class="bar-col" href="#t1" title="Orders: creation and validation · TC01: Order is created with valid values: 1.86s">
       <span class="bar-val">1.86s</span>
       <span class="bar-wrap"><i class="bar passed" style="height:100%"></i></span>
-      <span class="bar-lbl">TC01</span></a><a class="bar-col" href="#t2" title="TC03: Duplicate code is rejected with a message: 1.71s">
+      <span class="bar-lbl">TC01</span></a><a class="bar-col" href="#t2" title="Orders: creation and validation · TC03: Duplicate code is rejected with a message: 1.71s">
       <span class="bar-val">1.71s</span>
       <span class="bar-wrap"><i class="bar failed" style="height:92%"></i></span>
-      <span class="bar-lbl">TC03</span></a><a class="bar-col" href="#t3" title="TC05: Notes accepts 500 characters: 0ms">
+      <span class="bar-lbl">TC03</span></a><a class="bar-col" href="#t3" title="Orders: creation and validation · TC05: Notes accepts 500 characters: 0ms">
       <span class="bar-val">0ms</span>
       <span class="bar-wrap"><i class="bar skipped" style="height:2%"></i></span>
-      <span class="bar-lbl">TC05</span></a><a class="bar-col" href="#t4" title="TC10: locator not found: 1ms">
+      <span class="bar-lbl">TC05</span></a><a class="bar-col" href="#t4" title="Orders: creation and validation · TC10: locator not found: 1ms">
       <span class="bar-val">1ms</span>
       <span class="bar-wrap"><i class="bar failed" style="height:2%"></i></span>
-      <span class="bar-lbl">TC10</span></a><a class="bar-col" href="#t5" title="TC11: stale element: 1ms">
+      <span class="bar-lbl">TC10</span></a><a class="bar-col" href="#t5" title="Orders: creation and validation · TC11: stale element: 1ms">
       <span class="bar-val">1ms</span>
       <span class="bar-wrap"><i class="bar failed" style="height:2%"></i></span>
-      <span class="bar-lbl">TC11</span></a><a class="bar-col" href="#t6" title="TC12: session lost: 1ms">
+      <span class="bar-lbl">TC11</span></a><a class="bar-col" href="#t6" title="Orders: creation and validation · TC12: session lost: 1ms">
       <span class="bar-val">1ms</span>
       <span class="bar-wrap"><i class="bar failed" style="height:2%"></i></span>
-      <span class="bar-lbl">TC12</span></a><a class="bar-col" href="#t7" title="TC13: tls: 1ms">
+      <span class="bar-lbl">TC12</span></a><a class="bar-col" href="#t7" title="Orders: creation and validation · TC13: tls: 1ms">
       <span class="bar-val">1ms</span>
       <span class="bar-wrap"><i class="bar failed" style="height:2%"></i></span>
-      <span class="bar-lbl">TC13</span></a><a class="bar-col" href="#t8" title="TC14: plain assertion: 4ms">
+      <span class="bar-lbl">TC13</span></a><a class="bar-col" href="#t8" title="Orders: creation and validation · TC14: plain assertion: 4ms">
       <span class="bar-val">4ms</span>
       <span class="bar-wrap"><i class="bar failed" style="height:2%"></i></span>
-      <span class="bar-lbl">TC14</span></a><a class="bar-col" href="#t9" title="TC15: unmatched: 1ms">
+      <span class="bar-lbl">TC14</span></a><a class="bar-col" href="#t9" title="Orders: creation and validation · TC15: unmatched: 1ms">
       <span class="bar-val">1ms</span>
       <span class="bar-wrap"><i class="bar failed" style="height:2%"></i></span>
-      <span class="bar-lbl">TC15</span></a></div></div></section>
+      <span class="bar-lbl">TC15</span></a></div>
+      <div class="bspec" title="Orders: creation and validation"><span class="bname"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Orders: creation and validation</span></span><em>9</em></div></div></div></div></section>
     <section class="panel"><h3 class="ptitle"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Pass ratio</h3>
       <p class="psub">Across every spec in this run</p>
       <div class="donut-wrap"><svg viewBox="0 0 100 100" class="donut" aria-hidden="true"><circle cx="50" cy="50" r="40" class="dtrack"/><circle cx="50" cy="50" r="40" class="darc green" stroke-dasharray="26.43 251.33" stroke-dashoffset="0.00" transform="rotate(-90 50 50)"/><circle cx="50" cy="50" r="40" class="darc red" stroke-dasharray="193.98 251.33" stroke-dashoffset="-27.93" transform="rotate(-90 50 50)"/><circle cx="50" cy="50" r="40" class="darc yellow" stroke-dasharray="26.43 251.33" stroke-dashoffset="-223.40" transform="rotate(-90 50 50)"/></svg>
@@ -1359,6 +1375,7 @@ $('#fclear').addEventListener('click',function(){for(var k in filters) filters[k
 $$('[data-go]').forEach(function(b){b.addEventListener('click',function(e){
   e.preventDefault(); var p=b.dataset.go.split(':'); var chip=$('[data-f="'+p[0]+'"][data-v="'+p[1]+'"]'); if(chip&&!chip.classList.contains('on')) chip.click(); location.hash='tests';
 })});
+var bsel=$('#bspec'); if(bsel) bsel.addEventListener('change',function(){$$('.bgroup').forEach(function(g){g.hidden=!!bsel.value&&g.dataset.spec!==bsel.value}); var b=$('.bars'); if(b) b.scrollLeft=0;});
 $$('[data-expand]').forEach(function(b){b.addEventListener('click',function(){$$('[hidden]',b.parentElement).forEach(function(x){x.hidden=false}); b.remove();})});
 q.addEventListener('input',function(){apply(); if(q.value&&!/^#?(tests|t\d+)$/.test(location.hash.slice(1))) location.hash='tests';});
 tf.addEventListener('input',apply);
