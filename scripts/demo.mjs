@@ -27,6 +27,11 @@ for (const tc of ['TC03_Duplicate_code_is_rejected_with_a_message', 'TC10_locato
 cpSync(`${root}test/fixtures/recording.mp4`, `${dir}/failures/2099-01-01T00-00-00-000Z__TC01_Order_is_created_with_valid_values.mp4`);
 
 const base = fromJUnit(readFileSync(`${root}test/fixtures/junit.xml`, 'utf8'));
+// Two spec files, as a real suite has: the fixture's two describe blocks each
+// become one, so the report shows its spec grouping and spec picker.
+const SPEC = { 'Orders: creation and validation': 'specs/orders.spec.ts', 'Explainer coverage': 'specs/diagnosis.spec.ts' };
+const allTests = base.suites.flatMap((s) => s.tests);
+base.suites = Object.entries(SPEC).map(([group, file]) => ({ file, tests: allTests.filter((t) => t.group[0] === group) }));
 const options = {
   outputDirectory: dir,
   projectName: 'Orders App QA',
@@ -66,7 +71,7 @@ const run = structuredClone(base);
 run.startTime = now;
 const { file } = generateReport(run, {
   ...options,
-  qualityGates: { maxFailures: 5, minPassRate: 60, maxFlakyRate: 30, noNewFailures: true },
+  qualityGates: { maxFailures: 5, minPassRate: 60, maxFlakyRate: 30, minStabilityGrade: 'C', noNewFailures: true },
   quarantine: true,
 });
 console.log(`demo: ${file}`);
