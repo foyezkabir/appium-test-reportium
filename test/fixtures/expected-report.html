@@ -548,7 +548,9 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 55%,transparent
 .ditem:hover{border-color:var(--tone)}
 .dtitle{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dsub{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:11px;color:var(--tone)}
-.dsub span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* min-width:0 so a long line shrinks and ends in … inside its box instead of running past the edge. */
+.ditem>*{min-width:0}
+.dsub span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .dsub em{font-style:normal;font-weight:700;flex:none}
 .dline{font-family:var(--mono);font-size:12.5px;color:var(--fg);padding:2px 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 a.dline:hover{color:var(--tone)}

@@ -35,6 +35,8 @@ and a calmer, crisper look.
 - Search finds a TC number however it is typed: `7`, `07`, `tc07`, `tc-7`.
   Dashes, underscores and colons are ignored in other words.
 - Chart tooltips name tests by title, without the `describe` text.
+- Fix: a long line in a Comparison card ends in … inside its box instead of
+  running past the edge.
 - Look: brighter but not neon status colours in every theme; the pass-rate
   ring, the Pass ratio donut and the warning icons have clean edges (no glow);
   a new Comparison icon.
