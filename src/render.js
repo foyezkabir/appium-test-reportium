@@ -109,10 +109,10 @@ const GI = {
   // solid mark); CSS picks one from the theme.
   alert: '<svg class="gicon alert" viewBox="7 6 50 49" aria-hidden="true"><path class="ic-body" d="M32 9L53.65 47.5C54.8 49.5 53.3 52 51 52H13C10.7 52 9.2 49.5 10.35 47.5L32 9Z"/>'
     + '<path class="ic-inner" d="M32 15L48.8 45.8C49.3 46.7 48.6 47.8 47.5 47.8H16.5C15.4 47.8 14.7 46.7 15.2 45.8L32 15Z"/>'
-    + '<rect class="ic-bang" x="30" y="23" width="4" height="13" rx="2"/><circle class="ic-bang" cx="32" cy="41" r="2.2"/></svg>',
+    + '<rect class="ic-bang" x="29.25" y="21.5" width="5.5" height="14" rx="2.75"/><circle class="ic-bang" cx="32" cy="42.2" r="3"/></svg>',
   // The same warning inside a squircle badge, for section headings.
-  alertBadge: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/>'
-    + '<path class="ic-tri" d="M32 17L44 39C44.6 40.1 43.8 41.5 42.5 41.5H21.5C20.2 41.5 19.4 40.1 20 39L32 17Z"/><path class="ic-stem" d="M32 26V32"/><circle class="ic-pip" cx="32" cy="36.5" r="1.3"/></svg>',
+  alertBadge: '<svg class="gicon abadge" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/>'
+    + '<path class="ic-tri" d="M32 16.5L45 40C45.6 41.1 44.8 42.5 43.5 42.5H20.5C19.2 42.5 18.4 41.1 19 40L32 16.5Z"/><path class="ic-stem" d="M32 25.5V32.5"/><circle class="ic-pip" cx="32" cy="37.6" r="2"/></svg>',
   // Squircle tiles for one rule's result.
   ok: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-mark" d="M22 32.5L28.5 39L42 24.5"/></svg>',
   no: '<svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-mark" d="M24 24L40 40M40 24L24 40"/></svg>',
@@ -124,7 +124,8 @@ const NAVI = {
   overview: '<svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="12" width="4.5" height="8.5" rx="1" fill="currentColor"/><rect x="9.75" y="7" width="4.5" height="13.5" rx="1" fill="currentColor"/><rect x="16" y="3.5" width="4.5" height="17" rx="1" fill="currentColor"/></svg>',
   tests: '<svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5l1.8 1.8L8 5M3 13.5l1.8 1.8L8 12"/><path d="M11.5 7h9.5M11.5 14h9.5M3.5 20h17.5"/></svg>',
   trends: '<svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18l5.5-6 4 3.5L21 6"/><path d="M15.5 6H21v5.5"/></svg>',
-  comparison: '<svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h7M7 8l4 4-4 4"/><path d="M21 12h-7M17 8l-4 4 4 4"/></svg>',
+  // Two arrows meeting in the middle: two runs brought together.
+  comparison: '<svg class="i nv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8.5h-9.5M15 4.5l-4 4 4 4"/><path d="M3 15.5h9.5M9 11.5l4 4-4 4"/></svg>',
   gallery: '<svg class="i nv" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5v11A2.5 2.5 0 006.5 21h11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="7.5" y="3" width="13.5" height="13.5" rx="2.5" fill="currentColor" opacity=".9"/><path d="M9.5 14l3.2-3.6 2.3 2.3 1.5-1.6 2.5 2.9z" fill="var(--side)"/><circle cx="12" cy="7.2" r="1.4" fill="var(--side)"/></svg>',
 };
 
@@ -351,11 +352,16 @@ function prepare(run, options) {
   const past = (options.historyRuns ?? loadHistory(histFile)).filter((r) => r.startTime !== run.startTime && r.startTime < run.startTime);
 
   const tests = run.suites.flatMap((s) => s.tests.map((t) => ({ ...t, file: s.file })));
+  // A suite group is its spec file: "login.spec.ts", never the describe text.
+  // Two specs with the same name in different folders keep their full path.
+  const specOf = (f) => basename(f ?? '') || f;
+  const specFiles = new Map();
+  for (const t of tests) specFiles.set(specOf(t.file), new Set([...(specFiles.get(specOf(t.file)) ?? []), t.file]));
   tests.forEach((t, i) => {
     t.id = `t${i + 1}`;
     t.key = testKey(t.file, t.fullName);
     t.st = statusClass(t.status);
-    t.groupName = (t.group ?? []).join(' › ') || t.file;
+    t.groupName = specFiles.get(specOf(t.file)).size > 1 ? t.file : specOf(t.file);
     t.tc = (t.title.match(/^(TC[-_]?\d+)/i) || [])[1] ?? '';
     t.rest = t.tc ? t.title.slice(t.tc.length).replace(/^[:\s-]+/, '') : t.title;
     t.steps = stepIdx.get(t.fullName) ?? stepIdx.get(t.title) ?? [];
@@ -410,7 +416,31 @@ function prepare(run, options) {
   const grade = GRADE(health);
   const flakyRate = pct(flaky.length, total);
 
-  const prev = past[past.length - 1];
+  // The run to compare with: the latest earlier run that ran at least one of
+  // this run's spec files. A harness-only run is no baseline for a login run:
+  // every login test would read as new and every harness test as removed.
+  const specsNow = new Set(tests.map((t) => t.file));
+  const specOfKey = (k) => k.split('::')[0];
+  const prevIdx = past.findLastIndex((r) => Object.keys(r.tests ?? {}).some((k) => specsNow.has(specOfKey(k))));
+  const prev = prevIdx >= 0 ? past[prevIdx] : undefined;
+  // Comparison sets by test key, so the Comparison cards and the Tests filter agree.
+  const cmp = { still: new Set(), added: new Set(), slower: new Set(), faster: new Set() };
+  const keysNow = new Set(tests.map((t) => t.key));
+  // Removed: gone from a spec that ran this time. A spec not run is not removed.
+  const removed = prev ? Object.keys(prev.tests).filter((k) => specsNow.has(specOfKey(k)) && !keysNow.has(k)) : [];
+  if (prev) {
+    for (const t of tests) {
+      const was = prev.tests[t.key];
+      if (!was) { cmp.added.add(t.key); continue; }
+      if (t.st === 'failed' && was[0] === 'failed') cmp.still.add(t.key);
+      // A skipped test's 0 ms is not a speed-up: only compare tests that ran both times.
+      if (was[1] && t.duration != null && t.st !== 'skipped' && was[0] !== 'skipped') {
+        const d = t.duration - was[1];
+        if (d >= 100) cmp.slower.add(t.key);
+        else if (d <= -100) cmp.faster.add(t.key);
+      }
+    }
+  }
   const prevRate = prev ? pct(prev.passed, prev.passed + prev.failed) : undefined;
   const summary = { startTime: run.startTime, duration, total, passed, failed, skipped, flaky: flaky.length, passRate, grade, health };
   const gates = evaluateGates(options.qualityGates, { failed, passRate, flakyRate, grade, newFailures: newFailures.length, hasHistory });
@@ -419,7 +449,7 @@ function prepare(run, options) {
   const quarantined = quarantineList(tests, insight, qThreshold).slice(0, qCfg.maxQuarantined ?? Infinity);
 
   return {
-    dir, histFile, past, prev, prevRate, tests, total, passed, failed, skipped, executed, passRate, duration,
+    dir, histFile, past, prev, prevIdx, cmp, removed, prevRate, tests, total, passed, failed, skipped, executed, passRate, duration,
     hasHistory, flaky, newFailures, slower, fixed, stability, perf, health, grade, flakyRate, summary, gates,
     quarantined, qThreshold, crashed: run.suites.filter((s) => !s.tests.length && s.error), run,
   };
@@ -500,7 +530,10 @@ function page(c, options) {
   // were computed, so a tooltip says what that run's report said.
   const curTests = Object.fromEntries(tests.map((t) => [t.key, [t.st, t.duration ?? null]]));
   const full = [...past, { ...c.summary, tests: curTests }];
-  const nameOf = (k) => k.split('::').slice(1).join('::');
+  // A test's title, without the describe text Jest puts in front of it. A test
+  // that only exists in an earlier run has no title on hand, so its stored name is shown.
+  const titleByKey = new Map(tests.map((t) => [t.key, t.title]));
+  const nameOf = (k) => titleByKey.get(k) ?? k.split('::').slice(1).join('::');
   const facts = full.map((r, i) => {
     const earlier = full.slice(0, i);
     const keys = Object.keys(r.tests);
@@ -606,7 +639,8 @@ function page(c, options) {
     ${panelHead(GI.vault, 'Quarantine Registry', enabled ? 'Flaky tests set aside, written to quarantine.json' : 'Tests flaky enough to set aside', `<span class="qrun">Policy threshold ≥ ${c.qThreshold.toFixed(2)} flakiness</span><span class="qbadge"><i></i>${c.quarantined.length} test${c.quarantined.length === 1 ? '' : 's'} ${enabled ? 'quarantined' : 'flagged'}</span>`)}
     <div class="qbody">
       <section class="qlist"><div class="qlh"><small>Isolated test candidates</small><span>Score · Status</span></div>
-        ${c.quarantined.map(qcard).join('')}
+        ${c.quarantined.slice(0, 5).map(qcard).join('')}
+        ${c.quarantined.length > 5 ? `<a class="dmore" href="#tests" data-go="q:1">+${c.quarantined.length - 5} more</a>` : ''}
         <p class="qfoot">${icon(I.info)}${enabled ? 'Listed in quarantine.json so your runner can skip them.' : 'Turn on quarantine (quarantine: true or --quarantine) to write quarantine.json.'}</p></section>
       <section class="qchart"><div class="qch"><div><h4>Flaky test volume (last ${nRuns} run${nRuns === 1 ? '' : 's'})</h4><p>Number of flaky tests at each run</p></div>
         <span class="qtarget">Target: 0 flaky</span></div>
@@ -629,8 +663,11 @@ function page(c, options) {
   const groups = [...new Set(tests.map((t) => t.groupName))];
   const insight = (ic, label, main, sub, href) => `<a class="insight" ${href ? `href="#${href}"` : ''}>
       <span class="ico">${icon(ic)}</span><span><small>${esc(label)}</small><b>${esc(main)}</b><em>${esc(sub)}</em></span></a>`;
+  // Always three cards: one with no data says why instead of vanishing, so the row never changes shape.
+  const noInsight = (ic, label, main, sub) => `<div class="insight none"><span class="ico">${icon(ic)}</span><span><small>${esc(label)}</small><b>${esc(main)}</b><em>${esc(sub)}</em></span></div>`;
   const trendStrip = hasHistory ? `<a class="insight" href="#trends"><span class="ico">${icon(I.trend)}</span><span><small>Pass rate trend</small>
-      <span class="strip">${series.map((r) => { const v = rateOf(r); return `<i class="${v >= 90 ? 'green' : v >= 70 ? 'yellow' : 'red'}" style="height:${Math.max(8, v)}%" title="${v}%"></i>`; }).join('')}</span></span></a>` : '';
+      <span class="strip">${series.map((r) => { const v = rateOf(r); return `<i class="${v >= 90 ? 'green' : v >= 70 ? 'yellow' : 'red'}" style="height:${Math.max(8, v)}%" title="${v}%"></i>`; }).join('')}</span></span></a>`
+    : noInsight(I.trend, 'Pass rate trend', 'Needs history', 'Appears from the second run');
 
   const maxDur = Math.max(...tests.map((t) => t.duration ?? 0), 1);
   const bars = tests.slice(0, 40).map((t) => `<a class="bar-col" href="#${t.id}" title="${esc(t.title)}: ${dur(t.duration)}">
@@ -659,9 +696,12 @@ function page(c, options) {
   ${clusterHtml ? `<h3 class="shead">${icon(I.search)}Failure clusters</h3><div class="clusters">${clusterHtml}</div>` : ''}
   <h3 class="shead">${icon(I.bulb)}Quick insights</h3>
   <div class="insights">
-    ${slowest ? insight(I.hourglass, 'Slowest test', slowest.title, dur(slowest.duration), slowest.id) : ''}
+    ${slowest ? insight(I.hourglass, 'Slowest test', slowest.title, dur(slowest.duration), slowest.id)
+      : noInsight(I.hourglass, 'Slowest test', 'No durations', 'The runner reported no test times')}
     ${mostFlaky && mostFlaky.ins.flakiness > 0 ? insight(I.bolt, 'Most flaky test', mostFlaky.title, `${Math.round(mostFlaky.ins.flakiness * 100)}% failure rate`, mostFlaky.id)
-      : slowStep ? insight(I.steps, 'Slowest step', slowStep.title, `${dur(slowStep.ms)} · ${slowStep.t.tc || slowStep.t.rest}`, slowStep.t.id) : ''}
+      : slowStep ? insight(I.steps, 'Slowest step', slowStep.title, `${dur(slowStep.ms)} · ${slowStep.t.tc || slowStep.t.rest}`, slowStep.t.id)
+      : hasHistory ? noInsight(I.bolt, 'Most flaky test', 'No flaky test', 'Every test gave the same result each run')
+      : noInsight(I.steps, 'Slowest step', 'No steps recorded', 'Wrap page actions in StepRecorder.step()')}
     ${trendStrip}
   </div>
   <div class="panels">
@@ -681,12 +721,13 @@ function page(c, options) {
 </section>`;
 
   // ── tests: list + detail ──────────────────────────────────────────────
+  const qKeys = new Set(c.quarantined.map((q) => q.key));
   const attTags = (t) => t.att.map((a) => `<span class="tag ${ATT[a][1]}">${ATT[a][0]}</span>`).join('');
   const listHtml = groups.map((g) => {
     const l = tests.filter((t) => t.groupName === g);
     const nf = l.filter((t) => t.st === 'failed').length;
     return `<div class="lgroup"><div class="lghead">${icon(I.folder)}<span>${esc(g)}</span>${nf ? `<span class="tag red">${nf} failing</span>` : `<span class="tag green">${l.length}</span>`}</div>
-      ${l.map((t) => `<a class="titem ${t.st}" href="#${t.id}" data-id="${t.id}" data-st="${t.st}" data-kind="${t.kind ?? ''}" data-group="${esc(g)}" data-att="${t.att.join(' ')}">
+      ${l.map((t) => `<a class="titem ${t.st}" href="#${t.id}" data-id="${t.id}" data-st="${t.st}" data-kind="${t.kind ?? ''}" data-group="${esc(g)}" data-att="${t.att.join(' ')}" data-cmp="${Object.keys(c.cmp).filter((k) => c.cmp[k].has(t.key)).join(' ')}" data-q="${qKeys.has(t.key) ? 1 : ''}">
         <span class="dot"></span><span class="tt"><b>${t.tc ? `<em>${esc(t.tc)}:</em> ` : ''}${esc(t.rest)}</b><small>${esc(t.kind ? KINDS[t.kind].label : t.steps.length ? `${t.steps.length} steps` : STATUS_LABEL[t.status] ?? t.status)}</small>${t.att.length ? `<span class="ttags">${attTags(t)}</span>` : ''}</span>
         <span class="td">${dur(t.duration)}</span></a>`).join('')}</div>`;
   }).join('');
@@ -711,7 +752,7 @@ function page(c, options) {
       ? `<span class="speed ${t.ins.change > 0 ? 'bad' : 'good'}">${icon(I.clock)}${t.ins.change > 0 ? '↑' : '↓'}${Math.round(Math.abs(t.ins.change) * 100)}% ${t.ins.change > 0 ? 'slower' : 'faster'}</span>` : '';
     return `<article class="detail ${t.st}" id="d-${t.id}" data-id="${t.id}">
       <header class="dhead"><span class="dot"></span><div class="dtitle"><h3>${t.tc ? `<em>${esc(t.tc)}:</em> ` : ''}${esc(t.rest)}</h3>
-        <div class="dmeta"><span class="chip mono">${esc(t.file)}</span>${t.groupName !== t.file ? `<span class="chip">${esc(t.groupName)}</span>` : ''}${attTags(t)}</div></div>
+        <div class="dmeta"><span class="chip mono">${esc(t.file)}</span>${attTags(t)}</div></div>
         <div class="dstat"><span class="mono">${dur(t.duration)}</span>${t.att.includes('flaky') || t.ins.health === 'skipped' ? '' : `<span class="tag ${ht}">${hl}</span>`}${t.kind ? `<span class="tag ${KINDS[t.kind].tone}">${esc(KINDS[t.kind].label)}</span>` : ''}<span class="pill ${t.st}">${esc(STATUS_LABEL[t.status] ?? t.status)}</span>${speed}</div></header>
       ${t.diag ? `<section class="block sec why"><h4>${icon(I.info)}What went wrong</h4><p>${esc(t.diag.why)}</p><p class="next">${esc(t.diag.next)}</p></section>`
         : t.st === 'failed' ? `<section class="block sec why"><h4>${icon(I.info)}What went wrong</h4><p>${t.firstLine ? `The test failed with: <code>${esc(t.firstLine)}</code>` : 'The test failed without an error message.'}</p><p class="next">This failure shape is not one the report can diagnose yet, so no cause is guessed. The step timeline, stack trace and screenshot below show where it stopped.</p></section>` : ''}
@@ -804,19 +845,16 @@ function page(c, options) {
   // ── comparison with the previous run ──────────────────────────────────
   let comparisonView;
   if (prev) {
-    const cur = new Map(tests.map((t) => [t.key, t]));
-    const was = (k) => prev.tests[k]?.[0];
     const prevMs = (t) => prev.tests[t.key]?.[1];
-    const stillFailing = tests.filter((t) => t.st === 'failed' && was(t.key) === 'failed');
-    const added = tests.filter((t) => !prev.tests[t.key]);
-    const removed = Object.keys(prev.tests).filter((k) => !cur.has(k));
-    // A skipped test's 0 ms is not a speed-up: only compare tests that ran both times.
-    const moved = tests.filter((t) => prevMs(t) && t.duration != null && t.st !== 'skipped' && was(t.key) !== 'skipped')
-      .map((t) => ({ t, d: t.duration - prevMs(t) }))
-      .filter((x) => Math.abs(x.d) >= 100);
-    const slowerNow = moved.filter((x) => x.d > 0).sort((p1, p2) => p2.d - p1.d);
-    const fasterNow = moved.filter((x) => x.d < 0).sort((p1, p2) => p1.d - p2.d);
-    const prevRun = nRuns - 1;
+    const inSet = (set) => tests.filter((t) => set.has(t.key));
+    const stillFailing = inSet(c.cmp.still);
+    const added = inSet(c.cmp.added);
+    const { removed } = c;
+    const byChange = (set) => inSet(set).map((t) => ({ t, d: t.duration - prevMs(t) }));
+    const slowerNow = byChange(c.cmp.slower).sort((p1, p2) => p2.d - p1.d);
+    const fasterNow = byChange(c.cmp.faster).sort((p1, p2) => p1.d - p2.d);
+    // The baseline need not be the run just before: it is the last run of these specs.
+    const prevRun = c.prevIdx + 1;
 
     // ── the metric table ──
     const badge = (now, before, { good = 'up', unit = '', relative = false, strong = false } = {}) => {
@@ -848,10 +886,10 @@ function page(c, options) {
     const tcOf = (t) => (t.tc ? `<b class="tcid">${esc(t.tc)}:</b> ${esc(t.rest)}` : esc(t.title));
     const box = (t, sub, right = '') => `<a class="ditem" href="#${t.id}"><span class="dtitle">${tcOf(t)}</span>
       <span class="dsub"><span>${esc(sub)}</span>${right ? `<em>${esc(right)}</em>` : ''}</span></a>`;
-    const line = (t) => `<a class="dline" href="#${t.id}">${tcOf(t)}</a>`;
     const msChange = (t) => { const pm = prevMs(t); if (!pm || t.duration == null) return ''; const d = t.duration - pm; return Math.abs(d) >= 1 ? `${d > 0 ? '+' : '−'}${dur(Math.abs(d))}` : ''; };
-    const MAX = 6;
-    const more = (n) => (n > MAX ? `<p class="dmore">+ ${n - MAX} more</p>` : '');
+    // Five tests per card, then "+N more", which opens the Tests view filtered to all of them.
+    const MAX = 5;
+    const more = (n, go) => (n > MAX ? `<a class="dmore" href="#tests" data-go="${go}">+${n - MAX} more</a>` : '');
     const empty = (ic, sub) => `<div class="dempty">${ic ? `<span class="dicon">${icon(ic)}</span>` : ''}<b>None</b><small>${esc(sub)}</small></div>`;
     const card = (title, tone, n, body, emptyIc, emptySub) => `<article class="dcard ${tone}">
       <header><h4>${title}</h4><span class="dcount">${n}</span></header>
@@ -859,26 +897,28 @@ function page(c, options) {
     const kindOf = (t) => (t.kind ? KINDS[t.kind].label : 'Failed now');
     const cards = [
       card('New failures', 'red', c.newFailures.length,
-        c.newFailures.slice(0, MAX).map((t, i) => (i === 0 ? box(t, kindOf(t), msChange(t)) : line(t))).join('') + more(c.newFailures.length),
+        c.newFailures.slice(0, MAX).map((t) => box(t, kindOf(t), msChange(t))).join('') + more(c.newFailures.length, 'att:new'),
         I.pass, 'Nothing that passed last run fails now'),
       card('Fixed', 'green', c.fixed.length,
-        c.fixed.slice(0, MAX).map((t) => box(t, 'Failed last run, passes now', msChange(t))).join('') + more(c.fixed.length),
+        c.fixed.slice(0, MAX).map((t) => box(t, 'Failed last run, passes now', msChange(t))).join('') + more(c.fixed.length, 'att:fixed'),
         I.pass, 'No test that failed last run passes now'),
       card('Still failing', 'orange', stillFailing.length,
-        stillFailing.slice(0, MAX).map((t) => box(t, `Failed in the previous run too · ${kindOf(t)}`)).join('') + more(stillFailing.length),
+        stillFailing.slice(0, MAX).map((t) => box(t, `Failed in the previous run too · ${kindOf(t)}`)).join('') + more(stillFailing.length, 'cmp:still'),
         I.pass, 'No test failed in both runs'),
       card('New tests', 'blue', added.length,
-        added.slice(0, MAX).map((t) => box(t, `Not in run #${prevRun} · ${STATUS_LABEL[t.status] ?? t.status}`)).join('') + more(added.length),
+        added.slice(0, MAX).map((t) => box(t, `Not in run #${prevRun} · ${STATUS_LABEL[t.status] ?? t.status}`)).join('') + more(added.length, 'cmp:added'),
         I.plus, 'Same tests as the previous run'),
       card('Slower', 'purple', slowerNow.length,
-        slowerNow.slice(0, MAX).map((x) => box(x.t, `${dur(prevMs(x.t))} → ${dur(x.t.duration)}`, `+${dur(x.d)}`)).join('') + more(slowerNow.length),
+        slowerNow.slice(0, MAX).map((x) => box(x.t, `${dur(prevMs(x.t))} → ${dur(x.t.duration)}`, `+${dur(x.d)}`)).join('') + more(slowerNow.length, 'cmp:slower'),
         null, 'No test got slower by 100 ms or more'),
       card('Faster', 'teal', fasterNow.length,
-        fasterNow.slice(0, MAX).map((x) => box(x.t, `${dur(prevMs(x.t))} → ${dur(x.t.duration)}`, `−${dur(-x.d)}`)).join('') + more(fasterNow.length),
+        fasterNow.slice(0, MAX).map((x) => box(x.t, `${dur(prevMs(x.t))} → ${dur(x.t.duration)}`, `−${dur(-x.d)}`)).join('') + more(fasterNow.length, 'cmp:faster'),
         null, 'No test got faster by 100 ms or more'),
     ].join('');
+    // Removed tests are not in this run, so they have no page to open: "+N more" shows the rest here.
     const removedCard = removed.length ? card('Removed tests', 'mut', removed.length,
-      removed.slice(0, MAX).map((k) => `<span class="dline">${esc(k.split('::').slice(1).join('::'))}</span>`).join('') + more(removed.length), null, '') : '';
+      removed.map((k, i) => `<span class="dline"${i >= MAX ? ' hidden' : ''}>${esc(k.split('::').slice(1).join('::'))}</span>`).join('')
+        + (removed.length > MAX ? `<button type="button" class="dmore" data-expand>+${removed.length - MAX} more</button>` : ''), null, '') : '';
 
     comparisonView = `<section class="view" id="v-comparison" data-view="comparison">
   <h2 class="vtitle">Comparison <span class="muted mono">Run #${prevRun} (${esc(fmtRun(prev))}) → Run #${nRuns}</span></h2>
@@ -889,7 +929,10 @@ function page(c, options) {
   <div class="dgrid">${cards}${removedCard}</div>
 </section>`;
   } else {
-    comparisonView = `<section class="view" id="v-comparison" data-view="comparison"><h2 class="vtitle">Comparison</h2>${noHistory('Comparisons')}</section>`;
+    comparisonView = hasHistory
+      ? `<section class="view" id="v-comparison" data-view="comparison"><h2 class="vtitle">Comparison</h2><div class="panel empty-state">${icon(I.trend)}<b>No earlier run of these spec files</b>
+    <p>Earlier runs in the history ran other specs only, so there is nothing to compare this run with. Run the same specs again and this view fills in.</p></div></section>`
+      : `<section class="view" id="v-comparison" data-view="comparison"><h2 class="vtitle">Comparison</h2>${noHistory('Comparisons')}</section>`;
   }
 
   // ── gallery ──
@@ -900,7 +943,7 @@ function page(c, options) {
     const status = STATUS_LABEL[t.status] ?? t.status;
     const sub = t.st === 'failed' ? t.diag?.why ?? t.firstLine : t.steps.length ? `${t.steps.length} steps recorded` : 'Recorded run';
     // TC numbers repeat across specs, so every card names the suite and spec it came from.
-    const where = t.groupName === t.file ? t.file : `${t.groupName} · ${t.file}`;
+    const where = t.file;
     const whereHtml = `<span class="gsuite" title="${esc(where)}">${icon(I.folder)}<span>${esc(where)}</span></span>`;
     const kindLabel = t.kind ? KINDS[t.kind].label : '';
     const kindHtml = t.kind ? `<span class="gkind ${KINDS[t.kind].tone}"><i></i>${esc(kindLabel)}</span>` : `<span class="gkind green"><i></i>${esc(STATUS_LABEL[t.status] ?? t.status)} · no failure</span>`;
@@ -947,8 +990,14 @@ function page(c, options) {
   const clearBtn = '<button id="fclear" class="linkbtn" disabled>clear all</button>';
   const fgroups = [];
   // Suite groups is always offered, even for a single suite; status filtering is the tiles above.
-  if (attn.length) fgroups.push(['Attention', attn.map(([a, n]) => rowChip('att', a, ATT[a][0], n, '<span class="sdot"></span>', ATT[a][1])).join(''), 'vs earlier runs']);
+  // Quarantine: exactly the tests in the Quarantine Registry (its own threshold and limit).
+  const qRow = c.quarantined.length ? rowChip('q', '1', options.quarantine ? 'Quarantined' : 'Quarantine candidates', c.quarantined.length, '<span class="sdot"></span>', 'yellow') : '';
+  if (attn.length || qRow) fgroups.push(['Attention', attn.map(([a, n]) => rowChip('att', a, ATT[a][0], n, '<span class="sdot"></span>', ATT[a][1])).join('') + qRow, 'vs earlier runs']);
   fgroups.push(['Failure kind', kindList.map(([k, l]) => rowChip('kind', k, KINDS[k].label, l.length, '<span class="sdot"></span>', KINDS[k].tone, true)).join(''), plural(byKind.size, 'category', 'categories') + ' hit']);
+  // What the Comparison cards list; each "+N more" there opens one of these.
+  const cmpRows = [['still', 'Still failing', 'orange'], ['added', 'New tests', 'blue'], ['slower', 'Slower', 'purple'], ['faster', 'Faster', 'teal']]
+    .map(([k, label, tone]) => [k, label, tone, c.cmp[k].size]).filter(([, , , n]) => n);
+  if (prev && cmpRows.length) fgroups.push([`Compared with run #${c.prevIdx + 1}`, cmpRows.map(([k, label, tone, n]) => rowChip('cmp', k, label, n, '<span class="sdot"></span>', tone)).join(''), 'vs that run']);
   if (groups.length) fgroups.push(['Suite groups', groups.map((g) => rowChip('group', g, g, tests.filter((t) => t.groupName === g).length, icon(I.folder, 'fic'), 'group', true)).join(''), plural(groups.length, 'group', 'groups')]);
   // "clear all" sits on the first group's line, where the eye already is.
   const filtersHtml = fgroups.map(([title, rows, note], i) => `<div class="fgroup"><div class="fsub"><small>${title}</small>${i === 0 ? clearBtn : `<span>${note}</span>`}</div>
@@ -1075,7 +1124,9 @@ export function writeReport(run, options = {}) {
 const T = (bg, bg2, card, hover, side, border, glow, fg, fg2, mut, g, gd, r, rd, y, yd, b, bd, p, o) =>
   `--bg:${bg};--bg2:${bg2};--card:${card};--hover:${hover};--side:${side};--border:${border};--glow:${glow};` +
   `--fg:${fg};--fg2:${fg2};--mut:${mut};--green:${g};--green-d:${gd};--red:${r};--red-d:${rd};` +
-  `--yellow:${y};--yellow-d:${yd};--blue:${b};--blue-d:${bd};--purple:${p};--orange:${o}`;
+  `--yellow:${y};--yellow-d:${yd};--blue:${b};--blue-d:${bd};--purple:${p};--orange:${o};` +
+  // The raw bright shades, which the body rule below softens into --red etc.
+  `--red-b:${r};--green-b:${g};--yellow-b:${y};--blue-b:${b};--purple-b:${p};--orange-b:${o}`;
 const DARK = T('#0a0a0f', '#12121a', '#1a1a24', '#22222e', '#0d0d14', '#2a2a3a', '#3b3b4f', '#f0f0f5', '#8888a0', '#5a5a70', '#00ff88', '#00cc6a', '#ff4466', '#cc3355', '#ffcc00', '#ccaa00', '#00aaff', '#0088cc', '#aa66ff', '#ff8844');
 const LIGHT = T('#f5f5f7', '#ffffff', '#ffffff', '#f0f0f2', '#fafafa', '#e0e0e5', '#d0d0d8', '#1a1a1f', '#5a5a6e', '#8a8a9a', '#00aa55', '#008844', '#dd3344', '#bb2233', '#cc9900', '#aa7700', '#0077cc', '#005599', '#8844cc', '#dd6622');
 const THEMES = {
@@ -1095,20 +1146,25 @@ function css() {
 @media(prefers-color-scheme:light){:root:not([data-theme]){${LIGHT};color-scheme:light}
   :root:not([data-theme]) .gicon.alert .ic-body{fill:color-mix(in srgb,var(--t) 14%,#fff)}
   :root:not([data-theme]) .gicon.alert .ic-bang{fill:var(--t)}
-  :root:not([data-theme]) .gicon.alert{filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--t) 25%,transparent))}}
+  :root:not([data-theme]) .gicon.alert{filter:none}}
 :root[data-theme="dark"]{${DARK};color-scheme:dark}
 :root[data-theme="light"]{${LIGHT};color-scheme:light}
 :root[data-theme="light"] .gicon.alert .ic-body{fill:color-mix(in srgb,var(--t) 14%,#fff)}
 :root[data-theme="light"] .gicon.alert .ic-bang{fill:var(--t)}
-:root[data-theme="light"] .gicon.alert{filter:drop-shadow(0 2px 3px color-mix(in srgb,var(--t) 25%,transparent))}
+:root[data-theme="light"] .gicon.alert{filter:none}
 ${Object.entries(THEMES).map(([k, v]) => `:root[data-theme="${k}"]{${v};color-scheme:dark}`).join('\n')}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--fg)}
-/* Calmer status colours across the whole report: the neon red, yellow, green and
-   blue glare at full strength, so every page uses each theme's deeper shade
-   blended toward grey. Set on body, so it applies in every theme and in print. */
-body{--red:color-mix(in srgb,var(--red-d) 68%,var(--fg2));--yellow:color-mix(in srgb,var(--yellow-d) 68%,var(--fg2));
---green:color-mix(in srgb,var(--green-d) 68%,var(--fg2));--blue:color-mix(in srgb,var(--blue-d) 68%,var(--fg2))}
+/* Bright but not neon status colours across the whole report: the midpoint of
+   each theme's bright and deep shade with a touch of grey. Full neon glares, and
+   the deep shade blended toward grey looked dull. Orange and purple, which have
+   no deep shade, get the same touch of grey so all six match. Set on body, so
+   it applies in every theme and in print. */
+body{--red:color-mix(in srgb,color-mix(in srgb,var(--red-b) 50%,var(--red-d)) 88%,var(--fg2));
+--yellow:color-mix(in srgb,color-mix(in srgb,var(--yellow-b) 50%,var(--yellow-d)) 88%,var(--fg2));
+--green:color-mix(in srgb,color-mix(in srgb,var(--green-b) 50%,var(--green-d)) 88%,var(--fg2));
+--blue:color-mix(in srgb,color-mix(in srgb,var(--blue-b) 50%,var(--blue-d)) 88%,var(--fg2));
+--orange:color-mix(in srgb,var(--orange-b) 88%,var(--fg2));--purple:color-mix(in srgb,var(--purple-b) 88%,var(--fg2))}
 /* Reserve scrollbar space so switching between a long and a short view never shifts the layout. */
 html{scrollbar-gutter:stable}
 body{font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh}
@@ -1239,11 +1295,11 @@ background:var(--card);color:var(--fg);font-size:13.5px;text-align:left;cursor:p
 /* ring */
 .ring{position:relative;display:grid;place-items:center}
 .ring svg{width:100%;height:100%}
-.ring-bg{fill:none;stroke:var(--hover);stroke-width:8}
-.ring-fg{fill:none;stroke-width:8;stroke-linecap:round}
-.ring.green .ring-fg{stroke:var(--green);filter:drop-shadow(0 0 5px var(--green))}
-.ring.yellow .ring-fg{stroke:var(--yellow);filter:drop-shadow(0 0 5px var(--yellow))}
-.ring.red .ring-fg{stroke:var(--red);filter:drop-shadow(0 0 5px var(--red))}
+/* A clean ring: no glow (it blurred into what looked like a border), and a track
+   tinted with the ring's own colour so the arc reads as one piece with it. */
+.ring{--tone:var(--mut)}.ring.green{--tone:var(--green)}.ring.yellow{--tone:var(--yellow)}.ring.red{--tone:var(--red)}
+.ring-bg{fill:none;stroke:color-mix(in srgb,var(--tone) 16%,var(--hover));stroke-width:8}
+.ring-fg{fill:none;stroke-width:8;stroke-linecap:round;stroke:var(--tone)}
 .ring-mid{position:absolute;text-align:center;line-height:1.1}
 .ring-mid b{font-family:var(--mono);font-size:19px;font-weight:700}
 .ring.green .ring-mid b{color:var(--green)}.ring.yellow .ring-mid b{color:var(--yellow)}.ring.red .ring-mid b{color:var(--red)}
@@ -1254,7 +1310,8 @@ background:var(--card);color:var(--fg);font-size:13.5px;text-align:left;cursor:p
 .att{display:grid;text-align:left;gap:2px;padding:18px 20px;border-radius:12px;border:1px solid var(--border);border-left:4px solid var(--tone);cursor:pointer;
 background:linear-gradient(90deg,color-mix(in srgb,var(--tone) 10%,var(--card)),var(--card) 60%)}
 .att:hover{border-color:var(--tone)}
-.att:disabled{opacity:.5;cursor:default}.att:disabled:hover{border-color:var(--border)}
+/* A 0 card stays as bright as the rest (every kind reads as one set), it just cannot be clicked. */
+.att:disabled{cursor:default}.att:disabled:hover{border-color:var(--border)}
 .att b{font-family:var(--mono);font-size:28px;line-height:1.2}
 .att span{font-weight:600}
 .att small{color:var(--fg2);font-size:12px}
@@ -1271,7 +1328,9 @@ background:linear-gradient(90deg,color-mix(in srgb,var(--tone) 10%,var(--card)),
 .chip{display:inline-block;font-size:11px;padding:3px 9px;border-radius:6px;background:var(--hover);border:1px solid var(--border);color:var(--fg2);font-family:var(--mono);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 a.chip:hover{border-color:var(--glow);color:var(--fg)}
 /* insights */
-.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media(max-width:900px){.insights{grid-template-columns:1fr}}
+.insight.none{cursor:default}.insight.none b{color:var(--fg2)}.insight.none .ico{opacity:.6}
 .insight{display:flex;gap:16px;align-items:center;padding:18px 20px;border-radius:12px;border:1px solid var(--border);background:var(--card);min-width:0}
 a.insight[href]:hover{border-color:var(--glow)}
 .insight .ico{display:grid;place-items:center;width:42px;height:42px;border-radius:10px;background:var(--hover);flex:none}
@@ -1487,6 +1546,8 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 45%,transparent
 .tile:hover:not(:disabled){border-color:var(--tone)}
 .tile:disabled{cursor:default}
 .frow:disabled{opacity:.45;cursor:default}.frow:disabled:hover{background:transparent;color:var(--fg)}
+/* Failure kinds are one fixed set: a 0 row stays full brightness, it just cannot be clicked. */
+.frow.plain[data-f="kind"]:disabled{opacity:1}
 .tile.on{border-color:var(--tone);box-shadow:0 0 14px -5px var(--tone)}
 .tile b{font-family:var(--mono);font-size:19px;line-height:1.2;color:var(--tone)}
 .tile small{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
@@ -1593,7 +1654,8 @@ background:var(--bg2);color:var(--fg);font:500 12px/1.55 var(--mono);text-align:
 .dhead2{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
 .dhead2 .i{color:var(--fg2)}
 .dhead2 b{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
-.dgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+/* grid-auto-rows:1fr: every row is as tall as the tallest card, so all cards are one size. */
+.dgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:16px}
 .dcard{display:flex;flex-direction:column;min-height:230px;border:1px solid color-mix(in srgb,var(--tone) 55%,var(--border));border-radius:12px;background:var(--card)}
 .dcard.teal{--tone:color-mix(in srgb,var(--green) 55%,var(--blue))}
 .dcard>header{display:flex;align-items:center;justify-content:space-between;margin:0 16px;padding:14px 0 12px;border-bottom:1px solid var(--border)}
@@ -1611,7 +1673,9 @@ color:var(--tone);border:1px solid color-mix(in srgb,var(--tone) 55%,transparent
 a.dline:hover{color:var(--tone)}
 .tcid{color:var(--tone);font-weight:600}
 .dtitle .tcid{color:var(--fg)}
-.dmore{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.dmore{font-family:var(--mono);font-size:11px;color:var(--blue);background:none;border:0;padding:4px 0;cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--blue) 40%,transparent)}
+.dmore:hover{text-decoration-color:var(--blue)}
+.frow.teal{--tone:color-mix(in srgb,var(--green) 55%,var(--blue))}
 .dempty{flex:1;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center}
 .dicon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;color:var(--tone);background:color-mix(in srgb,var(--tone) 18%,transparent)}
 .dicon .i{width:16px;height:16px}
@@ -1656,13 +1720,23 @@ background:color-mix(in srgb,var(--tone) 14%,transparent);color:var(--tone);font
 .qfoot .gi,.tbtn .gi{width:17px;height:17px}
 .shead .gi.badge{width:26px;height:26px}
 /* warning triangle: "telemetry" look by default (every theme but Light) */
-.gicon.alert .ic-body{fill:color-mix(in srgb,var(--t) 20%,#12060a);stroke:var(--t);stroke-width:2.2}
-.gicon.alert .ic-inner{fill:none;stroke:var(--t);stroke-opacity:.35;stroke-width:1.2}
-.gicon.alert .ic-bang{fill:color-mix(in srgb,var(--t) 22%,#fff)}
-.gicon.alert{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--t) 55%,transparent))}
+.gicon.alert .ic-body{fill:color-mix(in srgb,var(--t) 22%,var(--card));stroke:var(--t);stroke-width:3.6}
+/* Crisp at 17px: every line is a whole pixel or more. The inner outline and the
+   glow were sub-pixel there and read as blur, so neither is drawn. */
+.gicon.alert .ic-inner{display:none}
+.gicon.alert .ic-bang{fill:var(--t)}
+.gicon.alert{filter:none}
 /* squircle warning badge */
 .gicon .ic-tri{fill:color-mix(in srgb,var(--t) 24%,var(--card));stroke:var(--t);stroke-width:2;stroke-linejoin:round}
 .gicon .ic-stem{fill:none;stroke:color-mix(in srgb,var(--t) 80%,#000);stroke-width:2.2;stroke-linecap:round}
+/* The alert tile (Failure breakdown, a suite that failed to run): crisp at 26px.
+   No glow and no inner outline, which were sub-pixel there and read as blur;
+   whole-pixel lines, and the "!" in the tile's own colour. */
+.gicon.abadge{filter:none}
+.gicon.abadge .ic-body{stroke-width:2.6}
+.gicon.abadge .ic-tri{stroke-width:2.8;fill:color-mix(in srgb,var(--t) 18%,var(--card))}
+.gicon.abadge .ic-stem{stroke:var(--t);stroke-width:3.4}
+.gicon.abadge .ic-pip{fill:var(--t)}
 .gicon .ic-pip{fill:color-mix(in srgb,var(--t) 80%,#000)}
 .gicon .ic-key{fill:var(--card)}.gicon .ic-keyline{fill:none;stroke:var(--card);stroke-width:1.5;stroke-linecap:round}
 .rule.ok{--rt:var(--green)}.rule.no{--rt:var(--red)}.rule.skip{--rt:var(--mut)}
@@ -1834,7 +1908,7 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   /* Grids narrow enough for an A4 page. */
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .qbody,.tgrid,.panels{grid-template-columns:1fr!important}
-  .dgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .dgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:auto}
   .dcard{min-height:0}
   .tarea{height:140px}.achart{min-height:170px}.aplot{min-height:140px}
   /* Hover-only bits have no meaning on paper. */
@@ -1873,7 +1947,7 @@ function clientJs() {
 document.documentElement.classList.add('js');
 var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
 var views={overview:'Overview',tests:'Tests',trends:'Trends',comparison:'Comparison',gallery:'Gallery'};
-var cur=null, filters={att:null,st:null,kind:null,group:null}, q=$('#q'), tf=$('#tf');
+var cur=null, filters={att:null,st:null,kind:null,group:null,cmp:null,q:null}, q=$('#q'), tf=$('#tf');
 function show(view,id){
   $$('.view').forEach(function(v){v.classList.toggle('on',v.dataset.view===view)});
   $$('[data-nav]').forEach(function(a){a.classList.toggle('on',a.dataset.nav===view)});
@@ -1898,7 +1972,7 @@ function apply(){
   var term=((q.value||'')+' '+(tf.value||'')).trim().toLowerCase(), shown=0, any=false;
   $$('.titem').forEach(function(t){
     var d=$('#d-'+t.dataset.id), text=(t.textContent+' '+(d?d.textContent:'')).toLowerCase();
-    var ok=(!filters.att||(' '+t.dataset.att+' ').indexOf(' '+filters.att+' ')>-1)&&(!filters.st||t.dataset.st===filters.st)&&(!filters.kind||t.dataset.kind===filters.kind)&&(!filters.group||t.dataset.group===filters.group)
+    var ok=(!filters.att||(' '+t.dataset.att+' ').indexOf(' '+filters.att+' ')>-1)&&(!filters.st||t.dataset.st===filters.st)&&(!filters.kind||t.dataset.kind===filters.kind)&&(!filters.group||t.dataset.group===filters.group)&&(!filters.cmp||(' '+t.dataset.cmp+' ').indexOf(' '+filters.cmp+' ')>-1)&&(!filters.q||t.dataset.q===filters.q)
       &&(!term||term.split(/\\s+/).every(function(w){return text.indexOf(w)>-1}));
     t.hidden=!ok; if(ok) shown++;
   });
@@ -1916,6 +1990,7 @@ $('#fclear').addEventListener('click',function(){for(var k in filters) filters[k
 $$('[data-go]').forEach(function(b){b.addEventListener('click',function(e){
   e.preventDefault(); var p=b.dataset.go.split(':'); var chip=$('[data-f="'+p[0]+'"][data-v="'+p[1]+'"]'); if(chip&&!chip.classList.contains('on')) chip.click(); location.hash='tests';
 })});
+$$('[data-expand]').forEach(function(b){b.addEventListener('click',function(){$$('[hidden]',b.parentElement).forEach(function(x){x.hidden=false}); b.remove();})});
 q.addEventListener('input',function(){apply(); if(q.value&&!/^#?(tests|t\\d+)$/.test(location.hash.slice(1))) location.hash='tests';});
 tf.addEventListener('input',apply);
 document.addEventListener('keydown',function(e){

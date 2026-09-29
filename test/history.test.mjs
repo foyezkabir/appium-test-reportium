@@ -174,10 +174,50 @@ test('sparkline dots explain each run: date, pass rate, change, counts, gate ver
   assert.match(gate[1], /Pass rate 100%  \(▲ 50 pts vs previous\)[\s\S]*Gates: PASSED/);
   assert.match(gate[2], /this run\nPass rate 50%  \(▼ 50 pts vs previous\)[\s\S]*Gates: FAILED: Max failures, No new failures\nNew failures: 1/);
   const flaky = tips.slice(3);
-  assert.match(flaky[2], /this run\n2 flaky of 2 tests \(100%\)  ·  \+[12] vs previous\nLogin a\nLogin b/);
+  assert.match(flaky[2], /this run\n2 flaky of 2 tests \(100%\)  ·  \+[12] vs previous\na\nb/, "tooltips name the test by its title, without the describe text");
   assert.match(html, /<h4>Pass rate trend \(last 3 runs\)<\/h4>/);
   assert.match(html, /class="rule no"[\s\S]*Max failures[\s\S]*Condition: ≤ 0 failures allowed/);
   assert.match(html, /<span class="qrun">Run #3<\/span><span class="qbadge"><i><\/i>Gate failed<\/span>/);
   assert.match(html, /Quarantine Registry[\s\S]*Flaky test volume \(last 3 runs\)[\s\S]*Target: 0 flaky/);
   assert.match(html, /Failed in 1\/3 runs/, 'per-candidate history, this run included');
+});
+
+test('comparison uses the last run of the same specs, and five tests per card then a clickable "+N more"', () => {
+  const login = Array.from({ length: 8 }, (_, i) => ({ title: `TC-0${i + 1}: case`, fullName: `Login TC-0${i + 1}: case`, group: ['Login'], status: 'failed', duration: 1000, errors: ['Error: x'] }));
+  const run = { startTime: 5000, duration: 1, suites: [{ file: 'tests/login.spec.ts', tests: login }] };
+  const key = (t) => `tests/login.spec.ts::${t.fullName}`;
+  const loginRun = { startTime: 1000, duration: 1, passed: 0, failed: 9, skipped: 0, flaky: 0,
+    tests: { ...Object.fromEntries(login.map((t) => [key(t), ['failed', 1000]])), 'tests/login.spec.ts::Login TC-99: gone': ['passed', 5] } };
+  const harnessRun = { startTime: 2000, duration: 1, passed: 3, failed: 0, skipped: 0, flaky: 0,
+    tests: { 'tests/00-harness.spec.ts::Harness TC01: a': ['passed', 5], 'tests/00-harness.spec.ts::Harness TC02: b': ['passed', 5] } };
+  const html = renderReport(run, { outputDirectory: tmpdir(), historyRuns: [loginRun, harnessRun] });
+  const view = html.split('id="v-comparison"')[1].split('</section>')[0];
+
+  assert.match(view, /Run #1 \([^)]*\) → Run #3/, 'the baseline is the login run, not the later harness-only run');
+  assert.doesNotMatch(view, /Harness/, 'tests of a spec that did not run are not "removed"');
+  assert.match(view, /Removed tests[\s\S]*Login TC-99: gone/, 'a test gone from a spec that ran is removed');
+  const still = view.split('Still failing')[1].split('</article>')[0];
+  assert.equal((still.match(/class="ditem"/g) ?? []).length, 5, 'five tests shown');
+  assert.match(still, /<a class="dmore" href="#tests" data-go="cmp:still">\+3 more<\/a>/);
+  assert.match(html, /data-f="cmp" data-v="still"/, 'the link has a filter to open');
+  assert.equal((html.match(/data-cmp="still"/g) ?? []).length, 8, 'every still-failing test carries it');
+});
+
+test('comparison says so when no earlier run ran these specs', () => {
+  const run = { startTime: 5000, duration: 1, suites: [{ file: 'tests/login.spec.ts', tests: [{ title: 'TC-01: a', fullName: 'Login TC-01: a', group: ['Login'], status: 'passed', duration: 5, errors: [] }] }] };
+  const harnessRun = { startTime: 2000, duration: 1, passed: 1, failed: 0, skipped: 0, flaky: 0, tests: { 'tests/00-harness.spec.ts::Harness TC01: a': ['passed', 5] } };
+  const html = renderReport(run, { outputDirectory: tmpdir(), historyRuns: [harnessRun] });
+  assert.match(html.split('id="v-comparison"')[1], /No earlier run of these spec files/);
+});
+
+test('quarantine registry shows five tests, then "+N more" opening a filter of exactly those tests', () => {
+  const tests = Array.from({ length: 7 }, (_, i) => ({ title: `TC-0${i + 1}: flaky`, fullName: `Login TC-0${i + 1}: flaky`, group: ['Login'], status: 'failed', duration: 10, errors: ['Error: x'] }));
+  const run = { startTime: 5000, duration: 1, suites: [{ file: 'tests/login.spec.ts', tests }] };
+  const before = { startTime: 1000, duration: 1, passed: 7, failed: 0, skipped: 0, flaky: 0, tests: Object.fromEntries(tests.map((t) => [`tests/login.spec.ts::${t.fullName}`, ['passed', 10]])) };
+  const html = renderReport(run, { outputDirectory: tmpdir(), historyRuns: [before] });
+  const list = html.split('class="qlist"')[1].split('</section>')[0];
+  assert.equal((list.match(/class="qitem"/g) ?? []).length, 5);
+  assert.match(list, /<a class="dmore" href="#tests" data-go="q:1">\+2 more<\/a>/);
+  assert.match(html, /data-f="q" data-v="1"[^>]*>[\s\S]*?Quarantine candidates<\/span><i>7<\/i>/);
+  assert.equal((html.match(/data-q="1"/g) ?? []).length, 7);
 });

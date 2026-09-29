@@ -106,7 +106,9 @@ export function fromJUnit(xml) {
       // Runners that nest suites (mocha's "Root Suite") emit empty wrappers.
       const crash = /<(?:failure|error)\b/.test(body) && !tests.length ? outcome(body).errors.join('\n') : undefined;
       if (!tests.length && !crash) continue;
-      suites.push({ file: s.file ?? s.name ?? 'unnamed suite', tests, error: crash });
+      // jest-junit's addFileAttribute puts the spec file on each <testcase>, not the suite.
+      const caseFile = body.match(/<testcase\b[^>]*?\sfile="([^"]*)"/)?.[1];
+      suites.push({ file: s.file ?? (caseFile && text(caseFile)) ?? s.name ?? 'unnamed suite', tests, error: crash });
     }
   }
 

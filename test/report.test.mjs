@@ -206,3 +206,32 @@ test('JUnit adapter splits jest-junit default names back into describe group and
   assert.deepEqual(tests.map((t) => t.group), [['Login — email and password'], ['Login — email and password']]);
   assert.equal(tests[0].fullName, 'Login — email and password TC-01: form opens', 'full name still pairs steps');
 });
+
+test('suite groups are the spec file name, never the describe text', () => {
+  const t = (title) => ({ title, fullName: `Login — email and password ${title}`, group: ['Login — email and password'], status: 'passed', duration: 10, errors: [] });
+  const run = { startTime: 1, duration: 1, suites: [
+    { file: 'tests/login.spec.ts', tests: [t('TC-01: opens'), t('TC-02: signs in')] },
+    { file: 'tests/a/profile.spec.ts', tests: [t('TC-01: shows')] },
+    { file: 'tests/b/profile.spec.ts', tests: [t('TC-01: edits')] },
+  ] };
+  const html = renderReport(run, { outputDirectory: tmpdir(), historyFile: false });
+  const groups = [...html.matchAll(/data-f="group" data-v="([^"]*)"/g)].map((m) => m[1]);
+  assert.deepEqual(groups, ['login.spec.ts', 'tests/a/profile.spec.ts', 'tests/b/profile.spec.ts'], 'same-named specs keep their path');
+  assert.doesNotMatch(html, /class="chip">Login — email and password</, 'the describe text is not shown as a group');
+});
+
+test('JUnit adapter takes the spec file from jest-junit addFileAttribute on each testcase', () => {
+  const doc = `<testsuites><testsuite name="Login — email and password" tests="1">
+    <testcase classname="Login — email and password TC-01: opens" name="Login — email and password TC-01: opens" time="1" file="tests/login.spec.ts"></testcase>
+  </testsuite></testsuites>`;
+  assert.equal(fromJUnit(doc).suites[0].file, 'tests/login.spec.ts');
+});
+
+test('quick insights always has three cards, saying why when one has no data', () => {
+  const run = { startTime: 1, duration: 1, suites: [{ file: 'a.spec.ts', tests: [{ title: 'TC-01: a', fullName: 'A TC-01: a', group: ['A'], status: 'passed', duration: 5, errors: [] }] }] };
+  const first = renderReport(run, { outputDirectory: tmpdir(), historyFile: false });
+  const row = first.split('Quick insights</h3>')[1].split('<div class="panels">')[0];
+  assert.equal((row.match(/class="insight( none)?"/g) ?? []).length, 3, 'a first run with no steps still has three cards');
+  assert.match(row, /No steps recorded/);
+  assert.match(row, /Needs history/);
+});

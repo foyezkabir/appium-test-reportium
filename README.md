@@ -387,10 +387,10 @@ explanation never replaces the evidence.
 > `jest-junit` and `@wdio/junit-reporter`, `useFullSuiteTitle` / `outputs` for
 > `mocha-junit-reporter`. Without it, the JUnit suite name stands in for the file.
 
-The `describe` block a test belongs to. From JUnit XML this is the
-`classname`; from Jest it is the full describe path, for example
-`Checkout › Payment`. Long names are cut with "…"; hover to see the full
-name. Shown even when the run has only one group.
+One group per spec file, named by the file, for example `login.spec.ts`. The
+`describe` text is not used. Two specs with the same name in different folders
+are shown with their full path so they stay apart. Long names are cut with
+"…"; hover to see the full name. Shown even when the run has only one group.
 
 #### Search
 
