@@ -3,6 +3,8 @@
  * The HTML report comes from the testreportium Jest adapter.
  */
 
+import type { ReportOptions } from 'testreportium';
+
 export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -34,6 +36,16 @@ export default {
     ['testreportium/jest', {
       pageTitle: '<App name> · Appium Automation Report',
       filename: 'report.html',
-    }],
+      // The Quality Gates panel. A rule left out shows "Not set" and never
+      // decides the gate; a breach is reported, jest's exit code stays the verdict.
+      qualityGates: {
+        maxFailures: 0,          // no test may fail
+        minPassRate: 95,         // at least 95% of executed tests pass
+        maxFlakyRate: 10,        // at most 10% of tests flaky
+        minStabilityGrade: 'B',  // suite grade B or better (A–D)
+        noNewFailures: true,     // nothing that passed last run may fail now
+      },
+      quarantine: true,          // write quarantine.json
+    } satisfies ReportOptions],  // typed: a misspelt rule or wrong value fails the typecheck
   ],
 };

@@ -147,6 +147,61 @@ import { renderReport, writeReport } from 'testreportium';
 writeReport(run, { outputDirectory: 'reports' });   // or renderReport(run) → string
 ```
 
+## Recommended config
+
+A complete reporter entry for a Jest + Appium suite: every quality gate rule
+set, the quarantine file on, and the options typed so a typo fails the
+typecheck instead of being silently ignored.
+
+```ts
+// jest.config.ts
+import type { ReportOptions } from 'testreportium';
+
+export default {
+  // …preset, setupFilesAfterEnv, etc.
+  reporters: [
+    'default',
+    ['jest-junit', { outputDirectory: 'appium-reports', outputName: 'junit.xml' }],
+    ['testreportium/jest', {
+      outputDirectory: 'appium-reports',
+      projectName: 'My App',
+      qualityGates: {
+        maxFailures: 0,          // no test may fail
+        minPassRate: 95,         // at least 95% of executed tests pass
+        maxFlakyRate: 10,        // at most 10% of tests flaky
+        minStabilityGrade: 'B',  // suite grade B or better (A–D)
+        noNewFailures: true,     // nothing that passed last run may fail now
+      },
+      quarantine: true,          // write quarantine.json: the tests flaky enough to set aside
+    } satisfies ReportOptions],
+  ],
+};
+```
+
+A rule you leave out still shows in the Quality Gates panel with this run's
+value, marked *Not set*, and never decides the gate. The gate is reported, not
+enforced: Jest's exit code stays the verdict (the CLI's `--fail-on-gate` exits
+1 on a failed gate, for CI).
+
+**What installing gives you, and what the suite adds.** A reporter only sees
+what the runner hands it when the run ends, so some sections need a line or
+two in your suite. Without them the report still works; those sections say
+what to add.
+
+| In the report | Needs |
+|---|---|
+| Pass / fail, errors, durations, *What went wrong*, history, trends, comparison, flaky tests | nothing: installing is enough |
+| Quality Gates rules | `qualityGates`, as above |
+| `quarantine.json` | `quarantine: true`, as above |
+| Step timeline per test | page-object actions wrapped in `StepRecorder.step()`, and `StepRecorder.setTest()` before each test ([Per-step timings](#per-step-timings)) |
+| Failure screenshot, page source, Gallery | `captureFailure(driver, title)` when a test fails ([Failure screenshots and recordings](#failure-screenshots-and-recordings)) |
+| Screen recording of a failed test | `recordTest()` / `finishRecording()` around each test |
+| Device, OS, Appium version | `recordSession(driver)` after the session starts |
+
+A complete working pair is in
+[`docs/reference/jest.config.ts`](docs/reference/jest.config.ts) and
+[`docs/reference/jest.setup.ts`](docs/reference/jest.setup.ts).
+
 ## Options
 
 Every entry point takes the same `ReportOptions`. The type is exported, so a

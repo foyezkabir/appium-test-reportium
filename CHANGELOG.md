@@ -41,6 +41,9 @@ and a calmer, crisper look.
 
 **Package**
 
+- README: a *Recommended config* section, with every gate rule, the
+  quarantine file and typed options, and what the suite adds for steps,
+  screenshots, recordings and the device.
 - The option types are exported: end the reporter options in
   `satisfies ReportOptions` for autocomplete, and a typecheck that catches a
   misspelt rule or a wrong value.
