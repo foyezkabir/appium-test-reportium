@@ -149,7 +149,22 @@ writeReport(run, { outputDirectory: 'reports' });   // or renderReport(run) → 
 
 ## Options
 
-Every entry point takes the same `ReportOptions`:
+Every entry point takes the same `ReportOptions`. The type is exported, so a
+TypeScript config gets autocomplete and catches a misspelt option or a wrong
+value (`maxFailure`, `minPassRate: '95'`, `minStabilityGrade: 'E'`) before the
+run, instead of the rule silently showing as *Not set*:
+
+```ts
+// jest.config.ts
+import type { ReportOptions } from 'testreportium';
+
+reporters: [
+  'default',
+  ['testreportium/jest', {
+    qualityGates: { maxFailures: 0, minPassRate: 95 },
+  } satisfies ReportOptions],
+],
+```
 
 | Option | Default |
 |---|---|
@@ -397,6 +412,12 @@ are shown with their full path so they stay apart. Long names are cut with
 The search box (top bar) and **Filter tests…** (above the Tests list) match
 every word you type, in any order, against the test title, its group, error
 message, diagnosis and step names. Search combines with the filters.
+
+- **A TC number can be typed any way.** `7`, `07`, `tc07`, `tc-7`, `TC_07` and
+  `tc 07` all find TC-07, and only TC-07: a number on its own means the TC
+  number, so `7` does not also match `17` or a 7.69 s duration. (In a run with
+  no TC numbers, numbers match as ordinary text.)
+- **Dashes, underscores and colons are ignored,** so `signin` finds "sign-in".
 
 Skipped tests have no filter of their own. Search for `skipped` to list them.
 

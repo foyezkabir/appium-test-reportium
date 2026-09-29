@@ -736,7 +736,7 @@ function page(c, options) {
     const l = tests.filter((t) => t.groupName === g);
     const nf = l.filter((t) => t.st === 'failed').length;
     return `<div class="lgroup"><div class="lghead">${icon(I.folder)}<span>${esc(g)}</span>${nf ? `<span class="tag red">${nf} failing</span>` : `<span class="tag green">${l.length}</span>`}</div>
-      ${l.map((t) => `<a class="titem ${t.st}" href="#${t.id}" data-id="${t.id}" data-st="${t.st}" data-kind="${t.kind ?? ''}" data-group="${esc(g)}" data-att="${t.att.join(' ')}" data-cmp="${Object.keys(c.cmp).filter((k) => c.cmp[k].has(t.key)).join(' ')}" data-q="${qKeys.has(t.key) ? 1 : ''}">
+      ${l.map((t) => `<a class="titem ${t.st}" href="#${t.id}" data-id="${t.id}" data-st="${t.st}" data-kind="${t.kind ?? ''}" data-group="${esc(g)}" data-att="${t.att.join(' ')}" data-cmp="${Object.keys(c.cmp).filter((k) => c.cmp[k].has(t.key)).join(' ')}" data-q="${qKeys.has(t.key) ? 1 : ''}" data-tc="${t.tc ? Number(t.tc.match(/\d+/)[0]) : ''}">
         <span class="dot"></span><span class="tt"><b>${t.tc ? `<em>${esc(t.tc)}:</em> ` : ''}${esc(t.rest)}</b><small>${esc(t.kind ? KINDS[t.kind].label : t.steps.length ? `${t.steps.length} steps` : STATUS_LABEL[t.status] ?? t.status)}</small>${t.att.length ? `<span class="ttags">${attTags(t)}</span>` : ''}</span>
         <span class="td">${dur(t.duration)}</span></a>`).join('')}</div>`;
   }).join('');
@@ -1992,12 +1992,22 @@ function route(){
   }
   show('overview',null);
 }
+/* Search words. A number, or a TC id written any way (7, 07, tc07, tc-7, TC_07),
+   finds that TC number. Any other word matches the text with dashes,
+   underscores, colons and spaces ignored, so "signin" finds "sign-in". When no
+   test has a TC number, numbers are matched as text like any other word. */
+var hasTc=$$('.titem').some(function(t){return t.dataset.tc!==''});
+function hit(w,t,text,flat){
+  var m=hasTc&&w.match(/^(?:tc[-_]?)?0*(\\d+):?$/);
+  if(m) return t.dataset.tc!==''&&+t.dataset.tc===+m[1];
+  return text.indexOf(w)>-1||flat.indexOf(w.replace(/[-_:]/g,''))>-1;
+}
 function apply(){
   var term=((q.value||'')+' '+(tf.value||'')).trim().toLowerCase(), shown=0, any=false;
   $$('.titem').forEach(function(t){
-    var d=$('#d-'+t.dataset.id), text=(t.textContent+' '+(d?d.textContent:'')).toLowerCase();
+    var d=$('#d-'+t.dataset.id), text=(t.textContent+' '+(d?d.textContent:'')).toLowerCase(), flat=text.replace(/[-_:\\s]/g,'');
     var ok=(!filters.att||(' '+t.dataset.att+' ').indexOf(' '+filters.att+' ')>-1)&&(!filters.st||t.dataset.st===filters.st)&&(!filters.kind||t.dataset.kind===filters.kind)&&(!filters.group||t.dataset.group===filters.group)&&(!filters.cmp||(' '+t.dataset.cmp+' ').indexOf(' '+filters.cmp+' ')>-1)&&(!filters.q||t.dataset.q===filters.q)
-      &&(!term||term.split(/\\s+/).every(function(w){return text.indexOf(w)>-1}));
+      &&(!term||term.split(/\\s+/).every(function(w){return hit(w,t,text,flat)}));
     t.hidden=!ok; if(ok) shown++;
   });
   $$('.lgroup').forEach(function(g){g.hidden=!$$('.titem',g).some(function(t){return !t.hidden})});

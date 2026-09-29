@@ -245,3 +245,10 @@ test('duration profile draws every test, grouped by spec, with a spec picker for
   const one = renderReport({ startTime: 1, duration: 1, suites: [mk('tests/a.spec.ts', 3)] }, { outputDirectory: tmpdir(), historyFile: false });
   assert.doesNotMatch(one, /id="bspec"/, 'no picker for one spec');
 });
+
+test('each test carries its TC number, so search can find TC-07 as 7, 07 or tc07', () => {
+  const run = { startTime: 1, duration: 1, suites: [{ file: 'a.spec.ts', tests: ['TC-07: seven', 'TC17: seventeen', 'plain title'].map((title) => ({ title, fullName: `A ${title}`, group: ['A'], status: 'passed', duration: 5, errors: [] })) }] };
+  const html = renderReport(run, { outputDirectory: tmpdir(), historyFile: false });
+  assert.deepEqual([...html.matchAll(/data-tc="(\d*)"/g)].map((m) => m[1]), ['7', '17', '']);
+  assert.match(html, /w\.match\(\/\^\(\?:tc\[-_\]\?\)\?0\*\(\\d\+\):\?\$\/\)/, 'the matcher reads a TC id written any way');
+});

@@ -991,23 +991,23 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   <div class="split">
     <aside class="tlist"><div class="tlist-top"><input id="tf" class="input" type="search" placeholder="Filter tests…" autocomplete="off"><span id="tcount" class="mono muted"></span></div>
       <div class="tlist-body"><div class="lgroup"><div class="lghead"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span>Orders: creation and validation</span><span class="tag red">7 failing</span></div>
-      <a class="titem passed" href="#t1" data-id="t1" data-st="passed" data-kind="" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+      <a class="titem passed" href="#t1" data-id="t1" data-st="passed" data-kind="" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="1">
         <span class="dot"></span><span class="tt"><b><em>TC01:</em> Order is created with valid values</b><small>6 steps</small></span>
-        <span class="td">1.86s</span></a><a class="titem failed" href="#t2" data-id="t2" data-st="failed" data-kind="app" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+        <span class="td">1.86s</span></a><a class="titem failed" href="#t2" data-id="t2" data-st="failed" data-kind="app" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="3">
         <span class="dot"></span><span class="tt"><b><em>TC03:</em> Duplicate code is rejected with a message</b><small>Possible app defects</small></span>
-        <span class="td">1.71s</span></a><a class="titem skipped" href="#t3" data-id="t3" data-st="skipped" data-kind="" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+        <span class="td">1.71s</span></a><a class="titem skipped" href="#t3" data-id="t3" data-st="skipped" data-kind="" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="5">
         <span class="dot"></span><span class="tt"><b><em>TC05:</em> Notes accepts 500 characters</b><small>Skipped</small></span>
-        <span class="td">0ms</span></a><a class="titem failed" href="#t4" data-id="t4" data-st="failed" data-kind="test" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+        <span class="td">0ms</span></a><a class="titem failed" href="#t4" data-id="t4" data-st="failed" data-kind="test" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="10">
         <span class="dot"></span><span class="tt"><b><em>TC10:</em> locator not found</b><small>Locator &amp; wait issues</small></span>
-        <span class="td">1ms</span></a><a class="titem failed" href="#t5" data-id="t5" data-st="failed" data-kind="test" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+        <span class="td">1ms</span></a><a class="titem failed" href="#t5" data-id="t5" data-st="failed" data-kind="test" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="11">
         <span class="dot"></span><span class="tt"><b><em>TC11:</em> stale element</b><small>Locator &amp; wait issues</small></span>
-        <span class="td">1ms</span></a><a class="titem failed" href="#t6" data-id="t6" data-st="failed" data-kind="env" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+        <span class="td">1ms</span></a><a class="titem failed" href="#t6" data-id="t6" data-st="failed" data-kind="env" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="12">
         <span class="dot"></span><span class="tt"><b><em>TC12:</em> session lost</b><small>Environment issues</small></span>
-        <span class="td">1ms</span></a><a class="titem failed" href="#t7" data-id="t7" data-st="failed" data-kind="env" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+        <span class="td">1ms</span></a><a class="titem failed" href="#t7" data-id="t7" data-st="failed" data-kind="env" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="13">
         <span class="dot"></span><span class="tt"><b><em>TC13:</em> tls</b><small>Environment issues</small></span>
-        <span class="td">1ms</span></a><a class="titem failed" href="#t8" data-id="t8" data-st="failed" data-kind="app" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+        <span class="td">1ms</span></a><a class="titem failed" href="#t8" data-id="t8" data-st="failed" data-kind="app" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="14">
         <span class="dot"></span><span class="tt"><b><em>TC14:</em> plain assertion</b><small>Possible app defects</small></span>
-        <span class="td">4ms</span></a><a class="titem failed" href="#t9" data-id="t9" data-st="failed" data-kind="unknown" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="">
+        <span class="td">4ms</span></a><a class="titem failed" href="#t9" data-id="t9" data-st="failed" data-kind="unknown" data-group="Orders: creation and validation" data-att="" data-cmp="" data-q="" data-tc="15">
         <span class="dot"></span><span class="tt"><b><em>TC15:</em> unmatched</b><small>Unclassified</small></span>
         <span class="td">1ms</span></a></div></div></aside>
     <div class="tdetail"><article class="detail passed" id="d-t1" data-id="t1">
@@ -1353,12 +1353,22 @@ function route(){
   }
   show('overview',null);
 }
+/* Search words. A number, or a TC id written any way (7, 07, tc07, tc-7, TC_07),
+   finds that TC number. Any other word matches the text with dashes,
+   underscores, colons and spaces ignored, so "signin" finds "sign-in". When no
+   test has a TC number, numbers are matched as text like any other word. */
+var hasTc=$$('.titem').some(function(t){return t.dataset.tc!==''});
+function hit(w,t,text,flat){
+  var m=hasTc&&w.match(/^(?:tc[-_]?)?0*(\d+):?$/);
+  if(m) return t.dataset.tc!==''&&+t.dataset.tc===+m[1];
+  return text.indexOf(w)>-1||flat.indexOf(w.replace(/[-_:]/g,''))>-1;
+}
 function apply(){
   var term=((q.value||'')+' '+(tf.value||'')).trim().toLowerCase(), shown=0, any=false;
   $$('.titem').forEach(function(t){
-    var d=$('#d-'+t.dataset.id), text=(t.textContent+' '+(d?d.textContent:'')).toLowerCase();
+    var d=$('#d-'+t.dataset.id), text=(t.textContent+' '+(d?d.textContent:'')).toLowerCase(), flat=text.replace(/[-_:\s]/g,'');
     var ok=(!filters.att||(' '+t.dataset.att+' ').indexOf(' '+filters.att+' ')>-1)&&(!filters.st||t.dataset.st===filters.st)&&(!filters.kind||t.dataset.kind===filters.kind)&&(!filters.group||t.dataset.group===filters.group)&&(!filters.cmp||(' '+t.dataset.cmp+' ').indexOf(' '+filters.cmp+' ')>-1)&&(!filters.q||t.dataset.q===filters.q)
-      &&(!term||term.split(/\s+/).every(function(w){return text.indexOf(w)>-1}));
+      &&(!term||term.split(/\s+/).every(function(w){return hit(w,t,text,flat)}));
     t.hidden=!ok; if(ok) shown++;
   });
   $$('.lgroup').forEach(function(g){g.hidden=!$$('.titem',g).some(function(t){return !t.hidden})});
