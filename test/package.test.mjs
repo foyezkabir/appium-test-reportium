@@ -21,3 +21,8 @@ test('package ships only the build and its licences', () => {
   assert.equal(pkg.license, 'MIT');
   assert.equal(pkg.bin?.testreportium, 'dist/cli.js');
 });
+
+test('config types are exported, so a typed jest.config catches a wrong option', () => {
+  const dts = readFileSync(new URL('../dist/index.d.ts', import.meta.url), 'utf8');
+  for (const t of ['ReportOptions', 'QualityGates', 'Run']) assert.match(dts, new RegExp(`export type ${t} =`), `${t} is exported`);
+});
