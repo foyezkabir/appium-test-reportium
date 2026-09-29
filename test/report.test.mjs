@@ -161,6 +161,11 @@ test('a clean all-green run still shows gates, quarantine and filters, saying wh
   assert.doesNotMatch(first, /<small>Status<\/small>/, 'status filtering is the sidebar tiles, not a second list');
   assert.match(first, /<small>Suite groups<\/small>/, 'offered even for a single suite');
   assert.match(first, /StepRecorder\.step\(\)/, 'empty test detail says how to get steps');
+  for (const kind of ['Possible app defects', 'Locator &amp; wait issues', 'Environment issues', 'Hangs &amp; timeouts']) {
+    assert.match(first, new RegExp(`<b>0</b><span>${kind}</span>`), `${kind} card shows 0`);
+    assert.match(first, new RegExp(`disabled>\\s*<span class="sdot"></span><span class="fname">${kind}</span><i>0</i>`), `${kind} filter shows 0`);
+  }
+  assert.doesNotMatch(first, /Unclassified/, 'Unclassified only when a test has it');
 
   const historyRuns = [{ startTime: run.startTime - 1000, duration: 2000, passed: 2, failed: 0, skipped: 0, flaky: 0, tests: {} }];
   const later = renderReport(run, { ...base, historyRuns, qualityGates: { maxFailures: 0 } });
@@ -171,4 +176,33 @@ test('a clean all-green run still shows gates, quarantine and filters, saying wh
   }
   assert.match(later, /<b>Max flaky rate<\/b><small>No limit set[\s\S]*?<b>0%<\/b>[\s\S]*?<em>Not set<\/em>/, 'an unset rule still shows its value, zero included');
   assert.match(later, /1 \/ 1 rules met/, 'only the rules you set count');
+});
+
+test('What went wrong is on every failed test: diagnosed from waitUntil messages, or saying it is not recognised', () => {
+  const fail = (title, msg) => ({ title, fullName: `Login ${title}`, group: ['Login'], status: 'failed', duration: 1000, errors: [msg] });
+  const tests = [
+    fail('TC01: error shown', 'Error: Text "Invalid email or password" did not appear within 30000ms.\n    at LoginPage.waitForText (base.page.ts:207:5)'),
+    fail('TC02: lands on dashboard', 'Error: bottom navigation was not displayed within 20000ms.'),
+    fail('TC03: sheet closes', 'Error: sign-in sheet was still displayed after 10000ms.'),
+    fail('TC04: odd failure', 'Error: something nobody has seen before'),
+  ];
+  const run = { startTime: Date.parse('2026-01-02T00:00:00Z'), duration: 4000, suites: [{ file: 'login.spec.ts', tests }] };
+  const html = renderReport(run, { outputDirectory: tmpdir(), historyFile: false });
+
+  assert.match(html, /never showed the text “Invalid email or password”/);
+  assert.match(html, /“bottom navigation” never appeared on screen/);
+  assert.match(html, /should have disappeared was still on screen/);
+  assert.match(html, /The test failed with: <code>Error: something nobody has seen before<\/code>/);
+  assert.equal(html.match(/What went wrong<\/h4>/g).length, 4);
+});
+
+test('JUnit adapter splits jest-junit default names back into describe group and title', () => {
+  const doc = `<testsuites><testsuite name="Login — email and password" tests="2">
+    <testcase classname="Login — email and password TC-01: form opens" name="Login — email and password TC-01: form opens" time="1.5"></testcase>
+    <testcase classname="Login — email and password TC-02: signs in" name="Login — email and password TC-02: signs in" time="2"><failure>Error: boom</failure></testcase>
+  </testsuite></testsuites>`;
+  const tests = fromJUnit(doc).suites[0].tests;
+  assert.deepEqual(tests.map((t) => t.title), ['TC-01: form opens', 'TC-02: signs in']);
+  assert.deepEqual(tests.map((t) => t.group), [['Login — email and password'], ['Login — email and password']]);
+  assert.equal(tests[0].fullName, 'Login — email and password TC-01: form opens', 'full name still pairs steps');
 });

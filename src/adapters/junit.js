@@ -80,14 +80,23 @@ export function fromJUnit(xml) {
       const tests = [];
       for (const [, ta, tb] of body.matchAll(/<testcase\b([^>]*?)(?:\/>|>([\s\S]*?)<\/testcase>)/g)) {
         const t = attrs(ta);
-        const title = t.name ?? '';
+        let title = t.name ?? '';
         // classname is the describe path for Jest/Mocha; for WDIO it can be a
         // dotted spec id, still a sensible group label.
-        const group = t.classname ? [t.classname] : [];
+        let group = t.classname ? [t.classname] : [];
+        // jest-junit by default writes "<describe> <title>" into BOTH
+        // classname and name. Split it back on the suite name, or every test
+        // becomes its own group and its title stops matching its screenshot.
+        const full = t.classname && t.classname === title ? title : undefined;
+        if (full) {
+          const prefix = s.name ? `${s.name} ` : '';
+          if (prefix && full.startsWith(prefix) && full.length > prefix.length) title = full.slice(prefix.length);
+          group = s.name ? [s.name] : [];
+        }
         const ms = parseFloat(t.time);
         tests.push({
           title,
-          fullName: [...group, title].join(' '),
+          fullName: full ?? [...group, title].join(' '),
           group,
           ...outcome(tb),
           duration: Number.isFinite(ms) ? Math.round(ms * 1000) : undefined,

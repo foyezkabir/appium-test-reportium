@@ -172,6 +172,7 @@ background:var(--card);color:var(--fg);font-size:13.5px;text-align:left;cursor:p
 .att{display:grid;text-align:left;gap:2px;padding:18px 20px;border-radius:12px;border:1px solid var(--border);border-left:4px solid var(--tone);cursor:pointer;
 background:linear-gradient(90deg,color-mix(in srgb,var(--tone) 10%,var(--card)),var(--card) 60%)}
 .att:hover{border-color:var(--tone)}
+.att:disabled{opacity:.5;cursor:default}.att:disabled:hover{border-color:var(--border)}
 .att b{font-family:var(--mono);font-size:28px;line-height:1.2}
 .att span{font-weight:600}
 .att small{color:var(--fg2);font-size:12px}
@@ -814,7 +815,8 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
         <div class="frows"><button class="frow red plain" data-f="kind" data-v="app" title="Possible app defects">
       <span class="sdot"></span><span class="fname">Possible app defects</span><i>2</i></button><button class="frow orange plain" data-f="kind" data-v="test" title="Locator &amp; wait issues">
       <span class="sdot"></span><span class="fname">Locator &amp; wait issues</span><i>2</i></button><button class="frow yellow plain" data-f="kind" data-v="env" title="Environment issues">
-      <span class="sdot"></span><span class="fname">Environment issues</span><i>2</i></button><button class="frow blue plain" data-f="kind" data-v="unknown" title="Unclassified">
+      <span class="sdot"></span><span class="fname">Environment issues</span><i>2</i></button><button class="frow purple plain" data-f="kind" data-v="timeout" title="Hangs &amp; timeouts" disabled>
+      <span class="sdot"></span><span class="fname">Hangs &amp; timeouts</span><i>0</i></button><button class="frow blue plain" data-f="kind" data-v="unknown" title="Unclassified">
       <span class="sdot"></span><span class="fname">Unclassified</span><i>1</i></button></div></div><div class="fgroup"><div class="fsub"><small>Suite groups</small><span>2 groups</span></div>
         <div class="frows"><button class="frow group plain" data-f="group" data-v="Orders: creation and validation" title="Orders: creation and validation">
       <svg class="i fic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.9a2 2 0 01-1.7-.9l-.9-1.3A2 2 0 007.8 3H4a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg><span class="fname">Orders: creation and validation</span><i>3</i></button><button class="frow group plain" data-f="group" data-v="Explainer coverage" title="Explainer coverage">
@@ -850,7 +852,8 @@ body.side-collapsed .side{visibility:hidden;overflow:hidden;border-right:0}
   <h3 class="shead"><span class="gi badge red"><svg class="gicon" viewBox="8 8 48 48" aria-hidden="true"><rect class="ic-body" x="10" y="10" width="44" height="44" rx="14"/><rect class="ic-inner" x="13.5" y="13.5" width="37" height="37" rx="11"/><path class="ic-tri" d="M32 17L44 39C44.6 40.1 43.8 41.5 42.5 41.5H21.5C20.2 41.5 19.4 40.1 20 39L32 17Z"/><path class="ic-stem" d="M32 26V32"/><circle class="ic-pip" cx="32" cy="36.5" r="1.3"/></svg></span>Failure breakdown</h3><div class="atts"><button class="att red" data-go="kind:app">
       <b>2</b><span>Possible app defects</span><small>The app did not do what the test required</small></button><button class="att orange" data-go="kind:test">
       <b>2</b><span>Locator &amp; wait issues</span><small>The selector or a wait did not match the screen</small></button><button class="att yellow" data-go="kind:env">
-      <b>2</b><span>Environment issues</span><small>Device, session or network, not a test result</small></button><button class="att blue" data-go="kind:unknown">
+      <b>2</b><span>Environment issues</span><small>Device, session or network, not a test result</small></button><button class="att purple" data-go="kind:timeout" disabled>
+      <b>0</b><span>Hangs &amp; timeouts</span><small>Something stalled; see the step timings</small></button><button class="att blue" data-go="kind:unknown">
       <b>1</b><span>Unclassified</span><small>No known failure shape matched. Read the trace</small></button></div>
   <h3 class="shead"><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Failure clusters</h3><div class="clusters">
     <article class="cluster red">
@@ -1196,7 +1199,7 @@ Received: &quot;record saved&quot;
       <header class="dhead"><span class="dot"></span><div class="dtitle"><h3><em>TC15:</em> unmatched</h3>
         <div class="dmeta"><span class="chip mono">Orders: creation and validation</span><span class="chip">Explainer coverage</span></div></div>
         <div class="dstat"><span class="mono">1ms</span><span class="tag blue">New</span><span class="tag blue">Unclassified</span><span class="pill failed">Failed</span></div></header>
-      
+      <section class="block sec why"><h4><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>What went wrong</h4><p>The test failed with: <code>Error: Something entirely unanticipated happened in the bridge</code></p><p class="next">This failure shape is not one the report can diagnose yet, so no cause is guessed. The step timeline, stack trace and screenshot below show where it stopped.</p></section>
       
       
       <details class="block sec raw" open><summary><svg class="i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>Full error &amp; stack trace</summary><pre class="err"><span class="hl">Error: Something entirely unanticipated happened in the bridge</span>

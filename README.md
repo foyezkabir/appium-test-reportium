@@ -334,8 +334,10 @@ Filters narrow the **Tests** list. Clicking one opens the Tests view.
 - **Within a group, one choice is active at a time.**
 - **Click an active filter again to turn it off.** **clear all** turns every
   filter off.
-- **Suite groups is always shown.** Attention and Failure kind only appear
-  when they have something in them.
+- **Suite groups and Failure kind are always shown.** Failure kind lists all
+  four kinds with their count, 0 included (a 0 cannot be clicked), plus
+  *Unclassified* when a test has it. Attention only appears when it has
+  something in it.
 - **To filter by status**, click the Passed, Failed or Flaky tile at the top
   of the sidebar.
 
@@ -411,7 +413,7 @@ Skipped tests have no filter of their own. Search for `skipped` to list them.
 | **Quality Gates** | always shown. Without [`qualityGates`](#quality-gates-and-quarantine) it is a small *Not configured* panel that says how to add rules. With them: all five rules, each with its condition, actual value and PASSED / FAILED. A rule you did not set still shows this run's value (0 included), marked *Not set*, and never decides the gate, plus a pass-rate chart for the last runs with your minimum as a dashed line. Hover any point to see that run's pass rate, counts, gate result and new failures |
 | **Quarantine Registry** | always shown. On a first run it says *Needs history*; with history and no flaky test it says *0 flaky*. Otherwise it lists every test flaky enough to quarantine: at least the threshold (default 0.30), mixed passes and fails. Each test with its score and how often it failed, plus a chart of how many tests were flaky at each run. It says *quarantined* when `quarantine` is on (the list is written to `quarantine.json`), otherwise *flagged* |
 | **Attention required** | cards for new failures, performance regressions and flaky tests (only those with a count). Click one to filter the Tests list |
-| **Failure breakdown** | one card per failure kind in this run. Click one to filter |
+| **Failure breakdown** | always shown: one card for each of the four failure kinds with its count, 0 included, plus *Unclassified* when a test has it. Click a card to filter |
 | **Failure clusters** | failures that share a cause, grouped: the same diagnosis, or the same first error line with numbers ignored. One cluster with many tests usually means one root cause |
 | **Quick insights** | the slowest test; the most flaky test (or, without history, the slowest step); and a pass-rate strip per run: green ≥ 90%, yellow ≥ 70%, red below |
 | **Test duration profile** | one bar per test (first 40), coloured by status. Click a bar to open that test |

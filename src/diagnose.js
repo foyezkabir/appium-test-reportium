@@ -60,6 +60,32 @@ export function explain(raw = '') {
       next: 'Usually a dialog, sheet or spinner that did not dismiss. Check whether the preceding action actually completed.',
     };
   }
+  // waitUntil with a timeoutMsg: 'Text "Welcome" did not appear within 30000ms.'
+  if (/did not appear within \d+\s*ms/i.test(m)) {
+    const txt = quoted(first);
+    return {
+      kind: 'app',
+      why: `The app never showed ${txt ? `the text “${txt}”` : 'what the test waited for'} within the wait.`,
+      next: 'Either the app did not produce that message (a real defect) or the copy changed. Check the screenshot below against the expected string in the locator file.',
+    };
+  }
+  // waitUntil with a timeoutMsg: "bottom navigation was not displayed within 20000ms."
+  if (/(was )?not (displayed|visible) within \d+\s*ms/i.test(m)) {
+    const what = first.replace(/^\w*Error:\s*/, '').match(/^(.+?) was not (displayed|visible) within/i)?.[1];
+    return {
+      kind: 'test',
+      why: `${what ? `“${what}”` : 'An element the test waited for'} never appeared on screen within the wait.`,
+      next: 'Confirm on the screenshot whether the screen even reached the right state. If it did, the locator is stale: re-inspect the live hierarchy.',
+    };
+  }
+  // waitUntil with a timeoutMsg: "loading spinner was still displayed after 10000ms."
+  if (/still (displayed|visible) after \d+\s*ms/i.test(m)) {
+    return {
+      kind: 'test',
+      why: 'An element that should have disappeared was still on screen when the wait expired.',
+      next: 'Usually a dialog, sheet or spinner that did not dismiss. Check whether the preceding action actually completed.',
+    };
+  }
   // WebdriverIO: "element ("~Save") still not displayed after 5000ms".
   if (/still not (displayed|existing|clickable|enabled) after/i.test(m)) {
     return {

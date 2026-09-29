@@ -477,7 +477,9 @@ function page(c, options) {
     [c.slower.length, 'Performance regressions', 'Tests that got slower than their average', 'purple', 'att:slow'],
     [c.flaky.length, 'Flaky tests', 'Tests with unstable results across runs', 'yellow', 'att:flaky'],
   ].filter(([n]) => n).map(([n, l, note, tone, go]) => `<button class="att ${tone}" data-go="${go}"><b>${n}</b><span>${l}</span><small>${note}</small></button>`).join('');
-  const kindCards = [...byKind.entries()].map(([k, list]) => `<button class="att ${KINDS[k].tone}" data-go="kind:${k}">
+  // The four kinds are always listed, 0 included; Unclassified only when a test has it.
+  const kindList = Object.keys(KINDS).filter((k) => k !== 'unknown' || byKind.has(k)).map((k) => [k, byKind.get(k) ?? []]);
+  const kindCards = kindList.map(([k, list]) => `<button class="att ${KINDS[k].tone}" data-go="kind:${k}"${list.length ? '' : ' disabled'}>
       <b>${list.length}</b><span>${esc(KINDS[k].label)}</span><small>${esc(KINDS[k].note)}</small></button>`).join('');
 
   const clusters = new Map();
@@ -711,7 +713,8 @@ function page(c, options) {
       <header class="dhead"><span class="dot"></span><div class="dtitle"><h3>${t.tc ? `<em>${esc(t.tc)}:</em> ` : ''}${esc(t.rest)}</h3>
         <div class="dmeta"><span class="chip mono">${esc(t.file)}</span>${t.groupName !== t.file ? `<span class="chip">${esc(t.groupName)}</span>` : ''}${attTags(t)}</div></div>
         <div class="dstat"><span class="mono">${dur(t.duration)}</span>${t.att.includes('flaky') || t.ins.health === 'skipped' ? '' : `<span class="tag ${ht}">${hl}</span>`}${t.kind ? `<span class="tag ${KINDS[t.kind].tone}">${esc(KINDS[t.kind].label)}</span>` : ''}<span class="pill ${t.st}">${esc(STATUS_LABEL[t.status] ?? t.status)}</span>${speed}</div></header>
-      ${t.diag ? `<section class="block sec why"><h4>${icon(I.info)}What went wrong</h4><p>${esc(t.diag.why)}</p><p class="next">${esc(t.diag.next)}</p></section>` : ''}
+      ${t.diag ? `<section class="block sec why"><h4>${icon(I.info)}What went wrong</h4><p>${esc(t.diag.why)}</p><p class="next">${esc(t.diag.next)}</p></section>`
+        : t.st === 'failed' ? `<section class="block sec why"><h4>${icon(I.info)}What went wrong</h4><p>${t.firstLine ? `The test failed with: <code>${esc(t.firstLine)}</code>` : 'The test failed without an error message.'}</p><p class="next">This failure shape is not one the report can diagnose yet, so no cause is guessed. The step timeline, stack trace and screenshot below show where it stopped.</p></section>` : ''}
       ${historyBlock(t)}
       ${t.steps.length ? stepTimeline(t.steps) : ''}
       ${errs.map((m) => `<details class="block sec raw"${t.diag ? '' : ' open'}><summary>${icon(I.code)}Full error &amp; stack trace</summary><pre class="err">${highlight(stripAnsi(m))}</pre></details>`).join('')}
@@ -945,7 +948,7 @@ function page(c, options) {
   const fgroups = [];
   // Suite groups is always offered, even for a single suite; status filtering is the tiles above.
   if (attn.length) fgroups.push(['Attention', attn.map(([a, n]) => rowChip('att', a, ATT[a][0], n, '<span class="sdot"></span>', ATT[a][1])).join(''), 'vs earlier runs']);
-  if (byKind.size) fgroups.push(['Failure kind', [...byKind.entries()].map(([k, l]) => rowChip('kind', k, KINDS[k].label, l.length, '<span class="sdot"></span>', KINDS[k].tone, true)).join(''), plural(byKind.size, 'category', 'categories')]);
+  fgroups.push(['Failure kind', kindList.map(([k, l]) => rowChip('kind', k, KINDS[k].label, l.length, '<span class="sdot"></span>', KINDS[k].tone, true)).join(''), plural(byKind.size, 'category', 'categories') + ' hit']);
   if (groups.length) fgroups.push(['Suite groups', groups.map((g) => rowChip('group', g, g, tests.filter((t) => t.groupName === g).length, icon(I.folder, 'fic'), 'group', true)).join(''), plural(groups.length, 'group', 'groups')]);
   // "clear all" sits on the first group's line, where the eye already is.
   const filtersHtml = fgroups.map(([title, rows, note], i) => `<div class="fgroup"><div class="fsub"><small>${title}</small>${i === 0 ? clearBtn : `<span>${note}</span>`}</div>
@@ -1251,6 +1254,7 @@ background:var(--card);color:var(--fg);font-size:13.5px;text-align:left;cursor:p
 .att{display:grid;text-align:left;gap:2px;padding:18px 20px;border-radius:12px;border:1px solid var(--border);border-left:4px solid var(--tone);cursor:pointer;
 background:linear-gradient(90deg,color-mix(in srgb,var(--tone) 10%,var(--card)),var(--card) 60%)}
 .att:hover{border-color:var(--tone)}
+.att:disabled{opacity:.5;cursor:default}.att:disabled:hover{border-color:var(--border)}
 .att b{font-family:var(--mono);font-size:28px;line-height:1.2}
 .att span{font-weight:600}
 .att small{color:var(--fg2);font-size:12px}
