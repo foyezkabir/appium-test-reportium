@@ -5,6 +5,52 @@ version number when that version is published to npm.
 
 ## Unreleased
 
+## 0.2.1 · 2026-09-29
+
+Fixes found on a real Appium suite, a clearer Comparison page, typed options
+and a calmer, crisper look.
+
+**Report**
+
+- Fix: *What went wrong* is on every failed test. WebdriverIO `waitUntil`
+  messages ("did not appear within", "was not displayed within", "was still
+  displayed after") are now diagnosed; an error no rule knows says so instead
+  of the section vanishing.
+- Suite groups are the spec file (`login.spec.ts`), never the `describe` text.
+  Two specs with the same name in different folders keep their full path.
+- Failure kind (filter and Failure breakdown) always lists all four kinds with
+  their count, 0 included, at full brightness; *Unclassified* only when a test
+  has it.
+- Comparison compares with the last run of the same spec files, not simply the
+  last run: a harness-only run no longer makes every login test "new" and the
+  harness tests "removed". *Removed* only counts a test gone from a spec that
+  ran. Every card shows five tests, as boxes in its colour, then a clickable
+  *+N more* that opens the Tests view filtered to them (a new *Compared with
+  run #N* filter group). All cards are one size.
+- Quarantine Registry shows five tests, then *+N more*, which opens a new
+  *Quarantine candidates* / *Quarantined* filter of exactly those tests.
+- Quick insights always has three cards; one with no data says why.
+- Test duration profile draws every test (no 40-test cap), grouped by spec on
+  one time scale, scrolls sideways, and has a spec picker.
+- Search finds a TC number however it is typed: `7`, `07`, `tc07`, `tc-7`.
+  Dashes, underscores and colons are ignored in other words.
+- Chart tooltips name tests by title, without the `describe` text.
+- Look: brighter but not neon status colours in every theme; the pass-rate
+  ring, the Pass ratio donut and the warning icons have clean edges (no glow);
+  a new Comparison icon.
+
+**Package**
+
+- The option types are exported: end the reporter options in
+  `satisfies ReportOptions` for autocomplete, and a typecheck that catches a
+  misspelt rule or a wrong value.
+- Fix: the CLI reads jest-junit's default names (the full name in both
+  `classname` and `name`) back into group and title, and takes the spec file
+  from `addFileAttribute`. Before, every test became its own group and lost
+  its screenshot.
+
+**First run**
+
 A clean first run on a new project no longer looks broken: sections that used
 to vanish when they had no data now stay, and say why they are empty.
 

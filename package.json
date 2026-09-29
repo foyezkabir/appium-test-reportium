@@ -1,6 +1,6 @@
 {
   "name": "testreportium",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Smart, self-contained HTML test reports for Appium scripts. One file, zero network calls, failure screenshots embedded. Attach it to a ticket and it still renders.",
   "keywords": [
     "appium",
